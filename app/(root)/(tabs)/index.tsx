@@ -10,7 +10,7 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <Text className="title">Moodify</Text>
+      <Text className="font-bold text-lg my-10">Moodify</Text>
       <Link href="/on-boarding-page1">Get Started</Link>
     </View>
   );
