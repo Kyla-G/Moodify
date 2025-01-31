@@ -15,6 +15,8 @@ module.exports = {
           light: '#EEEED0',
           medium: '#F6C49E',
           dark: '#003049',
+          orange: '#FF6B35',
+          black: '#272528',
         },
         "txt": {
           orange: '#FF6B35',

@@ -31,13 +31,13 @@ export default function Index() {
       />
       
       <Text className="text-txt-orange font-LeagueSpartan-Bold text-8xl mt-100]">Moodify</Text>
-      <Text className="font-LeagueSpartan text-2xl text-center mt-2">
+      <Text className="text-txt-darkblue font-LeagueSpartan text-3xl text-center mt-2">
         Your Journey to Well-being{"\n"}One Mood at a Time
       </Text>
 
       <TouchableOpacity 
         onPress={() => router.push('/on-boarding-page1')} 
-        className="mt-20 ml-[-10] bg-[#FF6B35] rounded-[45px] px-7 py-4 flex-row justify-center items-center">
+        className="mt-20 ml-[-10] bg-bg-dark rounded-[45px] px-7 py-4 flex-row justify-center items-center">
         <Text className="text-txt-light font-LeagueSpartan-Bold text-3xl text-center">
           Get Started
         </Text>

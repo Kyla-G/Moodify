@@ -1,3 +1,5 @@
+import iconlight from "@/assets/images/iconlight.png";
+import icondark from "@/assets/images/icondark.png";
 import moodi from "@/assets/images/moodi.png";
 import moodiface from "@/assets/images/moodiface.png";
 import orangecurve from "@/assets/images/orangecurve.png";
@@ -12,8 +14,12 @@ import lightblueline from "@/assets/images/lightblueline.png";
 import lightborderdesign from "@/assets/images/lightborderdesign.png";
 import lightdesign from "@/assets/images/lightdesign.png";
 import orangedesign from "@/assets/images/orangedesign.png";
+import journal from "@/assets/images/journal.png";
+import moodiwave from "@/assets/images/moodiwave.png";
 
 export default {
+  iconlight,
+  icondark,
   moodi,
   moodiface,
   orangecurve,
@@ -24,7 +30,10 @@ export default {
   darkbluecircle,
   darkbluedesign,
   lightbluedesign,
+  lightblueline,
   lightborderdesign,
   lightdesign,
   orangedesign,
+  journal,
+  moodiwave,
 };

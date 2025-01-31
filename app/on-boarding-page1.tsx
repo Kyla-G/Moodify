@@ -10,14 +10,13 @@ export default function OnBoarding1() {
             
             <Image 
                 source={images.moods} 
-                className="absolute bottom-[-5] w-[1000px] h-[1000px]" 
+                className="absolute bottom-[5] w-[1000px] h-[1000px]" 
                 resizeMode="contain"
             />
 
-            <Text className="text-txt-orange font-LeagueSpartan-Bold text-8xl absolute top-[120px] left-16">Track</Text>
-            <Text className="text-txt-orange font-LeagueSpartan-Bold text-8xl absolute top-[185px] text-center">Moods</Text>
-
-            <Text className="absolute top-[260px] left-16 text-txt-light font-LeagueSpartan text-3xl">
+            <Text className="text-txt-orange font-LeagueSpartan-Bold text-8xl absolute top-[110px] left-20 tracking-[.-4]">Track</Text>
+            <Text className="text-txt-orange font-LeagueSpartan-Bold text-8xl absolute top-[175px] text-center tracking-[.-4]">Moods</Text>
+            <Text className="text-txt-light font-LeagueSpartan text-3xl absolute top-[260px] left-14">
                 log how you feel each day
             </Text>
 
