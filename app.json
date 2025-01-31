@@ -13,8 +13,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#EEEED0"
       }
     },
     "web": {
@@ -28,11 +28,21 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "resizeMode": "cover",
+          "backgroundColor": "#ffffff",
+          "enableFullScreenImage_legacy": true
         }
-      ]
+      ],
+    [
+       "expo-font",
+       {
+        "fonts": [
+          "./assets/fonts/LeagueSpartan-Bold.ttf",
+          "./assets/fonts/LeagueSpartan-Regular.ttf",
+          "./assets/fonts/LaoSansPro-Regular.ttf"
+        ]
+       }
+    ]
     ],
     "experiments": {
       "typedRoutes": true

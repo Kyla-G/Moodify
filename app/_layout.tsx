@@ -1,7 +1,23 @@
-import { Stack } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
 
 import "./globals.css";
+import { useFonts } from "expo-font";
+import { useEffect } from "react";
 
 export default function RootLayout() {
-  return <Stack />;
+const [fontsLoaded] = useFonts( {
+  "LeagueSpartan-Bold": require('../assets/fonts/LeagueSpartan-Bold.ttf'),
+  "LeagueSpartan-Regular": require('../assets/fonts/LeagueSpartan-Regular.ttf'),
+  "LaoSansPro-Regular": require('../assets/fonts/LaoSansPro-Regular.ttf'),
+})
+
+useEffect(() => {
+  if (fontsLoaded) {
+    SplashScreen.hideAsync();
+  }
+}, [fontsLoaded]);
+
+if(!fontsLoaded) return null;
+
+  return <Stack screenOptions={{headerShown: false}}/>;
 }
