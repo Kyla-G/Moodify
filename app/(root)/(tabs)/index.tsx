@@ -1,38 +1,47 @@
-import { Link } from "expo-router";
-import { Text, View, ActivityIndicator, Image } from "react-native";
-import { useFonts } from "expo-font";
-import { LeagueSpartan_400Regular } from "@expo-google-fonts/league-spartan";
-
-import MoodiLP from "@/assets/images/MoodiLP.png"; 
-import OrangeCurveLP from "@/assets/images/OrangeCurveLP.png"; 
+import { useRouter } from "expo-router";
+import { Text, View, Image, TouchableOpacity} from "react-native";
+import images from "@/constants/images";
 
 export default function Index() {
-  const [fontsLoaded] = useFonts({
-    LeagueSpartan: LeagueSpartan_400Regular,
-  });
-
-  if (!fontsLoaded) {
-    return <ActivityIndicator />;
-  }
-
+  const router = useRouter();
+  
   return (
-    <View className="flex-1 justify-center items-center bg-[#EEEED0] relative">
+    <View className="flex-1 justify-center items-center bg-bg-light relative">
+
       <Image 
-        source={MoodiLP} 
-        className="w-65 h-65 mb-6"
+      source={images.moodiface} 
+      className="mt-[-120px] right-[-10px] w-[500px] h-[500px] " 
+      resizeMode="contain"
       />
-      <Image 
-        source={OrangeCurveLP} 
-        className="absolute top-[-1px] right-[-10px] w-50 h-50" 
+      <Image
+      source={images.orangecurve}
+      className="absolute top-[-20px] right-[-10px] w-[150px] h-[150px]" 
       />
-      <Text className="text-[#FF6B35] font-leagueSpartanBold text-[70px] mt-50 tracking-tighter">
-        Moodify
+      <Image
+      source={images.leftlightcurve}
+      className="absolute top-40 left-[-270px] w-[500px] h-[500px]" 
+      />
+      <Image
+      source={images.rightlightcurve}
+      className="absolute bottom-[-57] right-[-50px] w-[420px] h-[420px]" 
+      />
+      <Image
+      source={images.rightdarkcurve}
+      className="absolute bottom-[-60] right-[-30px] w-[300px] h-[300px]" 
+      />
+      
+      <Text className="text-txt-orange font-LeagueSpartan-Bold text-8xl mt-100]">Moodify</Text>
+      <Text className="text-txt-darkblue font-LeagueSpartan text-3xl text-center mt-2">
+        Your Journey to Well-being{"\n"}One Mood at a Time
       </Text>
-      <Text>Your Journey to Well-being</Text>
-      <Text>One Mood at a Time</Text>
-      <Link href="/on-boarding-page1" className="mt-10 bg-[#FF6B35] rounded-[45px] px-6 py-3 items-center justify-center">
-        <Text className="text-[#EEEED0] text-lg font-bold text-center">Get Started</Text>
-      </Link>
+
+      <TouchableOpacity 
+        onPress={() => router.push('/on-boarding-page1')} 
+        className="mt-20 ml-[-10] bg-bg-dark rounded-[45px] px-7 py-4 flex-row justify-center items-center">
+        <Text className="text-txt-light font-LeagueSpartan-Bold text-3xl text-center">
+          Get Started
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
