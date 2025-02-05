@@ -1,47 +1,74 @@
 import { useRouter } from "expo-router";
-import { Text, SafeAreaView, Image, TouchableOpacity} from "react-native";
+import { Text, View, Image, TouchableOpacity } from "react-native";
+import { useWindowDimensions } from "react-native";
 import images from "@/constants/images";
 
 export default function Index() {
   const router = useRouter();
-  
-  return (
-    <SafeAreaView className="flex-1 justify-center items-center bg-bg-light relative">
+  const { width, height } = useWindowDimensions();
 
-      <Image 
-      source={images.moodiface} 
-      className="mt-[-120px] right-[-10px] w-[500px] h-[500px] " 
-      resizeMode="contain"
-      />
-      <Image
-      source={images.orangecurve}
-      className="absolute top-[-20px] right-[-10px] w-[150px] h-[150px]" 
-      />
-      <Image
-      source={images.leftlightcurve}
-      className="absolute top-40 left-[-270px] w-[500px] h-[500px]" 
-      />
-      <Image
-      source={images.rightlightcurve}
-      className="absolute bottom-[-57] right-[-50px] w-[420px] h-[420px]" 
-      />
-      <Image
-      source={images.rightdarkcurve}
-      className="absolute bottom-[-60] right-[-30px] w-[300px] h-[300px]" 
-      />
+  return (
+    <View className="flex-1 justify-center items-center bg-bg-light relative">
       
-      <Text className="text-txt-orange font-LeagueSpartan-Bold text-8xl mt-100]">Moodify</Text>
-      <Text className="text-txt-darkblue font-LeagueSpartan text-3xl text-center mt-2">
+      {/* Moodi's Face - Enlarged */}
+      <Image 
+        source={images.moodiface} 
+        style={{
+          width: width * 1.2,  // Increased to 90% of screen width
+          height: height * 0.5, // Increased to 50% of screen height
+          marginTop: height * -0.08, 
+          resizeMode: "contain",
+        }}
+      />
+
+      {/* Decorative Images */}
+      <Image source={images.orangecurve} 
+        style={{ position: "absolute", top: height * -0.05, right: width * -0.02, width: width * 0.4, height: width * 0.4 }} 
+      />
+      <Image source={images.leftlightcurve} 
+        style={{ position: "absolute", top: height * 0.2, left: width * -0.5, width: width * 0.9, height: width * 0.9 }} 
+      />
+      <Image source={images.rightlightcurve} 
+        style={{ position: "absolute", bottom: height * -0.06, right: width * -0.1, width: width * 0.8, height: width * 0.8 }} 
+      />
+      <Image source={images.rightdarkcurve} 
+        style={{ position: "absolute", bottom: height * -0.06, right: width * -0.05, width: width * 0.6, height: width * 0.6 }} 
+      />
+
+      {/* App Name */}
+      <Text 
+        style={{ fontSize: width * 0.12 }} 
+        className="text-txt-orange font-LeagueSpartan-Bold mt-6"
+      >
+        Moodify
+      </Text>
+
+      {/* Tagline */}
+      <Text 
+        style={{ fontSize: width * 0.05 }} 
+        className="text-txt-darkblue font-LeagueSpartan text-center mt-2"
+      >
         Your Journey to Well-being{"\n"}One Mood at a Time
       </Text>
 
+      {/* Get Started Button */}
       <TouchableOpacity 
         onPress={() => router.push('/on-boarding-page1')} 
-        className="mt-20 ml-[-10] bg-bg-dark rounded-[45px] px-7 py-4 flex-row justify-center items-center">
-        <Text className="text-txt-light font-LeagueSpartan-Bold text-3xl text-center">
+        style={{
+          marginTop: height * 0.08,
+          paddingVertical: height * 0.02,
+          paddingHorizontal: width * 0.15,
+          borderRadius: 45,
+        }}
+        className="bg-bg-dark flex-row justify-center items-center"
+      >
+        <Text 
+          style={{ fontSize: width * 0.06 }} 
+          className="text-txt-light font-LeagueSpartan-Bold text-center"
+        >
           Get Started
         </Text>
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }
