@@ -1,11 +1,11 @@
-import { View, Text, Image, TouchableOpacity} from "react-native";
+import { SafeAreaView, Text, Image, TouchableOpacity} from "react-native";
 import { useRouter } from "expo-router";
 import images from "@/constants/images";
 
 export default function OnBoarding3() {
     const router = useRouter();
     return (
-        <View className="flex-1 justify-center items-center bg-bg-orange relative">
+        <SafeAreaView className="flex-1 justify-center items-center bg-bg-orange relative">
 
             <Image 
                 source={images.moodiwave} 
@@ -24,6 +24,6 @@ export default function OnBoarding3() {
             className="absolute bottom-20 bg-bg-dark rounded-[45px] px-7 py-4 flex-row justify-center items-center">
             <Text className="text-txt-light font-LeagueSpartan-Bold text-3xl text-center">Get Started</Text>
         </TouchableOpacity>
-        </View>
+        </SafeAreaView>
     )
 }

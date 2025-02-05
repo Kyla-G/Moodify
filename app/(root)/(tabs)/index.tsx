@@ -1,12 +1,12 @@
 import { useRouter } from "expo-router";
-import { Text, View, Image, TouchableOpacity} from "react-native";
+import { Text, SafeAreaView, Image, TouchableOpacity} from "react-native";
 import images from "@/constants/images";
 
 export default function Index() {
   const router = useRouter();
   
   return (
-    <View className="flex-1 justify-center items-center bg-bg-light relative">
+    <SafeAreaView className="flex-1 justify-center items-center bg-bg-light relative">
 
       <Image 
       source={images.moodiface} 
@@ -42,6 +42,6 @@ export default function Index() {
           Get Started
         </Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
