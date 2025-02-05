@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity} from "react-native";
+import { SafeAreaView, Text, Image, TouchableOpacity} from "react-native";
 import { useRouter } from "expo-router";
 import images from "@/constants/images";
 
@@ -6,7 +6,7 @@ export default function OnBoarding2() {
     const router = useRouter();
 
     return (
-        <View className="flex-1 justify-center items-center bg-bg-medium relative">
+        <SafeAreaView className="flex-1 justify-center items-center bg-bg-medium relative">
 
         <Image 
             source={images.orangedesign} 
@@ -82,6 +82,6 @@ export default function OnBoarding2() {
                 className="absolute bottom-20 bg-[#FF6B35] rounded-[45px] px-7 py-4 flex-row justify-center items-center">
                 <Text className="text-txt-light font-LeagueSpartan-Bold text-3xl text-center">Next</Text>
             </TouchableOpacity>
-        </View>
+        </SafeAreaView>
     )
 }
