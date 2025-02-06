@@ -9,7 +9,7 @@ export default function OnBoarding3() {
 
             <Image 
                 source={images.journal} 
-                className="absolute bottom-[-372] w-[1350] h-[1350]" 
+                className="absolute bottom-[-412] w-[1350] h-[1350]" 
                 resizeMode="contain"
             />
 
