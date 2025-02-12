@@ -1,6 +1,7 @@
-import { SafeAreaView, Text, Image, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
+import { Text, Image, TouchableOpacity } from "react-native";
 import { useWindowDimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import images from "@/constants/images";
 
 export default function OnBoarding2() {
@@ -13,9 +14,9 @@ export default function OnBoarding2() {
            
             
             {/* Headings */}
-            <Text style={{ fontSize: width * 0.2, bottom: height * 0.41, left: width * 0.09 }} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Recognize</Text>
-            <Text style={{ fontSize: width * 0.2, bottom: height * 0.33, left: width * 0.02 }} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Patterns</Text>
-            <Text style={{ fontSize: width * 0.055, bottom: height * 0.27, left: width * 0.028 }} className="text-txt-darkblue font-LeagueSpartan absolute">Notice patterns and{"\n"}understand your emotions</Text>
+            <Text style={{ fontSize: width * 0.22, bottom: height * 0.41, left: width * 0.09 }} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Recognize</Text>
+            <Text style={{ fontSize: width * 0.22, bottom: height * 0.33, left: width * 0.02 }} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Patterns</Text>
+            <Text style={{ fontSize: width * 0.056, bottom: height * 0.27, left: width * 0.028 }} className="text-txt-darkblue font-LeagueSpartan absolute">Notice patterns and{"\n"}understand your emotions</Text>
 
             {/* Next Button */}
             <TouchableOpacity 

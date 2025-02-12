@@ -1,6 +1,7 @@
-import { SafeAreaView, Text, Image, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
+import { Text, Image, TouchableOpacity } from "react-native";
 import { useWindowDimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import images from "@/constants/images";
 
 export default function OnBoarding1() {
@@ -24,19 +25,19 @@ export default function OnBoarding1() {
 
             {/* Heading */}
             <Text 
-                style={{ fontSize: width * 0.2, top: height * 0.13, left: width * 0.15 }}
+                style={{ fontSize: width * 0.22, top: height * 0.13, left: width * 0.12 }}
                 className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">
                 Track
             </Text>
             <Text 
-                style={{ fontSize: width * 0.2, top: height * 0.2 }}
+                style={{ fontSize: width * 0.22, top: height * 0.205 }}
                 className="text-txt-orange font-LeagueSpartan-Bold absolute text-center tracking-[.-4]">
                 Moods
             </Text>
             
             {/* Subtitle */}
             <Text 
-                style={{ fontSize: width * 0.055, top: height * 0.29, left: width * 0.1 }}
+                style={{ fontSize: width * 0.056, top: height * 0.3, left: width * 0.1 }}
                 className="text-txt-light font-LeagueSpartan absolute">
                 log how you feel each day
             </Text>

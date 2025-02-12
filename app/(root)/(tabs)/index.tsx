@@ -15,7 +15,7 @@ export default function Index() {
       <Image 
         source={images.moodiface} 
         style={{
-          width: width * 1.1,  // Increased to 90% of screen width
+          width: width * 1.1,  // Increased to 110% of screen width
           height: height * 0.5, // Increased to 50% of screen height
           marginTop: height * -0.08, 
           marginRight: height * -0.03,
@@ -34,14 +34,14 @@ export default function Index() {
 
       {/* App Name */}
       <Text 
-        style={{ fontSize: width * 0.20 }} 
-        className="text-txt-orange font-LeagueSpartan-Bold mt-6 tracking-[.-4]">
+        style={{ fontSize: width * 0.22 }} 
+        className="text-txt-orange font-LeagueSpartan-Bold mt-6 tracking-[.-1]">
           Moodify
       </Text>
 
       {/* Tagline */}
       <Text 
-        style={{ fontSize: width * 0.055 }} 
+        style={{ fontSize: width * 0.056 }} 
         className="text-txt-darkblue font-LeagueSpartan text-center mt-2">
         Your Journey to Well-being{"\n"}One Mood at a Time
       </Text>
