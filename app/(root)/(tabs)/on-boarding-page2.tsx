@@ -10,13 +10,23 @@ export default function OnBoarding2() {
 
     return (
         <SafeAreaView className="flex-1 justify-center items-center bg-bg-medium">
+            
             {/* Decorative Images */}
-           
+            <Image 
+                source={images.patterns}
+                style={{
+                    position: "absolute",
+                    bottom: height * 0.22,
+                    width: width * 1, 
+                    height: width * 2,
+                    resizeMode: "contain",
+                }}
+            />
             
             {/* Headings */}
-            <Text style={{ fontSize: width * 0.22, bottom: height * 0.41, left: width * 0.09 }} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Recognize</Text>
-            <Text style={{ fontSize: width * 0.22, bottom: height * 0.33, left: width * 0.02 }} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Patterns</Text>
-            <Text style={{ fontSize: width * 0.056, bottom: height * 0.27, left: width * 0.028 }} className="text-txt-darkblue font-LeagueSpartan absolute">Notice patterns and{"\n"}understand your emotions</Text>
+            <Text style={{ fontSize: width * 0.22, bottom: height * 0.35, left: width * 0.09,  }} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Recognize</Text>
+            <Text style={{ fontSize: width * 0.22, bottom: height * 0.28, left: width * 0.025 }} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Patterns</Text>
+            <Text style={{ fontSize: width * 0.056, bottom: height * 0.225}} className="text-txt-darkblue font-LeagueSpartan absolute">Notice patterns and{"\n"}understand your emotions</Text>
 
             {/* Next Button */}
             <TouchableOpacity 

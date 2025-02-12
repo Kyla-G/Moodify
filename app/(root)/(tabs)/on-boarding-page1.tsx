@@ -9,7 +9,7 @@ export default function OnBoarding1() {
     const { width, height } = useWindowDimensions();
   
     return (
-        <SafeAreaView className="flex-1 justify-center items-center bg-bg-dark relative">
+        <SafeAreaView className="flex-1 justify-center items-center bg-bg-dark">
             
             {/* Background Image */}
             <Image 

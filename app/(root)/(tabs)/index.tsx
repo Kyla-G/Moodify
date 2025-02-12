@@ -18,7 +18,7 @@ export default function Index() {
           width: width * 1.1,  // Increased to 110% of screen width
           height: height * 0.5, // Increased to 50% of screen height
           marginTop: height * -0.08, 
-          marginRight: height * -0.03,
+          marginLeft: height * 0.03,
           resizeMode: "contain",}}
       />
 
@@ -35,7 +35,7 @@ export default function Index() {
       {/* App Name */}
       <Text 
         style={{ fontSize: width * 0.22 }} 
-        className="text-txt-orange font-LeagueSpartan-Bold mt-6 tracking-[.-1]">
+        className="text-txt-orange font-LeagueSpartan-Bold mt-6 tracking-[.-4]">
           Moodify
       </Text>
 
