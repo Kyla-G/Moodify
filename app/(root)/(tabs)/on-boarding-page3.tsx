@@ -1,29 +1,47 @@
-import { SafeAreaView, Text, Image, TouchableOpacity} from "react-native";
 import { useRouter } from "expo-router";
+import { Text, Image, TouchableOpacity } from "react-native";
+import { useWindowDimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import images from "@/constants/images";
 
 export default function OnBoarding3() {
     const router = useRouter();
-    return (
-        <SafeAreaView className="flex-1 justify-center items-center bg-bg-light relative">
+    const { width, height } = useWindowDimensions();
 
+    return (
+        <SafeAreaView className="flex-1 justify-center items-center bg-bg-light">
+            {/* Background Image */}
             <Image 
                 source={images.journal} 
-                className="absolute bottom-[-412] w-[1350] h-[1350]" 
-                resizeMode="contain"
+                style={{
+                    position: "absolute",
+                    bottom: height * -0.08,
+                    width: width * 2.59, 
+                    height: height * 0.69,
+                    resizeMode: "contain",
+                }}
             />
 
-        <Text className="text-txt-orange font-LeagueSpartan-Bold text-8xl text-center absolute top-[110px] left-5 tracking-[.-4]">Journaling</Text>
-        <Text className="text-txt-orange font-LeagueSpartan-Bold text-8xl text-center absolute top-[175px] left-[48] tracking-[.-4]">Made Easy</Text>
-        <Text className="text-txt-darkblue font-LeagueSpartan text-3xl absolute top-[255px] text-right right-8">
-            A safe place to jot down{"\n"}thoughts anytime
-        </Text>
+            {/* Headings */}
+            <Text style={{ fontSize: width * 0.2, top: height * 0.13, left: width * 0.04}} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Journaling</Text>
+            <Text style={{ fontSize: width * 0.2, top: height * 0.205, left: width * 0.1}} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Made Easy</Text>
+            <Text style={{ fontSize: width * 0.056, top: height * 0.3, right: width * 0.05, textAlign: "right" }} className="text-txt-darkblue font-LeagueSpartan absolute">
+                A safe place to jot down{"\n"}thoughts anytime
+            </Text>
 
-    <TouchableOpacity 
-            onPress={() => router.push('/on-boarding-page4')} 
-            className="absolute bottom-20 bg-[#FF6B35] rounded-[45px] px-7 py-4 flex-row justify-center items-center">
-            <Text className="text-txt-light font-LeagueSpartan-Bold text-3xl text-center">Next</Text>
-        </TouchableOpacity>
+            {/* Next Button */}
+            <TouchableOpacity 
+                onPress={() => router.push('/on-boarding-page4')} 
+                style={{
+                    position: "absolute",
+                    bottom: height * 0.08,
+                    paddingVertical: height * 0.02,
+                    paddingHorizontal: width * 0.08,
+                    borderRadius: 45,
+                }}
+                className="bg-[#FF6B35] flex-row justify-center items-center">
+                <Text style={{ fontSize: width * 0.05 }} className="text-txt-light font-LeagueSpartan-Bold text-center">Next</Text>
+            </TouchableOpacity>
         </SafeAreaView>
-    )
+    );
 }

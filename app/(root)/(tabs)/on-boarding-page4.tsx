@@ -1,29 +1,47 @@
-import { SafeAreaView, Text, Image, TouchableOpacity} from "react-native";
 import { useRouter } from "expo-router";
+import { Text, Image, TouchableOpacity } from "react-native";
+import { useWindowDimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import images from "@/constants/images";
 
 export default function OnBoarding3() {
     const router = useRouter();
-    return (
-        <SafeAreaView className="flex-1 justify-center items-center bg-bg-orange relative">
+    const { width, height } = useWindowDimensions();
 
+    return (
+        <SafeAreaView className="flex-1 justify-center items-center bg-bg-orange">
+            {/* Background Image */}
             <Image 
                 source={images.moodiwave} 
-                className="absolute top-[57] left-[-190] w-[1000] h-[1000]" 
-                resizeMode="contain"
+                style={{
+                    width: width * 2.4,
+                    marginBottom: height * -0.24, 
+                    height: width * 2,
+                    marginLeft: height * 0.22,
+                    resizeMode: "contain",
+                }}
             />
 
-            <Text className="text-txt-blue font-LeagueSpartan-Bold text-8xl absolute top-[110px] right-20 tracking-[.-4]">Meet</Text>
-            <Text className="text-txt-blue font-LeagueSpartan-Bold text-8xl absolute top-[175px] right-20 tracking-[.-4]">Moodi</Text>
-            <Text className="text-txt-light font-LeagueSpartan text-3xl absolute top-[260px] right-20">
-            Moodi is always there to chat{"\n"}whenever you need a friend
+            {/* Headings */}
+            <Text style={{ fontSize: width * 0.2, top: height * 0.13, right: width * 0.1 }} className="text-txt-blue font-LeagueSpartan-Bold absolute tracking-[.-4]">Meet</Text>
+            <Text style={{ fontSize: width * 0.2, top: height * 0.205, right: width * 0.1 }} className="text-txt-blue font-LeagueSpartan-Bold absolute tracking-[.-4]">Moodi</Text>
+            <Text style={{ fontSize: width * 0.06, top: height * 0.3, right: width * 0.1, textAlign: "right" }} className="text-txt-light font-LeagueSpartan absolute">
+                Moodi is always there to chat{"\n"}whenever you need a friend
             </Text>
 
-    <TouchableOpacity 
-            onPress={() => router.push('/entries-page')} 
-            className="absolute bottom-20 bg-bg-dark rounded-[45px] px-7 py-4 flex-row justify-center items-center">
-            <Text className="text-txt-light font-LeagueSpartan-Bold text-3xl text-center">Get Started</Text>
-        </TouchableOpacity>
+            {/* Get Started Button */}
+            <TouchableOpacity 
+                onPress={() => router.push('/entries-page')} 
+                style={{
+                    position: "absolute",
+                    bottom: height * 0.08,
+                    paddingVertical: height * 0.02,
+                    paddingHorizontal: width * 0.08,
+                    borderRadius: 45,
+                }}
+                className="bg-bg-dark flex-row justify-center items-center">
+                <Text style={{ fontSize: width * 0.05 }} className="text-txt-light font-LeagueSpartan-Bold text-center">Get Started</Text>
+            </TouchableOpacity>
         </SafeAreaView>
-    )
+    );
 }
