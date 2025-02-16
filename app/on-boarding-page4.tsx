@@ -31,7 +31,7 @@ export default function OnBoarding3() {
 
            
             <TouchableOpacity 
-                onPress={() => router.push('/test-page')} 
+                onPress={() => router.push('/(root)/(tabs)/home-page')} 
                 style={{
                     position: "absolute",
                     bottom: height * 0.08,
