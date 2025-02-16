@@ -10,7 +10,7 @@ export default function OnBoarding3() {
 
     return (
         <SafeAreaView className="flex-1 justify-center items-center bg-bg-light">
-            {/* Background Image */}
+            
             <Image 
                 source={images.journal} 
                 style={{
@@ -22,14 +22,14 @@ export default function OnBoarding3() {
                 }}
             />
 
-            {/* Headings */}
+           
             <Text style={{ fontSize: width * 0.2, top: height * 0.13, left: width * 0.04}} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Journaling</Text>
             <Text style={{ fontSize: width * 0.2, top: height * 0.205, left: width * 0.1}} className="text-txt-orange font-LeagueSpartan-Bold absolute tracking-[.-4]">Made Easy</Text>
             <Text style={{ fontSize: width * 0.056, top: height * 0.3, right: width * 0.05, textAlign: "right" }} className="text-txt-darkblue font-LeagueSpartan absolute">
                 A safe place to jot down{"\n"}thoughts anytime
             </Text>
 
-            {/* Next Button */}
+            
             <TouchableOpacity 
                 onPress={() => router.push('/on-boarding-page4')} 
                 style={{

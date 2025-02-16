@@ -10,18 +10,18 @@ export default function OnBoarding2() {
 
     return (
         <SafeAreaView className="flex-1 bg-bg-medium">
-            {/* Force Full Screen */}
+            
             <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
 
 
-            {/* Scrollable Content */}
+            
             <ScrollView 
                 contentContainerStyle={{ flexGrow: 1, alignItems: "center", paddingTop: height * 0.4, paddingBottom: height * 0.05 }}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Grouped Content */}
+                
                 <View className="items-center">
-                    {/* Background Image (Placed Lower to Avoid Overlap) */}
+                    
                     <Image 
                         source={images.patterns}
                         style={{
@@ -33,7 +33,7 @@ export default function OnBoarding2() {
                         }}
                     />
 
-                    {/* Headings - Moved Down to Avoid Overlap */}
+                   
                     <Text 
                         style={{ fontSize: width * 0.18, lineHeight: width * 0.2, marginLeft: width * -0.09, marginTop: height * -0.08 }}
                         className="text-txt-orange font-LeagueSpartan-Bold tracking-[-0.4px]">
@@ -50,7 +50,7 @@ export default function OnBoarding2() {
                         Notice patterns and{"\n"}understand your emotions
                     </Text>
 
-                    {/* Next Button */}
+                    
                     <TouchableOpacity 
                         onPress={() => router.push('/on-boarding-page3')} 
                         style={{

@@ -10,7 +10,7 @@ export default function OnBoarding3() {
 
     return (
         <SafeAreaView className="flex-1 justify-center items-center bg-bg-orange">
-            {/* Background Image */}
+            
             <Image 
                 source={images.moodiwave} 
                 style={{
@@ -22,14 +22,14 @@ export default function OnBoarding3() {
                 }}
             />
 
-            {/* Headings */}
+          
             <Text style={{ fontSize: width * 0.2, top: height * 0.13, right: width * 0.1 }} className="text-txt-blue font-LeagueSpartan-Bold absolute tracking-[.-4]">Meet</Text>
             <Text style={{ fontSize: width * 0.2, top: height * 0.205, right: width * 0.1 }} className="text-txt-blue font-LeagueSpartan-Bold absolute tracking-[.-4]">Moodi</Text>
             <Text style={{ fontSize: width * 0.06, top: height * 0.3, right: width * 0.1, textAlign: "right" }} className="text-txt-light font-LeagueSpartan absolute">
                 Moodi is always there to chat{"\n"}whenever you need a friend
             </Text>
 
-            {/* Get Started Button */}
+           
             <TouchableOpacity 
                 onPress={() => router.push('/test-page')} 
                 style={{

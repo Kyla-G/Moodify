@@ -10,14 +10,14 @@ export default function OnBoarding1() {
 
     return (
         <SafeAreaView className="flex-1 bg-bg-dark">
-            {/* Force Full Screen */}
+            
             <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
 
             <ScrollView 
                 contentContainerStyle={{ flexGrow: 1, alignItems: "center", paddingTop: height * 0.08 }}
                 showsVerticalScrollIndicator={false}
             >
-                {/* Text Container (Adjusted text alignment) */}
+                
                 <View className="items-center">
                     <Text 
                         style={{ fontSize: width * 0.22, lineHeight: width * 0.2, marginLeft: -width * 0.15 }}
@@ -36,7 +36,7 @@ export default function OnBoarding1() {
                     </Text>
                 </View>
 
-                {/* Background Image */}
+                
                 <Image 
                     source={images.moods} 
                     style={{
@@ -47,7 +47,7 @@ export default function OnBoarding1() {
                     }}
                 />
 
-                {/* Next Button */}
+                
                 <TouchableOpacity 
                     onPress={() => router.push('/on-boarding-page2')} 
                     style={{

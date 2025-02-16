@@ -5,14 +5,14 @@ import { StatusBar } from 'expo-status-bar';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { format } from 'date-fns';
 
-// Import mood PNGs
+
 import MoodRad from '@/assets/icons/MoodRad.png';
 import MoodGood from '@/assets/icons/MoodGood.png';
 import MoodMeh from '@/assets/icons/MoodMeh.png';
 import MoodBad from '@/assets/icons/MoodBad.png';
 import MoodAwful from '@/assets/icons/MoodAwful.png';
 
-// Mood mapping for PNGs
+
 const moodIcons = {
   Rad: MoodRad,
   Good: MoodGood,
@@ -21,7 +21,7 @@ const moodIcons = {
   Awful: MoodAwful,
 };
 
-// Dummy mood entries
+
 const dummyEntries = [
   { mood: 'Rad', date: '2025-02-15', time: '10:30 AM', journal: 'Had a great day at work!' },
   { mood: 'Bad', date: '2025-02-14', time: '8:15 PM', journal: '' },
@@ -44,7 +44,7 @@ export default function EnterMoodScreen() {
         contentContainerStyle={{ flexGrow: 1, alignItems: "center", paddingTop: 20, paddingHorizontal: 16 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Navigation */}
+        
         <View className="flex-row justify-between items-center w-full">
           <TouchableOpacity>
             <Ionicons name="settings-outline" size={24} color="white" />
@@ -61,7 +61,7 @@ export default function EnterMoodScreen() {
             How are you feeling?
           </Text>
 
-       {/* Enter Mood Button */}
+      
         <View className="flex-1 justify-center items-center w-full py-10 mb-40">
         <TouchableOpacity className="bg-[#FF6B35] w-20 h-20 rounded-full shadow-md flex items-center justify-center">
          <Text className="text-white text-6xl font-bold">+</Text>
@@ -69,20 +69,20 @@ export default function EnterMoodScreen() {
         </View>
 
 
-        {/* Mood Entries List */}
+       
         <View className="w-full">
           {dummyEntries.map((entry, index) => {
             const moodIcon = moodIcons[entry.mood];
 
             return (
               <View key={index} className="bg-[#101011] flex-row items-center p-4 rounded-[16] mb-4 shadow w-full">
-                {/* Mood Icon - Use PNG instead of SVG */}
+                
                 <Image 
                   source={moodIcon} 
                   style={{ width: 52, height: 52, marginRight: 12, resizeMode: 'contain' }} 
                 />
 
-                {/* Mood Details */}
+               
                 <View className="flex-1">
                   <Text className="text-lg font-semibold text-white">{entry.mood}</Text>
                   <Text className="text-gray-400">{entry.date} at {entry.time}</Text>

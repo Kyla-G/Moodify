@@ -9,11 +9,9 @@ export default function Index() {
 
   return (
     <View className="flex-1 bg-bg-light">
-      {/* Ensure full coverage over status bar */}
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
       <SafeAreaView className="flex-1">
-        {/* Fixed Decorative Images */}
         <Image 
           source={images.orangecurve} 
           style={{ position: "absolute", top: height * -0.14, right: width * -0.20, width: width * 0.7, height: width * 0.8, resizeMode: "contain" }}
@@ -31,32 +29,32 @@ export default function Index() {
           style={{ position: "absolute", bottom: height * -0.064, right: width * -0.07, width: width * 0.6, height: width * 0.6 }}
         />
 
-        {/* Scrollable Content */}
+        
         <ScrollView 
           contentContainerStyle={{ flexGrow: 1, alignItems: "center", justifyContent: "center", paddingBottom: height * 0.1 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo */}
+          
           <Image 
             source={images.moodiface} 
             style={{ width: width * 1.3, height: height * 0.4, marginLeft:width * 0.07, resizeMode: "contain" }}
           />
 
-          {/* App Name */}
+          
           <Text 
             style={{ fontSize: width * 0.22, textAlign: "center" }} 
             className="text-txt-orange font-LeagueSpartan-Bold mt-6">
             Moodify
           </Text>
 
-          {/* Tagline */}
+          
           <Text 
             style={{ fontSize: width * 0.056, textAlign: "center", marginTop: height * 0.02 }} 
             className="text-txt-darkblue font-LeagueSpartan">
             Your Journey to Well-being{"\n"}One Mood at a Time
           </Text>
 
-          {/* Get Started Button */}
+          
           <TouchableOpacity 
             onPress={() => router.push('/on-boarding-page1')} 
             style={{
