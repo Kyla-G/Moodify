@@ -43,7 +43,7 @@ export default function StatsScreen() {
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
       
       <View className="items-center w-full pt-6 px-4">
-        <Text className="text-white text-2xl font-bold">Mood Stats</Text>
+        <Text className="text-txt-medium font-LeagueSpartan-Bold text-3xl">Mood Stats</Text>
       </View>
       
       <ScrollView contentContainerStyle={{ alignItems: "center", padding: 16 }}>
