@@ -1,31 +1,68 @@
-import { View, Text, Image, TouchableOpacity} from "react-native";
 import { useRouter } from "expo-router";
+import { Text, Image, TouchableOpacity, View, useWindowDimensions, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 import images from "@/constants/images";
 
 export default function OnBoarding1() {
     const router = useRouter();
-  
+    const { width, height } = useWindowDimensions();
+
     return (
-        <View className="flex-1 justify-center items-center bg-bg-dark relative">
+        <SafeAreaView className="flex-1 bg-bg-dark">
             
-            <Image 
-                source={images.moods} 
-                className="absolute bottom-[5] w-[1000px] h-[1000px]" 
-                resizeMode="contain"
-            />
+            <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
 
-            <Text className="text-txt-orange font-LeagueSpartan-Bold text-8xl absolute top-[110px] left-20 tracking-[.-4]">Track</Text>
-            <Text className="text-txt-orange font-LeagueSpartan-Bold text-8xl absolute top-[175px] text-center tracking-[.-4]">Moods</Text>
-            <Text className="text-txt-light font-LeagueSpartan text-3xl absolute top-[260px] left-14">
-                log how you feel each day
-            </Text>
+            <ScrollView 
+                contentContainerStyle={{ flexGrow: 1, alignItems: "center", paddingTop: height * 0.08 }}
+                showsVerticalScrollIndicator={false}
+            >
+                
+                <View className="items-center">
+                    <Text 
+                        style={{ fontSize: width * 0.22, lineHeight: width * 0.2, marginLeft: -width * 0.15 }}
+                        className="text-txt-orange font-LeagueSpartan-Bold tracking-[-0.4px]">
+                        Track
+                    </Text>
+                    <Text 
+                        style={{ fontSize: width * 0.22, lineHeight: width * 0.2, marginRight: -width * 0.15 }}
+                        className="text-txt-orange font-LeagueSpartan-Bold text-center tracking-[-0.4px]">
+                        Moods
+                    </Text>
+                    <Text 
+                        style={{ fontSize: width * 0.056, marginTop: -5 }}
+                        className="text-txt-light font-LeagueSpartan">
+                        log how you feel each day
+                    </Text>
+                </View>
 
-            <TouchableOpacity 
-                onPress={() => router.push('/on-boarding-page2')} 
-                className="absolute bottom-20 bg-[#FF6B35] rounded-[45px] px-7 py-4 flex-row justify-center items-center">
-                <Text className="text-txt-light font-LeagueSpartan-Bold text-3xl text-center">Next</Text>
-            </TouchableOpacity>
-            
-        </View>
-        )
+                
+                <Image 
+                    source={images.moods} 
+                    style={{
+                        width: width * 5, 
+                        height: width * 2,
+                        resizeMode: "contain",
+                        marginTop: height * -0.32,
+                    }}
+                />
+
+                
+                <TouchableOpacity 
+                    onPress={() => router.push('/on-boarding-page2')} 
+                    style={{
+                        marginTop: height * -0.13,
+                        paddingVertical: height * 0.02,
+                        paddingHorizontal: width * 0.08,
+                        borderRadius: 45,
+                    }}
+                    className="bg-[#FF6B35] flex-row justify-center items-center">
+                    <Text style={{ fontSize: width * 0.05 }}
+                        className="text-txt-light font-LeagueSpartan-Bold text-center">
+                        Next
+                    </Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </SafeAreaView>
+    );
 }

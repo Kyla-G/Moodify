@@ -7,13 +7,7 @@ import leftlightcurve from "@/assets/images/leftlightcurve.png";
 import rightlightcurve from "@/assets/images/rightlightcurve.png";
 import rightdarkcurve from "@/assets/images/rightdarkcurve.png";
 import moods from "@/assets/images/moods.png";
-import darkbluedesign from "@/assets/images/darkbluedesign.png";
-import darkbluecircle from "@/assets/images/darkbluecircle.png";
-import lightbluedesign from "@/assets/images/lightbluedesign.png";
-import lightblueline from "@/assets/images/lightblueline.png";
-import lightborderdesign from "@/assets/images/lightborderdesign.png";
-import lightdesign from "@/assets/images/lightdesign.png";
-import orangedesign from "@/assets/images/orangedesign.png";
+import patterns from "@/assets/images/patterns.png";
 import journal from "@/assets/images/journal.png";
 import moodiwave from "@/assets/images/moodiwave.png";
 
@@ -27,13 +21,7 @@ export default {
   rightlightcurve,
   rightdarkcurve,
   moods,
-  darkbluecircle,
-  darkbluedesign,
-  lightbluedesign,
-  lightblueline,
-  lightborderdesign,
-  lightdesign,
-  orangedesign,
+  patterns,
   journal,
   moodiwave,
 };
