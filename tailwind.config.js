@@ -24,6 +24,7 @@ module.exports = {
           darkblue: '#003049',
           light: '#EEEED0',
           black: '#000000',
+          medium: '#F6C49E',
         }
       }
     },
