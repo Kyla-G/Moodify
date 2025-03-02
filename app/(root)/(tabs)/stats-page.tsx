@@ -1,9 +1,18 @@
 import { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { PieChart } from "react-native-chart-kit";
+import { PieChart, BarChart } from "react-native-chart-kit";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { format, subMonths, addMonths } from "date-fns";
+
+const screenWidth = Dimensions.get("window").width - 40; // Account for padding
+
+const brandColors = {
+  primary: "#003049",
+  secondary: "#FF6B35",
+  accent: "#F6C49E",
+};
 
 const dummyEntries = [
   { mood: "Rad", date: "2025-02-15" },
@@ -17,58 +26,116 @@ const dummyEntries = [
 ];
 
 const moodColors = {
-  Rad: "#FFDD67",
+  Rad: brandColors.accent,
   Good: "#A8E6CF",
   Meh: "#FFD3B6",
-  Bad: "#FFAAA5",
+  Bad: brandColors.secondary,
   Awful: "#D7263D",
 };
 
-export default function StatsScreen() {
-  const moodCounts = dummyEntries.reduce((acc, entry) => {
-    acc[entry.mood] = (acc[entry.mood] || 0) + 1;
-    return acc;
-  }, {});
+const moodCounts = dummyEntries.reduce((acc, entry) => {
+  acc[entry.mood] = (acc[entry.mood] || 0) + 1;
+  return acc;
+}, {});
 
-  const chartData = Object.keys(moodCounts).map((mood) => ({
-    name: mood,
-    count: moodCounts[mood],
-    color: moodColors[mood],
-    legendFontColor: "#FFF",
-    legendFontSize: 14,
-  }));
+const moodChartData = Object.keys(moodCounts).map((mood) => ({
+  name: mood,
+  population: moodCounts[mood],
+  color: moodColors[mood],
+  legendFontColor: "#FFF",
+  legendFontSize: 14,
+}));
+
+const moodBarChartData = {
+  labels: Object.keys(moodCounts),
+  datasets: [{ data: Object.values(moodCounts) }],
+};
+
+export default function StatsScreen() {
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+
+  const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
+  const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
 
   return (
     <SafeAreaView className="flex-1 bg-black">
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
-      
-      <View className="items-center w-full pt-6 px-4">
-        <Text className="text-white text-2xl font-bold">Mood Stats</Text>
+
+      {/* Top Header */}
+      <View className="relative z-20">
+        <View className="flex-row justify-between items-center w-full px-4 pt-6 pb-4">
+          <TouchableOpacity>
+            <Ionicons name="settings-outline" size={28} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={goToPreviousMonth}>
+            <Ionicons name="chevron-back-outline" size={28} color="white" />
+          </TouchableOpacity>
+          <Text className="text-xl font-semibold text-white">{format(selectedMonth, "MMMM yyyy")}</Text>
+          <TouchableOpacity onPress={goToNextMonth}>
+            <Ionicons name="chevron-forward-outline" size={28} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Ionicons name="flame-outline" size={28} color="white" />
+          </TouchableOpacity>
+        </View>
       </View>
-      
-      <ScrollView contentContainerStyle={{ alignItems: "center", padding: 16 }}>
-        <PieChart
-          data={chartData}
-          width={300}
-          height={220}
-          chartConfig={{
-            backgroundColor: "black",
-            backgroundGradientFrom: "#1E1E1E",
-            backgroundGradientTo: "#1E1E1E",
-            color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          }}
-          accessor="count"
-          backgroundColor="transparent"
-          paddingLeft="15"
-        />
-        
-        <View className="w-full mt-6">
-          {Object.keys(moodCounts).map((mood, index) => (
-            <View key={index} className="flex-row justify-between bg-[#101011] p-4 mb-2 rounded-lg">
-              <Text className="text-white text-lg">{mood}</Text>
-              <Text className="text-gray-400 text-lg">{moodCounts[mood]} times</Text>
-            </View>
-          ))}
+
+      <ScrollView contentContainerStyle={{ alignItems: "center", paddingBottom: 20 }}>
+        {/* Mood Chart */}
+        <View className="w-full bg-[#101011] p-4 mb-4 rounded-lg">
+          <Text className="text-white text-lg font-bold mb-4 text-center">Mood Distribution</Text>
+          <PieChart
+            data={moodChartData}
+            width={screenWidth}
+            height={220}
+            chartConfig={{
+              backgroundColor: brandColors.primary,
+              backgroundGradientFrom: brandColors.primary,
+              backgroundGradientTo: brandColors.primary,
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+            }}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="15"
+            absolute
+          />
+        </View>
+
+        {/* Mood Count */}
+        <View className="w-full bg-[#101011] p-4 mb-4 rounded-lg">
+          <Text className="text-white text-lg font-bold mb-4 text-center">Mood Count</Text>
+          <BarChart
+            data={moodBarChartData}
+            width={screenWidth}
+            height={250}
+            yAxisLabel=""
+            yAxisSuffix="x"
+            chartConfig={{
+              backgroundColor: brandColors.primary,
+              backgroundGradientFrom: brandColors.primary,
+              backgroundGradientTo: brandColors.primary,
+              color: (opacity = 1) => brandColors.secondary,
+              barPercentage: 0.6,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              style: { borderRadius: 8 },
+            }}
+            showValuesOnTopOfBars
+            fromZero
+            withInnerLines={false}
+            style={{ borderRadius: 8 }}
+          />
+        </View>
+
+        {/* Weekly Mood Average */}
+        <View className="w-full bg-[#101011] p-4 mb-4 rounded-lg">
+          <Text className="text-white text-lg font-bold mb-4 text-center">Weekly Mood Average</Text>
+          <Text className="text-gray-400 text-center text-lg">Your average mood score this month: 3.8</Text>
+        </View>
+
+        {/* Mood Logging Streak */}
+        <View className="w-full bg-[#101011] p-4 mb-4 rounded-lg">
+          <Text className="text-white text-lg font-bold mb-4 text-center">Mood Tracking Streak</Text>
+          <Text className="text-gray-400 text-center text-lg">Current streak: 5 days 🔥</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
