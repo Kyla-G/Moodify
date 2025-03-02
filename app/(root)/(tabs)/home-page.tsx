@@ -39,6 +39,10 @@ const moodEmotions = {
 const dummyEntries = [
   { mood: "Rad", date: "2025-02-15", time: "10:30 AM", journal: "Had a great day at work!" },
   { mood: "Bad", date: "2025-02-14", time: "8:15 PM", journal: "" },
+  { mood: "Awful", date: "2025-02-16", time: "8:15 PM", journal: "Thesis sucks" },
+  { mood: "Good", date: "2025-02-19", time: "8:15 PM", journal: "lmao" },
+  { mood: "Meh", date: "2025-02-14", time: "8:15 PM", journal: "" },
+  { mood: "Bad", date: "2025-02-14", time: "8:15 PM", journal: "" },
 ];
 
 export default function HomeScreen() {
@@ -109,7 +113,7 @@ export default function HomeScreen() {
           How are you feeling?
         </Text>
 
-        <View className="flex-1 justify-center items-center w-full py-10 mb-40">
+        <View className="flex-1 justify-center items-center w-full py-10 mb-20">
           <TouchableOpacity
             onPress={openMoodModal}
             className="bg-[#FF6B35] w-20 h-20 rounded-full shadow-md flex items-center justify-center"
@@ -158,33 +162,50 @@ export default function HomeScreen() {
 
       {/* Emotion & Journal Modal */}
       <Modal visible={emotionModalVisible} transparent animationType="slide">
-        <View className="flex-1 bg-black bg-opacity-90 justify-center items-center px-6">
-          <Text className="text-white text-2xl font-bold mb-6 text-center">Choose an emotion</Text>
-          {selectedMood &&
-            moodEmotions[selectedMood].map((emotion) => (
-              <TouchableOpacity
-                key={emotion}
-                className={`bg-[#303030] p-4 rounded-lg mb-3 w-full ${selectedEmotion === emotion ? "border border-white" : ""}`}
-                onPress={() => selectEmotion(emotion)}
-              >
-                <Text className="text-white text-lg">{emotion}</Text>
-              </TouchableOpacity>
-            ))}
+  <ScrollView className="flex-1 bg-black bg-opacity-90 px-6 py-10">
+    <View className="items-center w-full">
+      <Text className="text-white text-2xl font-bold mb-6 text-center">Choose an emotion</Text>
 
-          <TextInput
-            className="bg-[#202020] text-white p-4 rounded-lg mt-4 w-full"
-            placeholder="Write a journal entry..."
-            placeholderTextColor="#888"
-            multiline
-            value={journalEntry}
-            onChangeText={setJournalEntry}
-          />
-
-          <TouchableOpacity onPress={saveEntry} className="mt-6 bg-[#FF6B35] p-4 rounded-lg w-full">
-            <Text className="text-white text-lg text-center">Save</Text>
+      <View className="flex-row flex-wrap justify-between w-full gap-4">
+        {[
+          "Happy", "Excited", "Energetic", "Calm", "Grateful", "Confident", "Hopeful",
+          "Anxious", "Nervous", "Irritated", "Angry", "Stressed", "Sad", "Fearful", "Bored", "Confused"
+        ].map((emotion) => (
+          <TouchableOpacity
+            key={emotion}
+            className={`bg-[#303030] p-4 rounded-2xl w-[48%] items-center ${
+              selectedEmotion === emotion ? "border-2 border-white" : ""
+            }`}
+            onPress={() => setSelectedEmotion(emotion)}
+          >
+            <Text className="text-white text-lg">{emotion}</Text>
           </TouchableOpacity>
-        </View>
-      </Modal>
+        ))}
+      </View>
+
+      <TextInput
+        className="bg-[#202020] text-white p-5 rounded-2xl mt-8 w-full min-h-[180px] text-lg"
+        placeholder="Write a journal entry..."
+        placeholderTextColor="#888"
+        multiline
+        value={journalEntry}
+        onChangeText={setJournalEntry}
+      />
+
+      <View className="flex-row gap-4 mt-8 w-full">
+        <TouchableOpacity onPress={saveEntry} className="bg-[#FF6B35] p-4 rounded-2xl flex-1 items-center">
+          <Text className="text-white text-lg">Save</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setEmotionModalVisible(false)} className="bg-gray-700 p-4 rounded-2xl flex-1 items-center">
+          <Text className="text-white text-lg">Cancel</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </ScrollView>
+</Modal>
+
+
+
     </SafeAreaView>
   );
 }
