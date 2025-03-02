@@ -4,8 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
+import { LinearGradient } from "expo-linear-gradient";
 
-// Mood Icons
 import MoodRad from "@/assets/icons/MoodRad.png";
 import MoodGood from "@/assets/icons/MoodGood.png";
 import MoodMeh from "@/assets/icons/MoodMeh.png";
@@ -20,7 +20,6 @@ const moodIcons = {
   Awful: MoodAwful,
 };
 
-// Sample Mood Entries
 const dummyEntries = [
   { mood: "Rad", date: "2025-02-15", time: "10:30 AM", journal: "Had a great day at work!" },
   { mood: "Bad", date: "2025-02-14", time: "8:15 PM", journal: "" },
@@ -35,7 +34,6 @@ const dummyEntries = [
 export default function HomeScreen() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
-  // Functions to change month
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
 
@@ -43,9 +41,9 @@ export default function HomeScreen() {
     <SafeAreaView className="flex-1 bg-black">
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
 
-      <View className="items-center w-full pt-6 px-4">
-        {/* Month Pagination with Settings & Streak Buttons */}
-        <View className="flex-row justify-between items-center w-full mb-4">
+      {/* Navbar */}
+      <View className="relative z-20">
+        <View className="flex-row justify-between items-center w-full px-4 pt-6 pb-4">
           <TouchableOpacity>
             <Ionicons name="settings-outline" size={28} color="white" />
           </TouchableOpacity>
@@ -62,6 +60,17 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {/* Gradient Overlay (Allows Touch Events to Pass Through) */}
+      <View pointerEvents="none" style={{ position: "absolute", top: 570, left: 0, right: 0, height: 250, zIndex: 5 }}>
+        <LinearGradient
+          colors={["rgba(0, 0, 0, 0.9)", "rgba(0, 0, 0, 0.5)", "transparent"]}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 0, y: 0 }}
+          style={{ flex: 1 }}
+        />
+      </View>
+
+      {/* Scrollable Content */}
       <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: "center", paddingHorizontal: 16 }}>
         <Text className="text-txt-orange font-LeagueSpartan-Bold mt-60" style={{ fontSize: 60, textAlign: "center" }}>
           How are you feeling?
@@ -73,7 +82,8 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        <View className="w-full">
+        {/* Mood Entries */}
+        <View className="w-full pb-10">
           {dummyEntries.map((entry, index) => {
             const moodIcon = moodIcons[entry.mood];
 
