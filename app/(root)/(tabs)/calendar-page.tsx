@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image, Modal } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -90,19 +90,19 @@ export default function CalendarScreen() {
           <View className="w-full">
             <View className="flex-row justify-around mb-4">
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <Text key={day} className="text-white text-center w-14 font-semibold">{day}</Text>
+                <Text key={day} className="text-white text-center flex-1 font-semibold">{day}</Text>
               ))}
             </View>
 
-            <View className="w-full flex-wrap flex-row justify-center">
+            <View className="w-full flex-wrap flex-row">
               {[...prevMonthDays, ...daysInMonth, ...nextMonthDays].map((day, index) => {
                 const formattedDate = format(day, "yyyy-MM-dd");
                 const isDimmed = day < firstDay || day > lastDay;
                 const mood = moodMap[formattedDate];
                 const moodIcon = mood ? moodIcons[mood] : null;
                 return (
-                  <View key={index} className="items-center w-14 h-18 m-1 justify-center">
-                    <View className={`rounded-lg w-14 h-14 items-center justify-center ${isDimmed ? "bg-[#050505]" : "bg-[#1A1A1A]"}`}>
+                  <View key={index} className="w-[14.28%] items-center justify-center mb-2">
+                    <View className={`rounded-lg w-12 h-12 items-center justify-center ${isDimmed ? "bg-[#050505]" : "bg-[#1A1A1A]"}`}>
                       {moodIcon && <Image source={moodIcon} style={{ width: 30, height: 30, resizeMode: "contain" }} />}
                     </View>
                     <Text className={`text-sm mt-1 ${isDimmed ? "text-gray-700" : "text-white"}`}>{format(day, "d")}</Text>
@@ -114,6 +114,7 @@ export default function CalendarScreen() {
         ) : (
           <View className="mt-6 w-full px-6 items-center">
             <Text className="text-white text-xl font-bold mb-8">🔥 XP Progress</Text>
+            <Text className="text-white text-center">Track your streaks and unlock rewards for maintaining consistent moods!</Text>
 
             <View style={{ alignItems: "center", justifyContent: "center" }}>
               {[
