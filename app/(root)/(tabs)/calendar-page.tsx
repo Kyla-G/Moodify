@@ -75,6 +75,8 @@ export default function CalendarScreen() {
           </TouchableOpacity>
         </View>
 
+        
+
         <View className="flex-row bg-[#1A1A1A] rounded-lg p-1 w-[80%] mb-4">
           <TouchableOpacity className={`flex-1 items-center py-2 rounded-lg ${view === "Calendar" ? "bg-[#FF6B35]" : ""}`} onPress={() => setView("Calendar")}>
             <Text className={`text-white font-semibold ${view === "Calendar" ? "text-black" : ""}`}>Calendar</Text>
