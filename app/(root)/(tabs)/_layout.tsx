@@ -1,8 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
-
-// Import screens
 import HomeScreen from '../(tabs)/home-page';
 import ChatbotScreen from '../(tabs)/chatbot-page';
 import CalendarScreen from '../(tabs)/calendar-page';
@@ -23,13 +21,13 @@ export default function Layout() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#FF6B35', // Active color
-        tabBarInactiveTintColor: '#442920', // Inactive color
+        tabBarActiveTintColor: '#FF6B35',
+        tabBarInactiveTintColor: '#442920',
         tabBarStyle: {
-          backgroundColor: 'black', // Black navbar
-          borderTopWidth: 0, // Removes top border
+          backgroundColor: 'black',
+          borderTopWidth: 0,
         },
-        headerShown: false, // Hides the top white header
+        headerShown: false,
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />

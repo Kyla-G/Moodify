@@ -4,10 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subDays, addDays } from "date-fns";
-import { useWindowDimensions } from "react-native";
-import images from "@/constants/images";
 
-// Mood Icons
 import MoodRad from "@/assets/icons/MoodRad.png";
 import MoodGood from "@/assets/icons/MoodGood.png";
 import MoodMeh from "@/assets/icons/MoodMeh.png";
@@ -22,7 +19,6 @@ const moodIcons = {
   Awful: MoodAwful,
 };
 
-// Sample Mood Entries
 const dummyEntries = [
   { mood: "Rad", date: "2025-02-15" },
   { mood: "Bad", date: "2025-02-14" },
@@ -36,57 +32,51 @@ const dummyEntries = [
 
 export default function CalendarScreen() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const [view, setView] = useState("Calendar"); // Toggle between "Calendar" and "Streak"
-  const { width, height } = useWindowDimensions();
+  const [view, setView] = useState("Calendar");
+  const [selectedReward, setSelectedReward] = useState(null);
 
-  // Functions to change month
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
 
-  // Generate days of the month
   const firstDay = startOfMonth(selectedMonth);
   const lastDay = endOfMonth(selectedMonth);
   const daysInMonth = eachDayOfInterval({ start: firstDay, end: lastDay });
   const firstDayOffset = getDay(firstDay);
 
-  // Previous month days
   const prevMonthDays = Array.from({ length: firstDayOffset }).map((_, index) =>
     subDays(firstDay, firstDayOffset - index)
   );
 
-  // Next month days
   const remainingSlots = (7 - ((daysInMonth.length + firstDayOffset) % 7)) % 7;
   const nextMonthDays = Array.from({ length: remainingSlots }).map((_, index) =>
     addDays(lastDay, index + 1)
   );
 
-  // Map moods to their corresponding dates
   const moodMap = Object.fromEntries(dummyEntries.map((entry) => [entry.date, entry.mood]));
 
   return (
     <SafeAreaView className="flex-1 bg-black">
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
 
-      <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
       <View className="items-center w-full pt-6 px-4">
-        {/* Month Pagination with Settings & Streak Buttons */}
         <View className="flex-row justify-between items-center w-full mb-4">
           <TouchableOpacity>
-            <Ionicons name="settings-outline" size={28} color="#EEEED0" />
+            <Ionicons name="settings-outline" size={28} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPreviousMonth}>
-            <Ionicons name="chevron-back-outline" size={28} color="#545454" />
+            <Ionicons name="chevron-back-outline" size={28} color="white" />
           </TouchableOpacity>
-          <Text className="text-txt-medium font-LeagueSpartan-Bold text-3xl">{format(selectedMonth, "MMMM yyyy")}</Text>
+          <Text className="text-xl font-semibold text-white">{format(selectedMonth, "MMMM yyyy")}</Text>
           <TouchableOpacity onPress={goToNextMonth}>
-            <Ionicons name="chevron-forward-outline" size={28} color="#545454" />
+            <Ionicons name="chevron-forward-outline" size={28} color="white" />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Ionicons name="flame-outline" size={28} color="#EEEED0" />
+            <Ionicons name="flame-outline" size={28} color="white" />
           </TouchableOpacity>
         </View>
 
-        {/* Toggle View (Calendar / Streak) */}
+        
+
         <View className="flex-row bg-[#1A1A1A] rounded-lg p-1 w-[80%] mb-4">
           <TouchableOpacity className={`flex-1 items-center py-2 rounded-lg ${view === "Calendar" ? "bg-[#FF6B35]" : ""}`} onPress={() => setView("Calendar")}>
             <Text className={`text-white font-semibold ${view === "Calendar" ? "text-black" : ""}`}>Calendar</Text>
@@ -100,23 +90,21 @@ export default function CalendarScreen() {
       <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: "center", paddingHorizontal: 16 }}>
         {view === "Calendar" ? (
           <View className="w-full">
-            {/* Days of the Week */}
             <View className="flex-row justify-around mb-4">
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <Text key={day} className="text-white text-center w-14 font-semibold">{day}</Text>
+                <Text key={day} className="text-white text-center flex-1 font-semibold">{day}</Text>
               ))}
             </View>
 
-            {/* Calendar Grid */}
-            <View className="w-full flex-wrap flex-row justify-center">
+            <View className="w-full flex-wrap flex-row">
               {[...prevMonthDays, ...daysInMonth, ...nextMonthDays].map((day, index) => {
                 const formattedDate = format(day, "yyyy-MM-dd");
                 const isDimmed = day < firstDay || day > lastDay;
                 const mood = moodMap[formattedDate];
                 const moodIcon = mood ? moodIcons[mood] : null;
                 return (
-                  <View key={index} className="items-center w-14 h-18 m-1 justify-center">
-                    <View className={`rounded-lg w-14 h-14 items-center justify-center ${isDimmed ? "bg-[#050505]" : "bg-[#1A1A1A]"}`}>
+                  <View key={index} className="w-[14.28%] items-center justify-center mb-2">
+                    <View className={`rounded-lg w-12 h-12 items-center justify-center ${isDimmed ? "bg-[#050505]" : "bg-[#1A1A1A]"}`}>
                       {moodIcon && <Image source={moodIcon} style={{ width: 30, height: 30, resizeMode: "contain" }} />}
                     </View>
                     <Text className={`text-sm mt-1 ${isDimmed ? "text-gray-700" : "text-white"}`}>{format(day, "d")}</Text>
@@ -126,16 +114,32 @@ export default function CalendarScreen() {
             </View>
           </View>
         ) : (
-          <Image 
-            source={images.streaks} 
-            style={{
-              position: "absolute",
-              bottom: height * -0.12,
-              width: width * 1, 
-              height: height * 1,
-              resizeMode: "contain",
-            }}
-          />
+          <View className="mt-6 w-full px-6 items-center">
+            <Text className="text-white text-xl font-bold mb-8">🔥 XP Progress</Text>
+            <Text className="text-white text-center">Track your streaks and unlock rewards for maintaining consistent moods!</Text>
+
+            <View style={{ alignItems: "center", justifyContent: "center" }}>
+              {[
+                { title: "🎨 Palette 1", icon: "https://cdn-icons-png.flaticon.com/128/2913/2913136.png" },
+                { title: "😀 Emoji Set", icon: "https://cdn-icons-png.flaticon.com/128/3523/3523063.png" },
+                { title: "😎 Moodi Emotes", icon: "https://cdn-icons-png.flaticon.com/128/1688/1688535.png" },
+                { title: "🎭 Moodi Accessories", icon: "https://cdn-icons-png.flaticon.com/128/1104/1104935.png" },
+              ].map((reward, index) => (
+                <TouchableOpacity key={index} onPress={() => setSelectedReward(reward.title)}>
+                  <View style={{ alignItems: "center", marginBottom: 24 }}>
+                    <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: "#4A4A4A", alignItems: "center", justifyContent: "center" }}>
+                      <Image source={{ uri: reward.icon }} style={{ width: 32, height: 32 }} />
+                    </View>
+                    <Text style={{ color: "white", fontSize: 14, fontWeight: "600", marginTop: 8, marginBottom: 30 }}>{reward.title}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {selectedReward && (
+              <Text className="text-white mt-4 text-lg font-semibold">{`You unlocked: ${selectedReward}`}</Text>
+            )}
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
