@@ -32,12 +32,7 @@ const dummyEntries = [
 
 export default function CalendarScreen() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
-<<<<<<< HEAD
-  const [view, setView] = useState("Calendar");
-  const [selectedReward, setSelectedReward] = useState(null);
-=======
   const [view, setView] = useState("Calendar"); // Toggle between "Calendar" and "Streak"
->>>>>>> parent of 06a7602 (edited nav)
 
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
@@ -118,36 +113,7 @@ export default function CalendarScreen() {
             </View>
           </View>
         ) : (
-<<<<<<< HEAD
-          <View className="mt-6 w-full px-6 items-center">
-            <Text className="text-white text-xl font-bold mb-8">🔥 XP Progress</Text>
-            <Text className="text-white text-center">Track your streaks and unlock rewards for maintaining consistent moods!</Text>
-
-            <View style={{ alignItems: "center", justifyContent: "center" }}>
-              {[
-                { title: "🎨 Palette 1", icon: "https://cdn-icons-png.flaticon.com/128/2913/2913136.png" },
-                { title: "😀 Emoji Set", icon: "https://cdn-icons-png.flaticon.com/128/3523/3523063.png" },
-                { title: "😎 Moodi Emotes", icon: "https://cdn-icons-png.flaticon.com/128/1688/1688535.png" },
-                { title: "🎭 Moodi Accessories", icon: "https://cdn-icons-png.flaticon.com/128/1104/1104935.png" },
-              ].map((reward, index) => (
-                <TouchableOpacity key={index} onPress={() => setSelectedReward(reward.title)}>
-                  <View style={{ alignItems: "center", marginBottom: 24 }}>
-                    <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: "#4A4A4A", alignItems: "center", justifyContent: "center" }}>
-                      <Image source={{ uri: reward.icon }} style={{ width: 32, height: 32 }} />
-                    </View>
-                    <Text style={{ color: "white", fontSize: 14, fontWeight: "600", marginTop: 8, marginBottom: 30 }}>{reward.title}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {selectedReward && (
-              <Text className="text-white mt-4 text-lg font-semibold">{`You unlocked: ${selectedReward}`}</Text>
-            )}
-          </View>
-=======
           <Text className="text-white text-lg mt-6">🔥 Streak feature coming soon...</Text>
->>>>>>> parent of 06a7602 (edited nav)
         )}
       </ScrollView>
     </SafeAreaView>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
+import SettingsPage from "./settings-page";
 
 import MoodRad from "@/assets/icons/MoodRad.png";
 import MoodGood from "@/assets/icons/MoodGood.png";
@@ -52,6 +54,8 @@ export default function HomeScreen() {
   const [selectedMood, setSelectedMood] = useState(null);
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [journalEntry, setJournalEntry] = useState("");
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const navigation = useNavigation();
 
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
@@ -70,7 +74,16 @@ export default function HomeScreen() {
   };
 
   const saveEntry = () => {
-    // Save the entry logic
+    const currentDate = format(new Date(), "yyyy-MM-dd");
+    const currentTime = format(new Date(), "hh:mm a");
+
+    navigation.navigate("EntryDetailsPage", {
+      mood: selectedMood,
+      emotion: selectedEmotion,
+      date: currentDate,
+      time: currentTime,
+    });
+
     setEmotionModalVisible(false);
     setJournalEntry("");
     setSelectedMood(null);
@@ -83,7 +96,7 @@ export default function HomeScreen() {
 
       <View className="relative z-20">
         <View className="flex-row justify-between items-center w-full px-4 pt-6 pb-4">
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setSettingsVisible(true)}>
             <Ionicons name="settings-outline" size={28} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPreviousMonth}>
@@ -162,50 +175,52 @@ export default function HomeScreen() {
 
       {/* Emotion & Journal Modal */}
       <Modal visible={emotionModalVisible} transparent animationType="slide">
-  <ScrollView className="flex-1 bg-black bg-opacity-90 px-6 py-10">
-    <View className="items-center w-full">
-      <Text className="text-white text-2xl font-bold mb-6 text-center">Choose an emotion</Text>
+        <ScrollView className="flex-1 bg-black bg-opacity-90 px-6 py-10">
+          <View className="items-center w-full">
+            <Text className="text-white text-2xl font-bold mb-6 text-center">Choose an emotion</Text>
 
-      <View className="flex-row flex-wrap justify-between w-full gap-4">
-        {[
-          "Happy", "Excited", "Energetic", "Calm", "Grateful", "Confident", "Hopeful",
-          "Anxious", "Nervous", "Irritated", "Angry", "Stressed", "Sad", "Fearful", "Bored", "Confused"
-        ].map((emotion) => (
-          <TouchableOpacity
-            key={emotion}
-            className={`bg-[#303030] p-4 rounded-2xl w-[48%] items-center ${
-              selectedEmotion === emotion ? "border-2 border-white" : ""
-            }`}
-            onPress={() => setSelectedEmotion(emotion)}
-          >
-            <Text className="text-white text-lg">{emotion}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+            <View className="flex-row flex-wrap justify-between w-full gap-4">
+              {[
+                "Happy", "Excited", "Energetic", "Calm", "Grateful", "Confident", "Hopeful",
+                "Anxious", "Nervous", "Irritated", "Angry", "Stressed", "Sad", "Fearful", "Bored", "Confused"
+              ].map((emotion) => (
+                <TouchableOpacity
+                  key={emotion}
+                  className={`bg-[#303030] p-4 rounded-2xl w-[48%] items-center ${
+                    selectedEmotion === emotion ? "border-2 border-white" : ""
+                  }`}
+                  onPress={() => setSelectedEmotion(emotion)}
+                >
+                  <Text className="text-white text-lg">{emotion}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-      <TextInput
-        className="bg-[#202020] text-white p-5 rounded-2xl mt-8 w-full min-h-[180px] text-lg"
-        placeholder="Write a journal entry..."
-        placeholderTextColor="#888"
-        multiline
-        value={journalEntry}
-        onChangeText={setJournalEntry}
-      />
+            <TextInput
+              className="bg-[#202020] text-white p-5 rounded-2xl mt-8 w-full min-h-[180px] text-lg"
+              placeholder="Write a journal entry..."
+              placeholderTextColor="#888"
+              multiline
+              value={journalEntry}
+              onChangeText={setJournalEntry}
+            />
 
-      <View className="flex-row gap-4 mt-8 w-full">
-        <TouchableOpacity onPress={saveEntry} className="bg-[#FF6B35] p-4 rounded-2xl flex-1 items-center">
-          <Text className="text-white text-lg">Save</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setEmotionModalVisible(false)} className="bg-gray-700 p-4 rounded-2xl flex-1 items-center">
-          <Text className="text-white text-lg">Cancel</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </ScrollView>
-</Modal>
+            <View className="flex-row gap-4 mt-8 w-full">
+              <TouchableOpacity onPress={saveEntry} className="bg-[#FF6B35] p-4 rounded-2xl flex-1 items-center">
+                <Text className="text-white text-lg">Save</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setEmotionModalVisible(false)} className="bg-gray-700 p-4 rounded-2xl flex-1 items-center">
+                <Text className="text-white text-lg">Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </Modal>
 
-
-
+      {/* Settings Page Modal */}
+      <Modal visible={settingsVisible} transparent animationType="slide">
+        <SettingsPage onClose={() => setSettingsVisible(false)} />
+      </Modal>
     </SafeAreaView>
   );
 }
