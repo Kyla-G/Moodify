@@ -8,13 +8,23 @@ require('dotenv').config()
 //INITIALIZE EXPRESS APPLICATION AND STORE TO app
 const app = express();
 
+const fs = require('fs');
+
+if (!fs.existsSync('./Moodify.db')) {
+  console.error(' SQLite Database file does not exist!');
+}
+
 
 //IMPORT ALL ROUTERS NEEDED
 
-// const schedule_rtr = require('./API/routers/schedule_rtr');
-// const user_rtr = require('./API/routers/user_rtr');
-// const archive_rtr = require('./API/routers/archive_rtr'); 
-// const attendance_rtr = require('./API/routers/attendance_rtr');
+const user_rtr = require('./API/routers/user_rtr');
+const mood_entries_rtr = require('./API/routers/mood_entries_rtr');
+const chat_session_rtr = require('./API/routers/chat_session_rtr');
+const responses_rtr = require('./API/routers/responses_rtr');
+const feedback_rtr = require('./API/routers/feedback_rtr');
+const xp_progress_rtr = require('./API/routers/xp_progress_rtr');
+const xp_rtr = require('./API/routers/xp_rtr');
+
 
 // para lang makita kung anong request sa console
 app.use((req, res, next) => {
@@ -86,10 +96,14 @@ app.use((req, res, next) => {
 
 
 //MIDDLEWARE FOR THE ROUTERS
-        // app.use('/schedule', schedule_rtr);
-        // app.use('/users', user_rtr);
-        // app.use('/archive', archive_rtr);
-        // app.use('/attendance', attendance_rtr);
+app.use('/users', user_rtr);
+app.use('/entries', mood_entries_rtr);
+app.use('/chats', chat_session_rtr);
+app.use('/responses', responses_rtr);
+app.use('/feedback', feedback_rtr);
+app.use('/XPprogress', xp_progress_rtr);
+app.use('/XP', xp_rtr);
+  
 
 
 //ERROR MIDDLEWARES

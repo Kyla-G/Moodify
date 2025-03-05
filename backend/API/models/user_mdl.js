@@ -1,17 +1,21 @@
 module.exports = (sequelize, DataTypes) => {
     const User = sequelize.define('User', {
-        companyId: {
+        user_ID: {
             type: DataTypes.INTEGER,
+            primaryKey: true,  
+            autoIncrement: true, 
             allowNull: false
         },
-        username: {
+        nickname: {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true,
             validate: {
-                notEmpty: { msg: "Username is required." }
+                notEmpty: { msg: "Nickname is required." }
             }
         }
-    }
-)
-}
+    }, {
+       
+    });
+
+    return User;
+};
