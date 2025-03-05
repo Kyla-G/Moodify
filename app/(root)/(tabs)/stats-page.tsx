@@ -60,6 +60,7 @@ export default function StatsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-black">
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
+<<<<<<< HEAD
 
       {/* Top Header */}
       <View className="relative z-20">
@@ -78,6 +79,11 @@ export default function StatsScreen() {
             <Ionicons name="flame-outline" size={28} color="white" />
           </TouchableOpacity>
         </View>
+=======
+      
+      <View className="items-center w-full pt-6 px-4">
+        <Text className="text-white text-2xl font-bold">Mood Stats</Text>
+>>>>>>> parent of 06a7602 (edited nav)
       </View>
 
       <ScrollView contentContainerStyle={{ alignItems: "center", paddingBottom: 20 }}>

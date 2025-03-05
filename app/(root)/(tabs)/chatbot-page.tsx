@@ -32,22 +32,20 @@ export default function ChatbotPage() {
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
 
       {/* Top Bar with Settings, Pagination, and Streak Button */}
-      <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
       <View className="items-center w-full pt-6 px-4">
-        {/* Month Pagination with Settings & Streak Buttons */}
         <View className="flex-row justify-between items-center w-full mb-4">
           <TouchableOpacity>
-            <Ionicons name="settings-outline" size={28} color="#EEEED0" />
+            <Ionicons name="settings-outline" size={28} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPreviousMonth}>
-            <Ionicons name="chevron-back-outline" size={28} color="#545454" />
+            <Ionicons name="chevron-back-outline" size={28} color="white" />
           </TouchableOpacity>
-          <Text className="text-txt-medium font-LeagueSpartan-Bold text-3xl">{format(selectedMonth, "MMMM yyyy")}</Text>
+          <Text className="text-xl font-semibold text-white">{format(selectedMonth, "MMMM yyyy")}</Text>
           <TouchableOpacity onPress={goToNextMonth}>
-            <Ionicons name="chevron-forward-outline" size={28} color="#545454" />
+            <Ionicons name="chevron-forward-outline" size={28} color="white" />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Ionicons name="flame-outline" size={28} color="#EEEED0" />
+            <Ionicons name="flame-outline" size={28} color="white" />
           </TouchableOpacity>
         </View>
       </View>

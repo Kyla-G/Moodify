@@ -32,8 +32,12 @@ const dummyEntries = [
 
 export default function CalendarScreen() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+<<<<<<< HEAD
   const [view, setView] = useState("Calendar");
   const [selectedReward, setSelectedReward] = useState(null);
+=======
+  const [view, setView] = useState("Calendar"); // Toggle between "Calendar" and "Streak"
+>>>>>>> parent of 06a7602 (edited nav)
 
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
@@ -114,6 +118,7 @@ export default function CalendarScreen() {
             </View>
           </View>
         ) : (
+<<<<<<< HEAD
           <View className="mt-6 w-full px-6 items-center">
             <Text className="text-white text-xl font-bold mb-8">🔥 XP Progress</Text>
             <Text className="text-white text-center">Track your streaks and unlock rewards for maintaining consistent moods!</Text>
@@ -140,6 +145,9 @@ export default function CalendarScreen() {
               <Text className="text-white mt-4 text-lg font-semibold">{`You unlocked: ${selectedReward}`}</Text>
             )}
           </View>
+=======
+          <Text className="text-white text-lg mt-6">🔥 Streak feature coming soon...</Text>
+>>>>>>> parent of 06a7602 (edited nav)
         )}
       </ScrollView>
     </SafeAreaView>
