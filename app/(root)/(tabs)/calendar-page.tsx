@@ -3,13 +3,9 @@ import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
-<<<<<<< HEAD
 import { format, subMonths, addMonths, startOfMonth,endOfMonth, eachDayOfInterval, getDay, subDays, addDays,} from "date-fns";
 import { useWindowDimensions } from "react-native";
 import images from "@/constants/images";
-=======
-import { format, subMonths, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subDays, addDays } from "date-fns";
->>>>>>> ef3ca83ebaa4e85bee019cc57f3ed35bb7e1f4e2
 
 import MoodRad from "@/assets/icons/MoodRad.png";
 import MoodGood from "@/assets/icons/MoodGood.png";
@@ -38,13 +34,9 @@ const dummyEntries = [
 
 export default function CalendarScreen() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
-<<<<<<< HEAD
   const { width, height } = useWindowDimensions();
   const [view, setView] = useState("Calendar");
   const [selectedReward, setSelectedReward] = useState(null);
-=======
-  const [view, setView] = useState("Calendar"); // Toggle between "Calendar" and "Streak"
->>>>>>> ef3ca83ebaa4e85bee019cc57f3ed35bb7e1f4e2
 
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
@@ -76,15 +68,12 @@ export default function CalendarScreen() {
         backgroundColor="transparent"
       />
 
-<<<<<<< HEAD
       <StatusBar
         style="light"
         hidden={false}
         translucent
         backgroundColor="transparent"
       />
-=======
->>>>>>> ef3ca83ebaa4e85bee019cc57f3ed35bb7e1f4e2
       <View className="items-center w-full pt-6 px-4">
         <View className="flex-row justify-between items-center w-full mb-4">
           <TouchableOpacity>
@@ -93,7 +82,6 @@ export default function CalendarScreen() {
           <TouchableOpacity onPress={goToPreviousMonth}>
             <Ionicons name="chevron-back-outline" size={28} color="white" />
           </TouchableOpacity>
-<<<<<<< HEAD
           <Text className="text-txt-medium font-LeagueSpartan-Bold text-3xl">
             {format(selectedMonth, "MMMM yyyy")}
           </Text>
@@ -103,11 +91,6 @@ export default function CalendarScreen() {
               size={28}
               color="#545454"
             />
-=======
-          <Text className="text-xl font-semibold text-white">{format(selectedMonth, "MMMM yyyy")}</Text>
-          <TouchableOpacity onPress={goToNextMonth}>
-            <Ionicons name="chevron-forward-outline" size={28} color="white" />
->>>>>>> ef3ca83ebaa4e85bee019cc57f3ed35bb7e1f4e2
           </TouchableOpacity>
           <TouchableOpacity>
             <Ionicons name="flame-outline" size={28} color="white" />
@@ -208,7 +191,6 @@ export default function CalendarScreen() {
             </View>
           </View>
         ) : (
-<<<<<<< HEAD
           <View className="mt-6 w-full px-6 items-center">
             <Text className="text-white text-xl font-bold mb-8">
               🔥 XP Progress
@@ -277,9 +259,6 @@ export default function CalendarScreen() {
               <Text className="text-white mt-4 text-lg font-semibold">{`You unlocked: ${selectedReward}`}</Text>
             )}
           </View>
-=======
-          <Text className="text-white text-lg mt-6">🔥 Streak feature coming soon...</Text>
->>>>>>> ef3ca83ebaa4e85bee019cc57f3ed35bb7e1f4e2
         )}
       </ScrollView>
     </SafeAreaView>
