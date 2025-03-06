@@ -1,6 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View } from 'react-native';
 import HomeScreen from '../(tabs)/home-page';
 import ChatbotScreen from '../(tabs)/chatbot-page';
 import CalendarScreen from '../(tabs)/calendar-page';

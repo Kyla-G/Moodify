@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Modal,
-  TextInput,
-} from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Image, Modal, TextInput} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -15,12 +7,12 @@ import { format, subMonths, addMonths } from "date-fns";
 import { LinearGradient } from "expo-linear-gradient";
 import images from "@/constants/images";
 import { useWindowDimensions } from "react-native";
-
 import MoodRad from "@/assets/icons/MoodRad.png";
 import MoodGood from "@/assets/icons/MoodGood.png";
 import MoodMeh from "@/assets/icons/MoodMeh.png";
 import MoodBad from "@/assets/icons/MoodBad.png";
 import MoodAwful from "@/assets/icons/MoodAwful.png";
+import SettingsPage from "./settings-page";
 
 const moodIcons = {
   Rad: MoodRad,
@@ -54,7 +46,7 @@ export default function HomeScreen() {
   const [selectedMood, setSelectedMood] = useState(null);
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [journalEntry, setJournalEntry] = useState("");
-
+  const [settingsVisible, setSettingsVisible] = useState(false);
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
 
@@ -97,8 +89,8 @@ export default function HomeScreen() {
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
       <View className="relative z-20">
         <View className="flex-row justify-between items-center w-full px-4 pt-6 pb-4">
-          <TouchableOpacity>
-            <Ionicons name="settings-outline" size={28} color="#EEEED0" />
+        <TouchableOpacity onPress={() => setSettingsVisible(true)}>
+            <Ionicons name="settings-outline" size={28} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPreviousMonth}>
             <Ionicons name="chevron-back-outline" size={28} color="#545454" />
@@ -218,7 +210,9 @@ export default function HomeScreen() {
   </ScrollView>
 </Modal>
 
-
+      <Modal visible={settingsVisible} transparent animationType="slide">
+        <SettingsPage onClose={() => setSettingsVisible(false)} />
+      </Modal>
 
     </SafeAreaView>
   );
