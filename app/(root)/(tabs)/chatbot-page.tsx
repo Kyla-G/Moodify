@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
+import SettingsPage from "./settings-page";
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState([
@@ -34,7 +35,7 @@ export default function ChatbotPage() {
       {/* Top Bar with Settings, Pagination, and Streak Button */}
       <View className="items-center w-full pt-6 px-4">
         <View className="flex-row justify-between items-center w-full mb-4">
-          <TouchableOpacity>
+        <TouchableOpacity onPress={() => setSettingsVisible(true)}>
             <Ionicons name="settings-outline" size={28} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPreviousMonth}>
@@ -72,6 +73,7 @@ export default function ChatbotPage() {
           <Ionicons name="send" size={20} color="white" />
         </TouchableOpacity>
       </View>
+      
     </SafeAreaView>
   );
 }

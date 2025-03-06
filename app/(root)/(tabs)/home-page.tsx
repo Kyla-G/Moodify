@@ -13,7 +13,6 @@ import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from "@react-navigation/native";
 import SettingsPage from "./settings-page";
 
 import MoodRad from "@/assets/icons/MoodRad.png";
@@ -55,7 +54,6 @@ export default function HomeScreen() {
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [journalEntry, setJournalEntry] = useState("");
   const [settingsVisible, setSettingsVisible] = useState(false);
-  const navigation = useNavigation();
 
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
@@ -74,16 +72,7 @@ export default function HomeScreen() {
   };
 
   const saveEntry = () => {
-    const currentDate = format(new Date(), "yyyy-MM-dd");
-    const currentTime = format(new Date(), "hh:mm a");
-
-    navigation.navigate("EntryDetailsPage", {
-      mood: selectedMood,
-      emotion: selectedEmotion,
-      date: currentDate,
-      time: currentTime,
-    });
-
+    // Save the entry logic
     setEmotionModalVisible(false);
     setJournalEntry("");
     setSelectedMood(null);
