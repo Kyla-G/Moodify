@@ -1,13 +1,21 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Modal,
+  TextInput,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
+import { LinearGradient } from "expo-linear-gradient";
 import images from "@/constants/images";
 import { useWindowDimensions } from "react-native";
 
-// Mood Icons
 import MoodRad from "@/assets/icons/MoodRad.png";
 import MoodGood from "@/assets/icons/MoodGood.png";
 import MoodMeh from "@/assets/icons/MoodMeh.png";
@@ -22,24 +30,54 @@ const moodIcons = {
   Awful: MoodAwful,
 };
 
-// Sample Mood Entries
+const moodEmotions = {
+  Rad: ["Excited", "Energetic", "Proud"],
+  Good: ["Content", "Hopeful", "Optimistic"],
+  Meh: ["Bored", "Indifferent", "Unmotivated"],
+  Bad: ["Stressed", "Frustrated", "Lonely"],
+  Awful: ["Angry", "Anxious", "Overwhelmed"],
+};
+
 const dummyEntries = [
   { mood: "Rad", date: "2025-02-15", time: "10:30 AM", journal: "Had a great day at work!" },
   { mood: "Bad", date: "2025-02-14", time: "8:15 PM", journal: "" },
-  { mood: "Rad", date: "2025-02-13", time: "2:45 PM", journal: "Looking forward to the weekend!" },
-  { mood: "Bad", date: "2025-02-12", time: "7:00 AM", journal: "Feeling a bit off today." },
-  { mood: "Good", date: "2025-02-11", time: "6:30 PM", journal: "Had a peaceful evening walk." },
-  { mood: "Awful", date: "2025-02-10", time: "9:45 AM", journal: "Workload is overwhelming today." },
-  { mood: "Good", date: "2025-02-09", time: "5:15 PM", journal: "Appreciating the little things in life." },
-  { mood: "Meh", date: "2025-02-08", time: "11:30 PM", journal: "" },
+  { mood: "Awful", date: "2025-02-16", time: "8:15 PM", journal: "Thesis sucks" },
+  { mood: "Good", date: "2025-02-19", time: "8:15 PM", journal: "lmao" },
+  { mood: "Meh", date: "2025-02-14", time: "8:15 PM", journal: "" },
+  { mood: "Bad", date: "2025-02-14", time: "8:15 PM", journal: "" },
 ];
 
 export default function HomeScreen() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [moodModalVisible, setMoodModalVisible] = useState(false);
+  const [emotionModalVisible, setEmotionModalVisible] = useState(false);
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [selectedEmotion, setSelectedEmotion] = useState(null);
+  const [journalEntry, setJournalEntry] = useState("");
 
-  // Functions to change month
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
+
+  const openMoodModal = () => setMoodModalVisible(true);
+  const closeMoodModal = () => setMoodModalVisible(false);
+
+  const selectMood = (mood) => {
+    setSelectedMood(mood);
+    setMoodModalVisible(false);
+    setEmotionModalVisible(true);
+  };
+
+  const selectEmotion = (emotion) => {
+    setSelectedEmotion(emotion);
+  };
+
+  const saveEntry = () => {
+    // Save the entry logic
+    setEmotionModalVisible(false);
+    setJournalEntry("");
+    setSelectedMood(null);
+    setSelectedEmotion(null);
+  };
   const { width, height } = useWindowDimensions();
 
   return (
@@ -57,9 +95,8 @@ export default function HomeScreen() {
       />
 
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
-      <View className="items-center w-full pt-6 px-4">
-        {/* Month Pagination with Settings & Streak Buttons */}
-        <View className="flex-row justify-between items-center w-full mb-4">
+      <View className="relative z-20">
+        <View className="flex-row justify-between items-center w-full px-4 pt-6 pb-4">
           <TouchableOpacity>
             <Ionicons name="settings-outline" size={28} color="#EEEED0" />
           </TouchableOpacity>
@@ -76,18 +113,30 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      <View pointerEvents="none" style={{ position: "absolute", top: 570, left: 0, right: 0, height: 250, zIndex: 5 }}>
+        <LinearGradient
+          colors={["rgba(0, 0, 0, 0.9)", "rgba(0, 0, 0, 0.5)", "transparent"]}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 0, y: 0 }}
+          style={{ flex: 1 }}
+        />
+      </View>
+
       <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: "center", paddingHorizontal: 16 }}>
         <Text className="text-txt-orange font-LeagueSpartan-Bold mt-20" style={{ fontSize: 55, textAlign: "center" }}>
           How are you feeling?
         </Text>
 
-        <View className="flex-1 justify-center items-center w-full py-10 mb-40">
-          <TouchableOpacity className="bg-bg-light w-20 h-20 rounded-full shadow-md flex items-center justify-center mb-20">
+        <View className="flex-1 justify-center items-center w-full py-10 mb-20">
+          <TouchableOpacity
+            onPress={openMoodModal}
+            className="bg-bg-light w-20 h-20 rounded-full shadow-md flex items-center justify-center mb-20"
+          >
             <Text className="text-txt-orange text-7xl font-bold">+</Text>
           </TouchableOpacity>
         </View>
 
-        <View className="w-full">
+        <View className="w-full pb-10">
           {dummyEntries.map((entry, index) => {
             const moodIcon = moodIcons[entry.mood];
 
@@ -104,6 +153,73 @@ export default function HomeScreen() {
           })}
         </View>
       </ScrollView>
+
+      {/* Mood Selection Modal */}
+      <Modal visible={moodModalVisible} transparent animationType="slide">
+        <View className="flex-1 bg-black bg-opacity-90 justify-center items-center px-6">
+          <Text className="text-white text-2xl font-bold mb-6 text-center">What mood best describes how you're feeling?</Text>
+          {Object.keys(moodIcons).map((mood) => (
+            <TouchableOpacity
+              key={mood}
+              className="bg-[#202020] flex-row items-center p-4 rounded-lg mb-4 w-full"
+              onPress={() => selectMood(mood)}
+            >
+              <Image source={moodIcons[mood]} style={{ width: 40, height: 40, marginRight: 12 }} />
+              <Text className="text-white text-lg">{mood}</Text>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity onPress={closeMoodModal} className="mt-6">
+            <Text className="text-red-500 text-lg">Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* Emotion & Journal Modal */}
+      <Modal visible={emotionModalVisible} transparent animationType="slide">
+  <ScrollView className="flex-1 bg-black bg-opacity-90 px-6 py-10">
+    <View className="items-center w-full">
+      <Text className="text-white text-2xl font-bold mb-6 text-center">Choose an emotion</Text>
+
+      <View className="flex-row flex-wrap justify-between w-full gap-4">
+        {[
+          "Happy", "Excited", "Energetic", "Calm", "Grateful", "Confident", "Hopeful",
+          "Anxious", "Nervous", "Irritated", "Angry", "Stressed", "Sad", "Fearful", "Bored", "Confused"
+        ].map((emotion) => (
+          <TouchableOpacity
+            key={emotion}
+            className={`bg-[#303030] p-4 rounded-2xl w-[48%] items-center ${
+              selectedEmotion === emotion ? "border-2 border-white" : ""
+            }`}
+            onPress={() => setSelectedEmotion(emotion)}
+          >
+            <Text className="text-white text-lg">{emotion}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <TextInput
+        className="bg-[#202020] text-white p-5 rounded-2xl mt-8 w-full min-h-[180px] text-lg"
+        placeholder="Write a journal entry..."
+        placeholderTextColor="#888"
+        multiline
+        value={journalEntry}
+        onChangeText={setJournalEntry}
+      />
+
+      <View className="flex-row gap-4 mt-8 w-full">
+        <TouchableOpacity onPress={saveEntry} className="bg-[#FF6B35] p-4 rounded-2xl flex-1 items-center">
+          <Text className="text-white text-lg">Save</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setEmotionModalVisible(false)} className="bg-gray-700 p-4 rounded-2xl flex-1 items-center">
+          <Text className="text-white text-lg">Cancel</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </ScrollView>
+</Modal>
+
+
+
     </SafeAreaView>
   );
 }
