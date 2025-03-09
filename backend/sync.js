@@ -5,7 +5,7 @@ module.exports = async function syncDatabase(sqliteDB, mysqlDB) {
         console.log("✅ MySQL connected successfully");
 
         // Fetch data from SQLite
-        sqliteDB.all("SELECT * FROM user_tbl", async (err, rows) => {
+        sqliteDB.all("SELECT * FROM Users", async (err, rows) => {
             if (err) {
                 console.error("❌ Error fetching from SQLite:", err);
                 return;
@@ -16,10 +16,10 @@ module.exports = async function syncDatabase(sqliteDB, mysqlDB) {
                 return;
             }
 
-            console.log("📥 Retrieved rows from SQLite:", rows); // Debugging
+            // console.log("📥 Retrieved rows from SQLite:"); // Debugging
 
             for (const row of rows) {
-                console.log("🔄 Processing row:", row);
+                console.log("");
 
                 if (!row.user_ID || !row.nickname) {
                     console.error("⚠️ Skipping row due to missing data:", row);
@@ -28,7 +28,7 @@ module.exports = async function syncDatabase(sqliteDB, mysqlDB) {
 
                 try {
                     await mysqlDB.query(
-                        "INSERT INTO user_tbl (user_ID, nickname) VALUES (?, ?) ON DUPLICATE KEY UPDATE nickname = ?",
+                        "INSERT INTO Users (user_ID, nickname) VALUES (?, ?) ON DUPLICATE KEY UPDATE nickname = ?",
                         { replacements: [row.user_ID, row.nickname, row.nickname] }
                     );
                 } catch (queryError) {

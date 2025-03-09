@@ -1,47 +1,54 @@
 const http = require('http');
-const app = require('./app'); // Import the app module
-const db = require('./API/models'); // Import the database models
-const port = 8080;
-const server = http.createServer(app);
+const app = require('./app');
+const db = require('./API/models');
 const sqlite3 = require('sqlite3').verbose();
-const port1 = process.env.PORT || 3000;
-const dbPath = './Moodify.db'; 
-const syncDatabase = require('./sync')
+const syncDatabase = require('./sync');
+const dbPath = './Moodify.db';
+const port1 = process.env.PORT || 3000; // SQLite
+const port2 = 8080; // MySQL
 
+// Function to check if a port is in use
+const checkPort = (port, callback) => {
+    const server = http.createServer();
+    server.listen(port, () => {
+        server.close(() => callback(false)); // Port is free
+    }).on('error', () => {
+        callback(true); // Port is in use
+    });
+};
 
 // Initialize SQLite database
 const db1 = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('❌ Failed to connect to SQLite database:', err.message);
-        process.exit(1); // Exit the app if database connection fails
+        process.exit(1);
     } else {
         console.log('🚀 SQLite database connected successfully.');
-
-        // Run migrations or ensure tables exist (if necessary)
-      
-                // Start the Express server only if DB is ready
-                app.listen(port1, () => {
-                    console.log(`Server is listening on port ${port1}`);
-                });
+        syncDatabase(db1, db.sequelize);
+        checkPort(port1, (inUse) => {
+            if (!inUse) {
+                app.listen(port1, () => console.log(`✅ SQLite Server is running on port ${port1}`));
+            } else {
+                console.error(`❌ Port ${port1} is already in use!`);
             }
         });
+    }
+});
 
-        syncDatabase(db1, db.sequelize);
-    
-
-//Synchronize the database before starting the server
-db.sequelize.sync({ alter: false }) // Change `force` to `true` only for development or testing
-  .then(() => {
-    console.log('✅ MySQL Cloud Database connected and synchronized successfully.');
-    server.listen(port, () => {
-      console.log(`Server is listening on port ${port}`);
+// Synchronize MySQL database before starting the server
+db.sequelize.sync({ alter: false })
+    .then(() => {
+        console.log('✅ MySQL Cloud Database connected and synchronized successfully.');
+        checkPort(port2, (inUse) => {
+            if (!inUse) {
+                http.createServer(app).listen(port2, () => console.log(`✅ MySQL Server is running on port ${port2}`));
+            } else {
+                console.error(`❌ Port ${port2} is already in use!`);
+            }
+        });
+    })
+    .catch((err) => {
+        console.error('❌ Failed to connect and sync MySQL database:', err);
     });
-  })
-  .catch((err) => {
-    console.error('Failed to connect and sync Cloud database:', err);
-  });
-
-
-
 
     

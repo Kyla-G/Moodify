@@ -4,8 +4,6 @@ const { Op } = require("sequelize");
 
 // Add Mood Only
 const addMood = async (req, res, next) => {
-    const t = await MoodEntry.sequelize.transaction(); // Start transaction
-
     try {
         const { user_ID, moods, logged_date } = req.body;
 
@@ -18,16 +16,11 @@ const addMood = async (req, res, next) => {
         }
 
         // Create new mood entry
-        const newMoodEntry = await MoodEntry.create(
-            {
-                user_ID,
-                moods,
-                logged_date
-            },
-            { transaction: t }
-        );
-
-        await t.commit(); // Commit transaction
+        const newMoodEntry = await MoodEntry.create({
+            user_ID,
+            moods,
+            logged_date
+        });
 
         return res.status(201).json({
             successful: true,
@@ -36,9 +29,7 @@ const addMood = async (req, res, next) => {
         });
 
     } catch (err) {
-        await t.rollback(); // Rollback transaction on error
         console.error("Error in addMood:", err);
-
         return res.status(500).json({
             successful: false,
             message: err.message || "An unexpected error occurred."
@@ -48,8 +39,6 @@ const addMood = async (req, res, next) => {
 
 // Add Emotion Only
 const addEmotion = async (req, res, next) => {
-    const t = await MoodEntry.sequelize.transaction(); // Start transaction
-
     try {
         const { user_ID, emotions, logged_date } = req.body;
 
@@ -77,9 +66,7 @@ const addEmotion = async (req, res, next) => {
         }
 
         // Add the emotion to the existing mood entry
-        await existingMoodEntry.update({ emotions }, { transaction: t });
-
-        await t.commit(); // Commit transaction
+        await existingMoodEntry.update({ emotions });
 
         return res.status(201).json({
             successful: true,
@@ -88,16 +75,13 @@ const addEmotion = async (req, res, next) => {
         });
 
     } catch (err) {
-        await t.rollback(); // Rollback transaction on error
         console.error("Error in addEmotion:", err);
-
         return res.status(500).json({
             successful: false,
             message: err.message || "An unexpected error occurred."
         });
     }
 };
-
 
 const updateMoodEntryById = async (req, res, next) => {
     try {

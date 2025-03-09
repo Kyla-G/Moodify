@@ -1,14 +1,10 @@
 
-const { User } = require('../models/'); // Ensure model name matches exported model
+const {User } = require('../models'); // Adjust path to your models directory
 const util = require('../../utils');
 const { Op } = require("sequelize");
 
 
-
-
 const addUser = async (req, res, next) => {
-    const t = await User.sequelize.transaction(); // Start transaction
-
     try {
         const { nickname } = req.body;
         
@@ -27,11 +23,10 @@ const addUser = async (req, res, next) => {
         const newUser = await User.create(
             {
                 nickname
-            },
-            { transaction: t }
-        );
+            });
+            
+        
 
-        await t.commit(); // Commit transaction
 
         return res.status(201).json({
             successful: true,
@@ -119,6 +114,12 @@ const getUserById = async (req, res, next) => {
 
 
 const getAllUsers = async (req, res, next) => {
+
+    // console.log("=== getAllUsers method called ===");
+    // console.log("DB object keys:", Object.keys(db));
+    // console.log("DB User model:", db.User);
+
+  
     try {
         const users = await User.findAll();
 

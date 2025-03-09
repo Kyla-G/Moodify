@@ -13,9 +13,45 @@ module.exports = (sequelize, DataTypes) => {
                 notEmpty: { msg: "Nickname is required." }
             }
         }
-    }, {
-       
     });
+
+    // Define Associations AFTER model definition
+    User.associate = (models) => {
+        User.hasMany(models.MoodEntry, {
+            foreignKey: 'user_ID',  // Fixed foreignKey name
+            as: 'moodEntries',
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE'
+        });
+
+        User.hasMany(models.XPProgress, {
+            foreignKey: 'user_ID',
+            as: 'xpProgress',
+            onDelete: 'SET NULL', 
+            onUpdate: 'CASCADE'
+        });
+
+        // User.hasMany(models.XPInfo, {
+        //     foreignKey: 'user_ID',  // Ensure consistency with previous keys
+        //     as: 'xpTbl',
+        //     onDelete: 'CASCADE',
+        //     onUpdate: 'CASCADE'
+        // });
+
+        User.hasMany(models.ChatSession, {
+            foreignKey: 'user_ID',
+            as: 'chatSession',
+            onDelete: 'SET NULL',
+            onUpdate: 'CASCADE'
+        });
+
+        User.hasMany(models.Feedback, {
+            foreignKey: 'user_ID',
+            as: 'userFeedback',
+            onDelete: 'SET NULL',
+            onUpdate: 'CASCADE'
+        });
+    };
 
     return User;
 };

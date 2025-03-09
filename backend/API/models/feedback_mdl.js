@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
-                model: 'chat_sessions_tbl',
+                model: 'chat_session_tbl',
                 key: 'chat_session_ID'
             }
         },
@@ -30,10 +30,15 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false
         }
-    }, {
-        tableName: 'feedback_tbl',
-        timestamps: false
-    });
+    }
+)
+        Feedback.associate = (models) => {
+            Feedback.belongsTo(models.User, {
+                foreignKey: 'user_ID',
+                as: 'user'
+            });
+        };
+    
 
     return Feedback;
 };

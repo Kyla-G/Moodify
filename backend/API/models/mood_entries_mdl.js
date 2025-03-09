@@ -6,16 +6,13 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true, // Enable Auto Increment
             allowNull: false
         },
-        user_ID: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: 'user_tbl',  // FK references user_tbl
-                key: 'user_ID'
-            }
-        },
         moods: {
             type: DataTypes.ENUM('rad', 'good', 'meh', 'bad', 'awful'),
+            allowNull: false
+        },
+
+        logged_date: {
+            type: DataTypes.DATE,
             allowNull: false
         },
         emotions: {
@@ -28,6 +25,14 @@ module.exports = (sequelize, DataTypes) => {
                 this.setData
             }
         }
-    }
-)
+    });
+    MoodEntry.associate = (models) => {
+        MoodEntry.belongsTo(models.User, {
+            foreignKey: 'user_ID',
+            as: 'user'
+        });
+    };
+
+    return MoodEntry;
+
 }

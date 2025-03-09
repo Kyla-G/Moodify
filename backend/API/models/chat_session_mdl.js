@@ -6,26 +6,23 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true,
             allowNull: false
         },
-        user_ID: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: 'user_tbl',
-                key: 'user_ID'
-            }
-        },
         start_time: {
             type: DataTypes.DATE,
             allowNull: false
         },
         end_time: {
             type: DataTypes.DATE,
-            allowNull: true
+            allowNull: false
         }
-    }, {
-        tableName: 'chat_sessions_tbl',
-        timestamps: false
-    });
-
+    }
+)
+        ChatSession.associate = (models) => {
+            ChatSession.belongsTo(models.User, {
+                foreignKey: 'user_ID',
+                as: 'user'
+            });
+    } 
+    
     return ChatSession;
+    
 };
