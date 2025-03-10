@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const  XPInfo = sequelize.define('XP', {
+    const  XPInfo = sequelize.define('XPInfo', {
         xp_ID: {
             type: DataTypes.INTEGER,
             primaryKey: true,  
@@ -17,11 +17,10 @@ module.exports = (sequelize, DataTypes) => {
         xp_value_feature: {
             type: DataTypes.INTEGER,
             allowNull: false
-        },
-        gained_xp: {
-            type: DataTypes.INTEGER,
-            allowNull: false
         }
+
+        
+        
     });
 
     // Ensure that XP.associate is inside the module.exports function

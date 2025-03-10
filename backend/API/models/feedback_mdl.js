@@ -6,26 +6,11 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true,
             allowNull: false
         },
-        user_ID: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: 'user_tbl',
-                key: 'user_ID'
-            }
-        },
-        chat_session_ID: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: 'chat_session_tbl',
-                key: 'chat_session_ID'
-            }
-        },
         rating: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.ENUM('1', '2', '3', '4', '5'),  // Restricts values to 1-5
             allowNull: false
         },
+        
         feedback_time: {
             type: DataTypes.DATE,
             allowNull: false
@@ -36,6 +21,10 @@ module.exports = (sequelize, DataTypes) => {
             Feedback.belongsTo(models.User, {
                 foreignKey: 'user_ID',
                 as: 'user'
+            });
+            Feedback.belongsTo(models.ChatSession, {
+                foreignKey: 'chat_session_ID',
+                as: 'chat_session'
             });
         };
     

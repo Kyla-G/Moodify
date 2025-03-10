@@ -6,14 +6,6 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true,
             allowNull: false
         },
-        user_ID: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: 'user_tbl',
-                key: 'user_ID'
-            }
-        },
         gained_xp: {
             type: DataTypes.INTEGER,
             allowNull: false
@@ -23,9 +15,15 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         }
     }, {
-        tableName: 'xp_progress',
-        timestamps: false
+        timestamps: true
     });
+
+    XPProgress.associate = (models) => {
+        XPProgress.belongsTo(models.User, {
+            foreignKey: 'user_ID',
+            as: 'user'
+        });
+    };
 
     return XPProgress;
 };

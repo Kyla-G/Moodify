@@ -31,12 +31,19 @@ module.exports = (sequelize, DataTypes) => {
             onUpdate: 'CASCADE'
         });
 
-        // User.hasMany(models.XPInfo, {
-        //     foreignKey: 'user_ID',  // Ensure consistency with previous keys
-        //     as: 'xpTbl',
-        //     onDelete: 'CASCADE',
-        //     onUpdate: 'CASCADE'
-        // });
+        User.hasMany(models.Feedback, {
+            foreignKey: 'user_ID',
+            as: 'Feedback',
+            onDelete: 'SET NULL', 
+            onUpdate: 'CASCADE'
+        });
+
+        User.hasMany(models.XPInfo, {
+            foreignKey: 'user_ID',  // Ensure consistency with previous keys
+            as: 'xpTbl',
+            onDelete: 'SET NULL',
+            onUpdate: 'CASCADE'
+        });
 
         User.hasMany(models.ChatSession, {
             foreignKey: 'user_ID',
