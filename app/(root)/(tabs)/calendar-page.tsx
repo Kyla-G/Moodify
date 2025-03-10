@@ -5,7 +5,6 @@ import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths, startOfMonth,endOfMonth, eachDayOfInterval, getDay, subDays, addDays,} from "date-fns";
 import { useWindowDimensions } from "react-native";
-import images from "@/constants/images";
 
 import MoodRad from "@/assets/icons/MoodRad.png";
 import MoodGood from "@/assets/icons/MoodGood.png";
