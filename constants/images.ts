@@ -10,6 +10,8 @@ import moods from "@/assets/images/moods.png";
 import patterns from "@/assets/images/patterns.png";
 import journal from "@/assets/images/journal.png";
 import moodiwave from "@/assets/images/moodiwave.png";
+import homepagebg from "@/assets/images/homepagebg.png";
+import moodichat from "@/assets/images/moodichat.png";
 
 export default {
   iconlight,
@@ -24,4 +26,6 @@ export default {
   patterns,
   journal,
   moodiwave,
+  homepagebg,
+  moodichat
 };
