@@ -5,7 +5,7 @@ module.exports = async function syncDatabase(sqliteDB, mysqlDB) {
         console.log("✅ MySQL connected successfully");
 
         // Fetch data from SQLite
-        sqliteDB.all("SELECT * FROM user_tbl", async (err, rows) => {
+        sqliteDB.all("SELECT * FROM Users", async (err, rows) => {
             if (err) {
                 console.error("❌ Error fetching from SQLite:", err);
                 return;

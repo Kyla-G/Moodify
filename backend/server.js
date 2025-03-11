@@ -52,3 +52,5 @@ db.sequelize.sync({ alter: false })
     });
 
     
+
+    

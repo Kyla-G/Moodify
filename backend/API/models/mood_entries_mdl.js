@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false
         },
-        emotions: {
+        emotions: { //hmmmmmmmm think about this
             type: DataTypes.STRING, // SQLite doesn't support SET, so use a string
             allowNull: false,
             get() {

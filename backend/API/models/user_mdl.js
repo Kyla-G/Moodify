@@ -13,6 +13,8 @@ module.exports = (sequelize, DataTypes) => {
                 notEmpty: { msg: "Nickname is required." }
             }
         }
+
+        
     });
 
     // Define Associations AFTER model definition

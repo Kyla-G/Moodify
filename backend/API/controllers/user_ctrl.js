@@ -35,8 +35,7 @@ const addUser = async (req, res, next) => {
         });
 
     } catch (err) {
-        await t.rollback(); // Rollback transaction on error
-        console.error("Error in addUser:", err);
+        console.error("Error in adding a user:", err);
 
         return res.status(500).json({
             successful: false,

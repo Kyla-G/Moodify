@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const XpLog = sequelize.define('XpLog', {
+    const XPLog = sequelize.define('XPLog', {
         xp_log_ID: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
@@ -29,13 +29,13 @@ module.exports = (sequelize, DataTypes) => {
     )
 
 
-    XpLog.associate = (models) => {
-        XpLog.belongsTo(models.User, {
+    XPLog.associate = (models) => {
+        XPLog.belongsTo(models.User, {
             foreignKey: 'user_ID',
             as: 'user',
             onDelete: 'CASCADE'
         });
     };
 
-    return XpLog;
+    return XPLog;
 };
