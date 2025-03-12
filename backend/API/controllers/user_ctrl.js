@@ -6,7 +6,7 @@ const { Op } = require("sequelize");
 
 const addUser = async (req, res, next) => {
     try {
-        const { nickname } = req.body;
+        const { nickname, createdAt, updatedAt } = req.body;
         
 
         // Validate mandatory fields
@@ -22,7 +22,9 @@ const addUser = async (req, res, next) => {
         // Create new user with a hashed password
         const newUser = await User.create(
             {
-                nickname
+                nickname,
+                createdAt, 
+                updatedAt
             });
             
         
@@ -40,49 +42,10 @@ const addUser = async (req, res, next) => {
         return res.status(500).json({
             successful: false,
             message: err.message || "An unexpected error occurred."
-        });
+        });sssssss
     }
 };
 
-
-const updateUserById = async (req, res, next) => {
-    try {
-        const { nickname } = req.body;
-
-        // Check if the user exists
-        const user = await User.findByPk(req.params.id);
-        if (!user) {
-            return res.status(404).json({
-                successful: false,
-                message: "User not found."
-            });
-        }
-
-        // Validate mandatory fields
-        if (!util.checkMandatoryFields([nickname])) {
-            return res.status(400).json({
-                successful: false,
-                message: "A mandatory field is missing."
-            });
-        }
-        // Update user data
-        await user.update({
-           nickname
-        });
-
-        return res.status(200).json({
-            successful: true,
-            message: "User updated successfully."
-        });
-
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({
-            successful: false,
-            message: err
-        });
-    }
-};
 
 const getUserById = async (req, res, next) => {
     try {
@@ -143,11 +106,82 @@ const getAllUsers = async (req, res, next) => {
             message: err.message
         });
     }
+    
 }
+
+const updateUserById = async (req, res, next) => {
+    try {
+        const { nickname } = req.body;
+
+        // Check if the user exists
+        const user = await User.findByPk(req.params.id);
+        if (!user) {
+            return res.status(404).json({
+                successful: false,
+                message: "User not found."
+            });
+        }
+
+        // Validate mandatory fields
+        if (!util.checkMandatoryFields([nickname])) {
+            return res.status(400).json({
+                successful: false,
+                message: "A mandatory field is missing."
+            });
+        }
+        // Update user data
+        await user.update({
+           nickname
+        });
+
+        return res.status(200).json({
+            successful: true,
+            message: "User updated successfully.",
+            data: " Updated Nickname: " + nickname
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            successful: false,
+            message: err
+        });
+    }
+}
+
+const deleteUser = async (req, res) => {
+
+    try {
+        const userId = req.params.id;
+
+        const user = await User.findByPk(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                successful: false,
+                message: "User not found.",
+            });
+        }
+
+        await user.destroy();
+
+        return res.status(200).json({
+            successful: true,
+            message: `User with ID ${userId} has been deleted.`,
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            successful: false,
+            message: `Error deleting user: ${error}`,
+        });
+    }
+};
 
 module.exports = {
     addUser,
     getUserById,
     getAllUsers,
-    updateUserById
+    updateUserById,
+    deleteUser
 }

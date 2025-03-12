@@ -2,8 +2,8 @@ module.exports = (sequelize, DataTypes) => {
     const User = sequelize.define('User', {
         user_ID: {
             type: DataTypes.INTEGER,
-            primaryKey: true,  
-            autoIncrement: true, 
+            primaryKey: true,
+            autoIncrement: true,
             allowNull: false
         },
         nickname: {
@@ -12,15 +12,29 @@ module.exports = (sequelize, DataTypes) => {
             validate: {
                 notEmpty: { msg: "Nickname is required." }
             }
+        },
+        createdAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            validate: {
+                notEmpty: { msg: "Date is required." }
+            }
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            validate: {
+                notEmpty: { msg: "Date is required." }
+            }
         }
-
-        
+    }, {  
+        timestamps: false
     });
 
     // Define Associations AFTER model definition
     User.associate = (models) => {
         User.hasMany(models.MoodEntry, {
-            foreignKey: 'user_ID',  // Fixed foreignKey name
+            foreignKey: 'user_ID',
             as: 'moodEntries',
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE'
@@ -29,19 +43,19 @@ module.exports = (sequelize, DataTypes) => {
         User.hasMany(models.XPProgress, {
             foreignKey: 'user_ID',
             as: 'xpProgress',
-            onDelete: 'SET NULL', 
+            onDelete: 'SET NULL',
             onUpdate: 'CASCADE'
         });
 
         User.hasMany(models.Feedback, {
             foreignKey: 'user_ID',
-            as: 'Feedback',
-            onDelete: 'SET NULL', 
+            as: 'userFeedback',  // Removed duplicate alias
+            onDelete: 'SET NULL',
             onUpdate: 'CASCADE'
         });
 
         User.hasMany(models.XPInfo, {
-            foreignKey: 'user_ID',  // Ensure consistency with previous keys
+            foreignKey: 'user_ID',
             as: 'xpTbl',
             onDelete: 'SET NULL',
             onUpdate: 'CASCADE'
@@ -50,13 +64,6 @@ module.exports = (sequelize, DataTypes) => {
         User.hasMany(models.ChatSession, {
             foreignKey: 'user_ID',
             as: 'chatSession',
-            onDelete: 'SET NULL',
-            onUpdate: 'CASCADE'
-        });
-
-        User.hasMany(models.Feedback, {
-            foreignKey: 'user_ID',
-            as: 'userFeedback',
             onDelete: 'SET NULL',
             onUpdate: 'CASCADE'
         });
