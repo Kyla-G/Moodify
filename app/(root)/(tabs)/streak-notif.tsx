@@ -121,7 +121,7 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
               <View style={{
                 backgroundColor: '#F6C49E',
                 borderRadius: 20,
-                padding: 12,
+                padding: 15,
                 alignItems: 'center',
                 flex: 1,
                 marginHorizontal: 8
@@ -144,6 +144,7 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
                   <Ionicons name="flame" size={24} color="#F6C49E" />
                   <Text style={{
                     fontSize: 24,
+                    fontFamily: 'LeagueSpartan-Regular',
                     color: '#EEEED0',
                     marginRight: 5,
                   }}>{streak}</Text>

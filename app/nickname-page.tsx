@@ -13,10 +13,12 @@ export default function NicknamePage() {
   const handleContinue = () => {
     if (nickname.trim()) {
       // Save nickname and navigate to next screen
-      // You could store this in AsyncStorage, Context, or your preferred state management
-      router.push("/(root)/(tabs)/home-page");
-    }
-  };
+      router.push({
+        pathname: '/(root)/(tabs)/home-page',
+        params: { nickname: nickname.trim(), showWelcome: true }
+    });
+}
+};
 
   return (
     <SafeAreaView className="flex-1 justify-center items-center bg-bg-medium">

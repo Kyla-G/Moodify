@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Image, Modal, TextInput, useWindowDimensions, Alert, KeyboardAvoidingView, Platform} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -7,6 +7,7 @@ import { format, subMonths, addMonths } from "date-fns";
 import { LinearGradient } from "expo-linear-gradient";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
+import { useLocalSearchParams } from "expo-router";
 import XpStreakPopup from '../(tabs)/streak-notif'; // Import the new XP popup component
 
 const moodIcons = {
@@ -52,6 +53,10 @@ export default function HomeScreen() {
   const [journalEntry, setJournalEntry] = useState("");
   const { width, height } = useWindowDimensions();
   const [expandedEntries, setExpandedEntries] = useState({});
+
+  const params = useLocalSearchParams();
+  const [welcomeModalVisible, setWelcomeModalVisible] = useState(false);
+  const nickname = params.nickname || "Friend";
   
   // New state for XP popup
   const [xpPopupVisible, setXpPopupVisible] = useState(false);
@@ -133,9 +138,84 @@ export default function HomeScreen() {
   const iconSize = width < 350 ? 22 : 28;
   const modalPadding = width < 350 ? 12 : 24;
 
+  useEffect(() => {
+    // Show welcome popup if coming from nickname page
+    if (params.showWelcome === "true") {
+        setWelcomeModalVisible(true);
+        
+        // Optional: Auto-hide after 3 seconds
+        // const timer = setTimeout(() => {
+        //     setWelcomeModalVisible(false);
+        // }, 3000);
+        // return () => clearTimeout(timer);
+    }
+}, [params.showWelcome]);
+
   return (
     <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-black">
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
+
+      {/* Welcome Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={welcomeModalVisible}
+        onRequestClose={() => setWelcomeModalVisible(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+
+          <View
+            style={{ width: width * 0.85 }}
+            className="bg-bg-dark rounded-3xl p-6 items-center"
+          >
+            <Image
+              source={images.moodiwave}
+              style={{
+                width: width * 0.3,
+                height: width * 0.3,
+                resizeMode: "contain"
+              }}
+            />
+
+            <Text
+              className="text-txt-orange font-LeagueSpartan-Bold text-center mb-10"
+              style={{ fontSize: width * 0.1 }}
+            >
+              Hi {nickname}!
+            </Text>
+
+            <Text
+              className="text-txt-light font-LeagueSpartan text-center mb-5"
+              style={{ fontSize: width * 0.045 }}
+            >
+              Welcome to <Text className="text-txt-orange font-LeagueSpartan-Bold">Moodify</Text>! I'm excited to be your companion on this journey to
+              better wellness and self-awareness.
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setWelcomeModalVisible(false)}
+              style={{
+                paddingVertical: height * 0.015,
+                paddingHorizontal: width * 0.1,
+                borderRadius: 45,
+              }}
+              className="bg-bg-orange justify-center items-center mt-2"
+            >
+              <Text
+                className="text-txt-light font-LeagueSpartan-Bold"
+                style={{ fontSize: width * 0.045 }}
+              >
+                Let's Go!
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <Image
         source={images.homepagebg}
