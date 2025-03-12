@@ -546,7 +546,7 @@ export default function HomeScreen() {
                   }}
                 >
                   <Text
-                    className="font-LeagueSpartan text-txt-darkblue text-2xl"
+                    className="font-LeagueSpartan-Bold text-txt-darkblue text-2xl"
                     style={{ color: selectedMood ? moodColors[selectedMood] : "#333" }}
                   >
                     Yes

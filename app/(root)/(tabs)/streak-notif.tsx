@@ -24,20 +24,23 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
       animationType="fade"
       onRequestClose={onClose}
     >
+      
       <View style={{
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.75)',
         justifyContent: 'center',
         alignItems: 'center',
       }}>
+        
         <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={{
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
           width: '100%',
         }}>
+          
           <View style={{
-            backgroundColor: '#FF6B35',
+            backgroundColor: '#003049',
             borderRadius: 24,
             padding: 24,
             alignItems: 'center',
@@ -45,12 +48,7 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
             width: modalWidth
           }}> 
 
-            <ConfettiCannon 
-              count={200} 
-              origin={{x: width / 2, y: 0}}
-              fallSpeed={0.4}
-              explosionSpeed={0.5}
-            />
+            <ConfettiCannon count={300} origin={{ x: 200, y: 150 }} fadeOut={true} autoStart={true} />
 
             <Image
               source={images.moodiwave}
@@ -63,7 +61,7 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
 
             <Text style={{
               fontFamily: 'LeagueSpartan-Bold',
-              color: '#EEEED0',
+              color: '#FF6B35',
               marginBottom: 10,
               textAlign: 'center',
               fontSize: 35
@@ -84,24 +82,24 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
               marginBottom: 24,
               paddingHorizontal: 10,
             }}>
+              
+              {/* Total XP */}
               <View style={{
                 backgroundColor: '#004E89',
                 borderRadius: 20,
                 padding: 15,
                 alignItems: 'center',
                 flex: 1,
-                marginHorizontal: 8,
-                borderWidth: 1,
-                borderColor: 'rgba(238, 238, 208, 0.3)'
+                marginHorizontal: 8
               }}>
                 <Text style={{
-                  color: '#FF6B35',
+                  color: '#F6C49E',
                   fontSize: 20,
                   fontFamily: 'LeagueSpartan-Bold'
                 }}>TOTAL XP</Text>
                 <View style={{
                   flexDirection: 'row',
-                  backgroundColor: '#FF6B35',
+                  backgroundColor: '#F6C49E',
                   padding: 10,
                   borderRadius: 10,
                   alignItems: 'center',
@@ -119,15 +117,14 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
                 </View>
               </View>
 
+              {/* Streak */}
               <View style={{
                 backgroundColor: '#F6C49E',
-                borderRadius: 12,
+                borderRadius: 20,
                 padding: 12,
                 alignItems: 'center',
                 flex: 1,
-                marginHorizontal: 8,
-                borderWidth: 1,
-                borderColor: 'rgba(238, 238, 208, 0.3)'
+                marginHorizontal: 8
               }}>
                 <Text style={{
                   color: '#FF6B35',
@@ -156,18 +153,18 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
 
             <TouchableOpacity 
               style={{
-                backgroundColor: '#003049',
+                backgroundColor: '#FF6B35',
                 borderRadius: 30,
                 paddingVertical: 15,
-                paddingHorizontal: 40,
+                paddingHorizontal: 30,
                 alignItems: 'center',
-                marginTop: 5,
+                marginTop: 20,
               }}
               onPress={onClose}
             >
               <Text style={{
                 fontFamily: 'LeagueSpartan-Bold',
-                color: '#FF6B35',
+                color: '#EEEED0',
                 fontSize: 25
               }}>Claim XP</Text>
             </TouchableOpacity>
