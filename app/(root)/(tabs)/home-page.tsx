@@ -63,8 +63,8 @@ export default function HomeScreen() {
   
   // XP popup state
   const [xpPopupVisible, setXpPopupVisible] = useState(false);
-  const [totalXp, setTotalXp] = useState(500); 
-  const [streak, setStreak] = useState(7);
+  const [totalXp, setTotalXp] = useState(0); 
+  const [streak, setStreak] = useState(0);
 
   const toggleEntryExpansion = (index) => {
   setExpandedEntries(prev => ({ ...prev, [index]: !prev[index] }));
