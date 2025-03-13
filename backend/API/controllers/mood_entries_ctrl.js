@@ -2,6 +2,10 @@ const { MoodEntry } = require('../models/'); // Ensure model name matches export
 const util = require('../../utils');
 const { Op } = require("sequelize");
 const { ALLOWED_EMOTIONS} = require('../../emotion_values');
+const dayjs = require('dayjs');
+
+const formatDateTime = d => d ? dayjs(d).format('MMM D, YYYY hh:mm A') : 'N/A';
+
 
 // Add Mood Only
 const addMoodEntry = async (req, res, next) => {
@@ -32,12 +36,35 @@ const addMoodEntry = async (req, res, next) => {
             });
         }
 
+        // Check if a mood entry already exists for the user on the same date
+        const existingEntry = await MoodEntry.findOne({
+            where: {
+                user_ID,
+                logged_date: providedDate
+            }
+        });
+
+        if (existingEntry) {
+            return res.status(400).json({
+                successful: false,
+                message: "You have already logged a mood for this date."
+            });
+        }
+
+        // Limit emotions to a maximum of 3
+        if (!Array.isArray(emotions) || emotions.length > 3) {
+            return res.status(400).json({
+                successful: false,
+                message: "You can log up to 3 emotions only."
+            });
+        }
+
         // Create new mood entry
         const newMoodEntry = await MoodEntry.create({
             user_ID,
             mood,
-            emotions, //limit to 3 emotions only
-            logged_date
+            emotions,
+            logged_date: providedDate // Store the normalized date
         });
 
         return res.status(201).json({
@@ -62,6 +89,7 @@ const addMoodEntry = async (req, res, next) => {
 
 
 
+
 const getAllEntries = async (req, res, next) => {
     try {
         const moodEntries = await MoodEntry.findAll();
@@ -75,10 +103,17 @@ const getAllEntries = async (req, res, next) => {
             });
         }
 
+        const formattedEntries = moodEntries.map(entry => ({
+            ...entry.toJSON(), 
+            logged_date: formatDateTime(entry.logged_date) 
+        }));
+
+
         return res.status(200).json({
             successful: true,
             message: "Retrieved all mood entries.",
-            data: moodEntries
+            data: formattedEntries.length,
+            formattedEntries
         });
 
     } catch (err) {
@@ -89,23 +124,37 @@ const getAllEntries = async (req, res, next) => {
     }
 };
 
-const getEntriesById = async (req, res, next) => {
+
+
+const getEntriesByUId = async (req, res, next) => {
     try {
-        const moodEntries = await MoodEntry.findAll();
+        const { user_ID } = req.params; // Get user_ID from request parameters
+
+        // Fetch mood entries filtered by user_ID
+        const moodEntries = await MoodEntry.findAll({
+            where: { user_ID }
+        });
 
         if (!moodEntries || moodEntries.length === 0) {
             return res.status(200).json({
                 successful: true,
-                message: "No mood entries found.",
+                message: "No mood entries found for this user.",
                 count: 0,
                 data: []
             });
         }
 
+        // Format logged_date using Day.js before sending the response
+        const formattedEntries = moodEntries.map(entry => ({
+            ...entry.toJSON(), 
+            logged_date: formatDateTime(entry.logged_date) 
+        }));
+
         return res.status(200).json({
             successful: true,
-            message: "Retrieved all mood entries of single user.",
-            data: moodEntries
+            message: "Retrieved all mood entries of the user.",
+            count: formattedEntries.length,
+            data: formattedEntries
         });
 
     } catch (err) {
@@ -115,6 +164,7 @@ const getEntriesById = async (req, res, next) => {
         });
     }
 };
+
 
 const updateEntryById = async (req, res, next) => {
     try {
@@ -155,6 +205,13 @@ const updateEntryById = async (req, res, next) => {
             return res.status(400).json({
                 successful: false,
                 message: "No valid fields provided for update."
+            });
+        }
+
+        if (!Array.isArray(emotions) || emotions.length > 3) {
+            return res.status(400).json({
+                successful: false,
+                message: "You can log up to 3 emotions only."
             });
         }
 
@@ -250,10 +307,8 @@ const deleteMoodEntry = async (req, res) => {
 
 module.exports = {
     addMoodEntry,
-    // addEmotion,
-    getEntriesById,
+    getEntriesByUId,
     getAllEntries,
     updateEntryById,
-    // updateEmotionbyId,
     deleteMoodEntry
 };

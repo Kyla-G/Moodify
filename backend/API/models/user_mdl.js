@@ -1,10 +1,12 @@
+const { nanoid } = require('nanoid');
+
+
 module.exports = (sequelize, DataTypes) => {
     const User = sequelize.define('User', {
         user_ID: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             primaryKey: true,
-            autoIncrement: true,
-            allowNull: false
+            allowNull: true
         },
         nickname: {
             type: DataTypes.STRING,
@@ -28,8 +30,16 @@ module.exports = (sequelize, DataTypes) => {
             }
         }
     }, {  
-        timestamps: false
+        timestamps: false,
+        hooks: {
+            beforeCreate: (user) => {
+                user.user_ID = nanoid(8); // Set nanoid length to 8 FOR SQLITE, FOR MYSQL STRING ONLY DON'T USE NANOID
+            }
+        }
+            
     });
+
+    //timestamps are true for sqlite
 
     // Define Associations AFTER model definition
     User.associate = (models) => {
@@ -49,7 +59,7 @@ module.exports = (sequelize, DataTypes) => {
 
         User.hasMany(models.Feedback, {
             foreignKey: 'user_ID',
-            as: 'userFeedback',  // Removed duplicate alias
+            as: 'feedback',  // Removed duplicate alias
             onDelete: 'SET NULL',
             onUpdate: 'CASCADE'
         });

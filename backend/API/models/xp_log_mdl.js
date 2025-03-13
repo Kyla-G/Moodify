@@ -1,9 +1,11 @@
+const { nanoid } = require('nanoid')
+
 module.exports = (sequelize, DataTypes) => {
     const XPLog = sequelize.define('XPLog', {
         xp_log_ID: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            primaryKey: true
+            type: DataTypes.STRING,
+            primaryKey: true,
+            allowNull: true
         },
         action_type: {
             type: DataTypes.ENUM('mood_entry', 'chat_session'),
@@ -25,6 +27,15 @@ module.exports = (sequelize, DataTypes) => {
 
        
     },
+
+    {
+        timelapse:false,
+         hooks: {
+                    beforeCreate: (user) => {
+                        user.user_ID = nanoid(8);
+                    }
+                }
+    }
     
     )
 

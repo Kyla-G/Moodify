@@ -1,8 +1,9 @@
 // constants.js
 const ALLOWED_EMOTIONS = new Set([
-    "Energetic", "Confident", "Calm", "Hopeful", "Nervous", "Sad", 
-    "Stressed", "Confused", "Excited", "Happy", "Grateful", "Anxious", 
-    "Bored", "Fearful", "Angry", "Irritated"
+    "energetic", "confident", "calm", "hopeful", "nervous", "sad", 
+ "stressed", "confused", "excited", "happy", "grateful", "anxious", 
+ "bored", "fearful", "angry", "irritated"
+
 ]);
 //set to not case-sensitive
 

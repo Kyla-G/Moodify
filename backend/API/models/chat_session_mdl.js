@@ -1,10 +1,12 @@
+const { nanoid } = require('nanoid');
+
+
 module.exports = (sequelize, DataTypes) => {
     const ChatSession = sequelize.define('ChatSession', {
         chat_session_ID: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             primaryKey: true,
-            autoIncrement: true,
-            allowNull: false
+            allowNull: true
         },
         start_time: {
             type: DataTypes.DATE,
@@ -14,6 +16,13 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false
         }
+    },{
+    timelapse: false,
+    hooks: {
+        beforeCreate: (chatSession) => {
+            chatSession.chat_session_ID = nanoid(8);
+        }
+    }
     }
 )
         ChatSession.associate = (models) => {
@@ -21,6 +30,9 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'user_ID',
                 as: 'user'
             });
+
+            
+            
     } 
     
     return ChatSession;

@@ -1,10 +1,11 @@
+const { nanoid } = require('nanoid');
+
 module.exports = (sequelize, DataTypes) => {
     const Response = sequelize.define('Response', {
         responses_ID: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             primaryKey: true,
-            autoIncrement: true,
-            allowNull: false
+            allowNull: true
         },
         sender: {
             type: DataTypes.ENUM('User', 'Moodi'),
@@ -30,7 +31,15 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false
         }
-    });
+    },
+        {
+            timelapse:false,
+             hooks: {
+                        beforeCreate: (xpProgress) => {
+                            xpProgress.xp_progress_ID = nanoid(8);
+                        }
+                    }
+        })
     // Associations
     Response.associate = (models) => {
         Response.belongsTo(models.ChatSession, {

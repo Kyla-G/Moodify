@@ -1,10 +1,11 @@
+const { nanoid } = require('nanoid');
+
 module.exports = (sequelize, DataTypes) => {
     const Feedback = sequelize.define('Feedback', {
         feedback_ID: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             primaryKey: true,
-            autoIncrement: true,
-            allowNull: false
+            allowNull: true
         },
         rating: {
             type: DataTypes.ENUM('1', '2', '3', '4', '5'),  // Restricts values to 1-5
@@ -15,6 +16,13 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false
         }
+    },{
+        timelapse:false,
+         hooks: {
+                    beforeCreate: (feedback) => {
+                        feedback.feedback_ID = nanoid(8);
+                    }
+                }
     }
 )
         Feedback.associate = (models) => {

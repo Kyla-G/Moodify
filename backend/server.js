@@ -38,7 +38,7 @@ const db1 = new sqlite3.Database(dbPath, (err) => {
 // Synchronize MySQL database before starting the server
 db.sequelize.sync({ alter: false })
     .then(() => {
-        console.log('✅ MySQL Cloud Database connected and synchronized successfully.');
+        console.log('✅ MySQL Cloud Database connected.');
         checkPort(port2, (inUse) => {
             if (!inUse) {
                 http.createServer(app).listen(port2, () => console.log(`✅ MySQL Server is running on port ${port2}`));
@@ -48,7 +48,7 @@ db.sequelize.sync({ alter: false })
         });
     })
     .catch((err) => {
-        console.error('❌ Failed to connect and sync MySQL database:', err);
+        console.error('❌ Failed to connect MySQL database:', err);
     });
 
     
