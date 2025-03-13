@@ -3,12 +3,13 @@ import { View, Text, TouchableOpacity, ScrollView, Image, Modal, TextInput, useW
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { format, subMonths, addMonths } from "date-fns";
+import { format, subMonths, addMonths, parseISO, isAfter, isSameDay } from "date-fns";
 import { LinearGradient } from "expo-linear-gradient";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { useLocalSearchParams } from "expo-router";
 import XpStreakPopup from '../(tabs)/streak-notif'; // Import the new XP popup component
+import DateTimePickerModal from "react-native-modal-datetime-picker"; // You'll need to install this package
 
 const moodIcons = {
   rad: icons.MoodRad,
@@ -34,15 +35,6 @@ const moodEmotions = {
   awful: ["irritated", "angry"],
 };
 
-const dummyEntries = [
-  { mood: "rad", day: "Monday", date: "March 06, 2025", time: "10:30 AM", journal: "Had a great day at work!"},
-  { mood: "awful", day: "Tuesday", date: "March 05, 2025", time: "8:15 PM", journal: "Thesis sucks"},
-  { mood: "good", day: "Wednesday", date: "March 04, 2025", time: "8:15 PM", journal: "lmao" },
-  { mood: "meh", day: "Thursday", date: "March 03, 2025", time: "8:15 PM", journal: "" },
-  { mood: "bad", day: "Friday", date: "March 02, 2025", time: "8:15 PM", journal: "" },
-  { mood: "bad", day: "Saturday", date: "March 01, 2025", time: "8:15 PM", journal: "" },
-];
-
 export default function HomeScreen() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [moodModalVisible, setMoodModalVisible] = useState(false);
@@ -53,29 +45,111 @@ export default function HomeScreen() {
   const [journalEntry, setJournalEntry] = useState("");
   const { width, height } = useWindowDimensions();
   const [expandedEntries, setExpandedEntries] = useState({});
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+  const [isTimePickerVisible, setTimePickerVisible] = useState(false);
+  const [entries, setEntries] = useState([
+    { mood: "rad", emotion: "happy", day: "Monday", date: "March 06, 2025", time: "10:30 AM", journal: "Had a great day at work!"},
+    { mood: "awful", emotion: "angry", day: "Tuesday", date: "March 05, 2025", time: "8:15 PM", journal: "Thesis sucks"},
+    { mood: "good", emotion: "happy", day: "Wednesday", date: "March 04, 2025", time: "8:15 PM", journal: "lmao" },
+    { mood: "meh", emotion: "confused", day: "Thursday", date: "March 03, 2025", time: "8:15 PM", journal: "" },
+    { mood: "bad", emotion: "sad", day: "Friday", date: "March 02, 2025", time: "8:15 PM", journal: "" },
+    { mood: "bad", emotion: "sad", day: "Saturday", date: "March 01, 2025", time: "8:15 PM", journal: "" },
+  ]);
 
   const params = useLocalSearchParams();
   const [welcomeModalVisible, setWelcomeModalVisible] = useState(false);
   const nickname = params.nickname || "Friend";
   
-  // New state for XP popup
+  // XP popup state
   const [xpPopupVisible, setXpPopupVisible] = useState(false);
-  const [totalXp, setTotalXp] = useState(500); // Example initial XP value
-  const [streak, setStreak] = useState(7); // Example initial streak value
+  const [totalXp, setTotalXp] = useState(500); 
+  const [streak, setStreak] = useState(7);
 
   const toggleEntryExpansion = (index) => {
-    setExpandedEntries(prev => ({...prev, [index]: !prev[index]}));
-  };
+  setExpandedEntries(prev => ({ ...prev, [index]: !prev[index] }));
+};
 
-  const now = new Date();
-  const currentDate = format(now, "MMMM dd, yyyy");
-  const currentTime = format(now, "h:mm a");
+
+  const currentDate = format(selectedDate, "MMMM dd, yyyy");
+  const currentTime = format(selectedDate, "h:mm a");
 
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
 
-  const openMoodModal = () => setMoodModalVisible(true);
+  const openMoodModal = () => {
+    setSelectedDate(new Date()); // Reset to current date/time when opening modal
+    setMoodModalVisible(true);
+  };
+  
   const closeMoodModal = () => setMoodModalVisible(false);
+
+  const showDatePicker = () => {
+    setDatePickerVisible(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisible(false);
+  };
+
+  const handleDateConfirm = (date) => {
+    // Check if an entry already exists for this date
+    const formattedDate = format(date, "yyyy-MM-dd");
+    const existingEntry = entries.find(entry => {
+      const entryDate = entry.date;
+      return entryDate === formattedDate;
+    });
+    
+    if (existingEntry) {
+      Alert.alert(
+        "Entry Already Exists", 
+        "You already have an entry for this date. Would you like to update it?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel"
+          },
+          {
+            text: "Update",
+            onPress: () => {
+              // Set the time to match the existing entry
+              const newDate = new Date(date);
+              const [hours, minutes] = existingEntry.time.split(':').map(Number);
+              newDate.setHours(hours, minutes);
+              
+              setSelectedDate(newDate);
+              setSelectedMood(existingEntry.mood);
+              setSelectedEmotion(existingEntry.emotion);
+              setJournalEntry(existingEntry.journal || "");
+            }
+          }
+        ]
+      );
+    } else {
+      // Keep the time portion of selectedDate, just update the date portion
+      const newDate = new Date(selectedDate);
+      newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+      setSelectedDate(newDate);
+    }
+    
+    hideDatePicker();
+  };
+
+  const showTimePicker = () => {
+    setTimePickerVisible(true);
+  };
+
+  const hideTimePicker = () => {
+    setTimePickerVisible(false);
+  };
+
+  const handleTimeConfirm = (time) => {
+    // Keep the date portion of selectedDate, just update the time portion
+    const newDate = new Date(selectedDate);
+    newDate.setHours(time.getHours(), time.getMinutes());
+    setSelectedDate(newDate);
+    hideTimePicker();
+  };
 
   const selectMood = (mood) => {
     setSelectedMood(mood);
@@ -92,20 +166,87 @@ export default function HomeScreen() {
       Alert.alert("Please select an emotion first");
       return;
     }
-    setEmotionModalVisible(false);
-    setTimeout(() => {
-      setSummaryModalVisible(true);
-    }, 300);
+    
+    // Check if there's already an entry for this date
+    const entryDate = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate()
+    );
+    
+    const existingEntryIndex = entries.findIndex(entry => 
+      isSameDay(new Date(entry.timestamp), entryDate)
+    );
+    
+    if (existingEntryIndex !== -1) {
+      Alert.alert(
+        "Mood exists",
+        "You already have a mood entry for this date. Would you like to update it?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel"
+          },
+          {
+            text: "Update",
+            onPress: () => {
+              setEmotionModalVisible(false);
+              setTimeout(() => {
+                setSummaryModalVisible(true);
+              }, 300);
+            }
+          }
+        ]
+      );
+    } else {
+      setEmotionModalVisible(false);
+      setTimeout(() => {
+        setSummaryModalVisible(true);
+      }, 300);
+    }
   };
 
   const finalSaveEntry = () => {
     setSummaryModalVisible(false);
     
-    // Update XP and streak when logging mood
-    setTotalXp(prev => prev + 50); // Add 50 XP for logging a mood
-    setStreak(prev => prev + 1); // Increment streak by 1
+    // Format date strings
+    const formattedDate = format(selectedDate, "MMMM dd, yyyy");
+    const dayOfWeek = format(selectedDate, "EEEE");
+    const displayTime = format(selectedDate, "h:mm a");
     
-    // Show XP popup after clicking "No"
+    // Create new entry
+    const newEntry = {
+      mood: selectedMood,
+      emotion: selectedEmotion,
+      day: dayOfWeek,
+      date: formattedDate,
+      time: displayTime,
+      journal: journalEntry,
+      timestamp: selectedDate.getTime() // Store timestamp for sorting
+    };
+    
+    // Check if we're updating an existing entry
+    const existingEntryIndex = entries.findIndex(entry => 
+      entry.date === formattedDate
+    );
+    
+    if (existingEntryIndex >= 0) {
+      // Update existing entry
+      const updatedEntries = [...entries];
+      updatedEntries[existingEntryIndex] = newEntry;
+      setEntries(updatedEntries);
+    } else {
+      // Add new entry
+      setEntries(prevEntries => [newEntry, ...prevEntries].sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }));
+    }
+    
+    // Update XP and streak
+    setTotalXp(prev => prev + 10); 
+    setStreak(prev => prev + 1);
+    
+    // Show XP popup
     setTimeout(() => {
       setXpPopupVisible(true);
     }, 300);
@@ -117,11 +258,12 @@ export default function HomeScreen() {
   };
 
   const redirectToChatbot = () => {
+    // First save the entry
+    finalSaveEntry();
+    
+    // Then redirect
     setSummaryModalVisible(false);
     Alert.alert("Redirecting", "Navigating to chatbot screen");
-    setJournalEntry("");
-    setSelectedMood(null);
-    setSelectedEmotion(null);
   };
 
   const closeXpPopup = () => {
@@ -141,15 +283,14 @@ export default function HomeScreen() {
   useEffect(() => {
     // Show welcome popup if coming from nickname page
     if (params.showWelcome === "true") {
-        setWelcomeModalVisible(true);
-        
-        // Optional: Auto-hide after 3 seconds
-        // const timer = setTimeout(() => {
-        //     setWelcomeModalVisible(false);
-        // }, 3000);
-        // return () => clearTimeout(timer);
+      setWelcomeModalVisible(true);
+       
+      const timer = setTimeout(() => {
+        setWelcomeModalVisible(false);
+      }, 3000);
+      return () => clearTimeout(timer);
     }
-}, [params.showWelcome]);
+  }, [params.showWelcome]);
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-black">
@@ -299,7 +440,7 @@ export default function HomeScreen() {
           className="w-full pb-24"
           style={{ marginTop: height * 0.2 }}
         >
-          {dummyEntries.map((entry, index) => {
+          {entries.map((entry, index) => {
             const moodIcon = moodIcons[entry.mood];
             const hasJournal = entry.journal && entry.journal.trim().length > 0;
             const isExpanded = expandedEntries[index];
@@ -350,36 +491,42 @@ export default function HomeScreen() {
                           </Text>
                         </View>
 
-                        {hasJournal && (
-                          <TouchableOpacity 
-                            onPress={() => toggleEntryExpansion(index)}
-                            className="flex-row items-center"
-                          >
-                            <Text style={{
-                              fontFamily: "LaoSansPro-Regular", 
-                              fontSize: width < 350 ? 12 : 14,
-                              color: "#545454"}}>
-                                Journal 
-                            </Text>
-                            <Ionicons 
-                              name={isExpanded ? "chevron-up" : "chevron-down"} 
-                              size={width < 350 ? 14 : 18} 
-                              color="#545454" 
-                            />
-                          </TouchableOpacity>
-                        )}
+                        <TouchableOpacity 
+                          onPress={() => toggleEntryExpansion(index)}
+                          className="flex-row items-center"
+                        >
+                          <Text style={{
+                            fontFamily: "LaoSansPro-Regular", 
+                            fontSize: width < 350 ? 12 : 14,
+                            color: "#545454"}}>
+                              {hasJournal ? "Journal" : "Emotion"}
+                          </Text>
+                          <Ionicons 
+                            name={isExpanded ? "chevron-up" : "chevron-down"} 
+                            size={width < 350 ? 14 : 18} 
+                            color="#545454" 
+                          />
+                        </TouchableOpacity>
                       </View>
                     </View>
                   </View>
                 </View>
 
-                {hasJournal && isExpanded && (
-                  <View className="mt-4 pt-3 border-t border-gray-800">
+                {isExpanded && (
+                  <View className="mt-4 pt-3 border-t border-gray-900">
                     <Text 
-                      className="text-txt-light font-LeagueSpartan"
+                      className="text-txt-light font-LeagueSpartan mb-2"
                       style={{ fontSize: width < 350 ? 16 : 18 }}>
-                      {entry.journal}
+                      Feeling <Text style={{ color: moodColors[entry.mood] }}>{entry.emotion}</Text>
                     </Text>
+                    
+                    {hasJournal && (
+                      <Text 
+                        className="text-txt-light font-LeagueSpartan mt-2"
+                        style={{ fontSize: width < 350 ? 16 : 18 }}>
+                        {entry.journal}
+                      </Text>
+                    )}
                   </View>
                 )}
               </View>
@@ -409,9 +556,32 @@ export default function HomeScreen() {
             >
               <Ionicons name="close" size={iconSize} color="#EEEED0" />
             </TouchableOpacity>
+
+            {/* Date and Time Selection */}
+            <View className="flex-row justify-between w-full mb-20">
+              <TouchableOpacity
+                onPress={showDatePicker}
+                className="bg-bg-medium flex-1 mr-4 rounded-xl p-2 flex-row items-center justify-center"
+              >
+                <Ionicons name="calendar-outline" size={iconSize} color="#272528" style={{ marginRight: 8 }} />
+                <Text className="text-txt-dark font-LeagueSpartan">
+                  {format(selectedDate, "MMMM dd, yyyy")}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                onPress={showTimePicker}
+                className="bg-bg-medium flex-1 ml-4 rounded-xl p-2 flex-row items-center justify-center"
+              >
+                <Ionicons name="time-outline" size={iconSize} color="#272528" style={{ marginRight: 8 }} />
+                <Text className="text-txt-dark font-LeagueSpartan">
+                  {format(selectedDate, "h:mm a")}
+                </Text>
+              </TouchableOpacity>
+            </View>
             
             <Text 
-              className="text-txt-light font-LeagueSpartan-Bold mb-9 text-center"
+              className="text-txt-light font-LeagueSpartan-Bold mb-5 text-center"
               style={{ fontSize: width < 350 ? 24 : 30 }}
             >
               How's your mood right now?
@@ -443,6 +613,25 @@ export default function HomeScreen() {
               ))}
             </View>
           </View>
+          
+          {/* Date Picker */}
+          <DateTimePickerModal
+            isVisible={isDatePickerVisible}
+            mode="date"
+            onConfirm={handleDateConfirm}
+            onCancel={hideDatePicker}
+            date={selectedDate}
+            maximumDate={new Date()}
+          />
+          
+          {/* Time Picker */}
+          <DateTimePickerModal
+            isVisible={isTimePickerVisible}
+            mode="time"
+            onConfirm={handleTimeConfirm}
+            onCancel={hideTimePicker}
+            date={selectedDate}
+          />
         </SafeAreaView>
       </Modal>
 
@@ -541,7 +730,7 @@ export default function HomeScreen() {
                     fontSize: width < 350 ? 16 : 18, 
                     fontFamily: "LeagueSpartan-Regular"
                   }}
-                  placeholder="Add Journal Entry"
+                  placeholder="Add notes here..."
                   placeholderTextColor="#888"
                   multiline
                   value={journalEntry}
@@ -599,12 +788,25 @@ export default function HomeScreen() {
               </Text>
 
               <View className="flex-row items-center justify-center mb-10">
-                <Text 
-                  className="text-white font-LeagueSpartan text-center"
-                  style={{ fontSize: width < 350 ? 16 : 20 }}
-                >
-                  {currentDate}  |  {currentTime}
-                </Text>
+                <View className="flex-row items-center mr-4">
+                  <Ionicons name="calendar-outline" size={width < 350 ? 18 : 24} color="white" style={{ marginRight: 8 }} />
+                  <Text 
+                    className="text-white font-LeagueSpartan text-center"
+                    style={{ fontSize: width < 350 ? 16 : 20 }}
+                  >
+                    {format(selectedDate, "MMMM dd, yyyy")}
+                  </Text>
+                </View>
+                
+                <View className="flex-row items-center">
+                  <Ionicons name="time-outline" size={width < 350 ? 18 : 24} color="white" style={{ marginRight: 8 }} />
+                  <Text 
+                    className="text-white font-LeagueSpartan text-center"
+                    style={{ fontSize: width < 350 ? 16 : 20 }}
+                  >
+                    {format(selectedDate, "h:mm a")}
+                  </Text>
+                </View>
               </View>
             </View>
 
@@ -616,7 +818,7 @@ export default function HomeScreen() {
               >
                 Would you like to talk about it more?
               </Text>
-
+                
               <View className="items-start">
                 <TouchableOpacity
                   onPress={redirectToChatbot}
@@ -632,7 +834,7 @@ export default function HomeScreen() {
                     Yes
                   </Text>
                 </TouchableOpacity>
-
+                  
                 <TouchableOpacity
                   onPress={finalSaveEntry}
                   className="px-6 py-3 rounded-full items-center mb-2"
@@ -651,26 +853,27 @@ export default function HomeScreen() {
             </View>
 
             <Image
-              source={images.moodichat}
-              style={{
-                width: width * 1,
-                height: width * 1,
-                position: 'absolute',
-                bottom: -130,
-                left: 80,
-                resizeMode: 'contain'
-              }}
-            />
+                    source={images.moodichat}
+                    style={{
+                      width: width * 1,
+                      height: width * 1,
+                      position: 'absolute',
+                      bottom: -130,
+                      left: 80,
+                      resizeMode: 'contain'
+                    }}
+                  />
           </SafeAreaView>
         </View>
       </Modal>
 
-      {/* XP Popup Modal */}
-      <XpStreakPopup
+      {/* XP Streak Popup */}
+      <XpStreakPopup 
         visible={xpPopupVisible}
-        onClose={closeXpPopup}
+        earnedXp={10}
         totalXp={totalXp}
         streak={streak}
+        onClose={closeXpPopup}
       />
     </SafeAreaView>
   );

@@ -25,7 +25,8 @@ module.exports = {
           light: '#EEEED0',
           black: '#000000',
           medium: '#F6C49E',
-          gray: '#545454'
+          gray: '#545454',
+          dark: '#272528',
         },
         "icon":{
           rad: "#F2FF00",    // yellow
