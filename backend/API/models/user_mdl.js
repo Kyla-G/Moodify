@@ -1,12 +1,13 @@
 const { nanoid } = require('nanoid');
 
-
 module.exports = (sequelize, DataTypes) => {
+    const isSQLite = sequelize.options.dialect === 'sqlite'; // Check if using SQLite
+
     const User = sequelize.define('User', {
         user_ID: {
             type: DataTypes.STRING,
             primaryKey: true,
-            allowNull: true
+            allowNull: false,
         },
         nickname: {
             type: DataTypes.STRING,
@@ -18,28 +19,30 @@ module.exports = (sequelize, DataTypes) => {
         createdAt: {
             type: DataTypes.DATE,
             allowNull: false,
-            validate: {
-                notEmpty: { msg: "Date is required." }
-            }
+            defaultValue: isSQLite ? null : sequelize.literal('CURRENT_TIMESTAMP'),
         },
         updatedAt: {
             type: DataTypes.DATE,
             allowNull: false,
-            validate: {
-                notEmpty: { msg: "Date is required." }
-            }
+            defaultValue: isSQLite ? null : sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
         }
-    }, {  
-        timestamps: false,
+    }, {
+        timestamps: isSQLite, // Enable automatic timestamps only for SQLite
         hooks: {
             beforeCreate: (user) => {
-                user.user_ID = nanoid(8); // Set nanoid length to 8 FOR SQLITE, FOR MYSQL STRING ONLY DON'T USE NANOID
+                if (isSQLite) {
+                    user.user_ID = nanoid(8); // Use nanoid for SQLite
+                    user.createdAt = new Date();
+                    user.updatedAt = new Date();
+                }
+            },
+            beforeUpdate: (user) => {
+                if (isSQLite) {
+                    user.updatedAt = new Date(); // Update manually for SQLite
+                }
             }
         }
-            
     });
-
-    //timestamps are true for sqlite
 
     // Define Associations AFTER model definition
     User.associate = (models) => {
@@ -59,7 +62,7 @@ module.exports = (sequelize, DataTypes) => {
 
         User.hasMany(models.Feedback, {
             foreignKey: 'user_ID',
-            as: 'feedback',  // Removed duplicate alias
+            as: 'feedback',
             onDelete: 'SET NULL',
             onUpdate: 'CASCADE'
         });
