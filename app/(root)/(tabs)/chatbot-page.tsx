@@ -12,15 +12,29 @@ export default function ChatbotPage() {
   const [input, setInput] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (input.trim() === "") return;
     setMessages([...messages, { text: input, sender: "user" }]);
     setInput("");
     
-    // Simulated bot response
-    setTimeout(() => {
-      setMessages((prevMessages) => [...prevMessages, { text: "I'm here to assist!", sender: "bot" }]);
-    }, 1000);
+    // Fetch response from Hugging Face chatbot model
+    try {
+      const response = await fetch("https://huggingface.co/Moonlighthxq/llama-3.1-8B-instruct-mental?library=transformers", {
+        method: "POST",
+        headers: {
+          "Authorization": "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",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ inputs: [{ role: "user", content: input }] })
+      });
+      
+      const data = await response.json();
+      const botReply = data[0]?.generated_text || "I'm here to assist!";
+      setMessages((prevMessages) => [...prevMessages, { text: botReply, sender: "bot" }]);
+    } catch (error) {
+      console.error("Error fetching chatbot response:", error);
+      setMessages((prevMessages) => [...prevMessages, { text: "Sorry, I couldn't process that.", sender: "bot" }]);
+    }
   };
 
   // Functions to change month
