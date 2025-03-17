@@ -7,12 +7,13 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 
 interface XpStreakPopupModalProps {
   visible: boolean;
+  earnedXp: number;
   onClose: () => void;
   totalXp: number;
   streak: number;
 }
 
-const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModalProps) => {
+const XpStreakPopup = ({ visible, earnedXp, onClose, totalXp, streak }: XpStreakPopupModalProps) => {
   const { width, height } = useWindowDimensions();
 
   const modalWidth = width * 0.9;
