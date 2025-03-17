@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
+import axios from 'axios';
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState([
@@ -15,25 +16,16 @@ export default function ChatbotPage() {
   const sendMessage = async () => {
     if (input.trim() === "") return;
     setMessages([...messages, { text: input, sender: "user" }]);
+    const userMessage = input;
     setInput("");
-    
-    // Fetch response from Hugging Face chatbot model
+
     try {
-      const response = await fetch("https://huggingface.co/Moonlighthxq/llama-3.1-8B-instruct-mental?library=transformers", {
-        method: "POST",
-        headers: {
-          "Authorization": "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",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ inputs: [{ role: "user", content: input }] })
-      });
-      
-      const data = await response.json();
-      const botReply = data[0]?.generated_text || "I'm here to assist!";
-      setMessages((prevMessages) => [...prevMessages, { text: botReply, sender: "bot" }]);
+      const response = await axios.post('http://localhost:5000/chat', { message: userMessage });
+      const botMessage = response.data[0].generated_text;
+      setMessages((prevMessages) => [...prevMessages, { text: botMessage, sender: "bot" }]);
     } catch (error) {
-      console.error("Error fetching chatbot response:", error);
-      setMessages((prevMessages) => [...prevMessages, { text: "Sorry, I couldn't process that.", sender: "bot" }]);
+      console.error("Error sending message to chatbot:", error);
+      setMessages((prevMessages) => [...prevMessages, { text: "Error fetching chatbot response.", sender: "bot" }]);
     }
   };
 
