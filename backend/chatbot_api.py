@@ -36,7 +36,7 @@ logging.basicConfig(level=logging.DEBUG)
 logging.debug("Starting Flask app...")
 
 # 3. Retrieve Hugging Face token from .env
-api_key = os.getenv("HF_API_KEY")  # or whatever variable name you used
+api_key = os.getenv("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")  # or whatever variable name you used
 if not api_key:
     logging.warning("No HF_API_KEY found in .env. Make sure .env is set properly.")
 
@@ -52,6 +52,8 @@ try:
         "text-generation",
         model="Moonlighthxq/llama-3.1-8B-instruct-mental",
         use_auth_token=api_key,
+         device_map="auto",
+        load_in_8bit=True,  # Load model in 8-bit (if supported) 
         local_files_only=True
     )
     logging.debug("Model loaded successfully.")
