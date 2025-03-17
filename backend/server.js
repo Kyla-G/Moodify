@@ -1,3 +1,4 @@
+// filepath: c:\Users\Intern\Documents\GitHub\Moodify\backend\server.js
 const http = require('http');
 const app = require('./app');
 const db = require('./API/models');
@@ -50,7 +51,3 @@ db.sequelize.sync({ alter: false })
     .catch((err) => {
         console.error('❌ Failed to connect MySQL database:', err);
     });
-
-    
-
-    

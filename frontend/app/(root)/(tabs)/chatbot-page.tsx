@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
+import axios from 'axios';
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState([
@@ -12,15 +13,20 @@ export default function ChatbotPage() {
   const [input, setInput] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (input.trim() === "") return;
     setMessages([...messages, { text: input, sender: "user" }]);
+    const userMessage = input;
     setInput("");
-    
-    // Simulated bot response
-    setTimeout(() => {
-      setMessages((prevMessages) => [...prevMessages, { text: "I'm here to assist!", sender: "bot" }]);
-    }, 1000);
+
+    try {
+      const response = await axios.post('http://10.10.50.23:3000/chat', { message: userMessage });
+      const botMessage = response.data[0].generated_text;
+      setMessages((prevMessages) => [...prevMessages, { text: botMessage, sender: "bot" }]);
+    } catch (error) {
+      console.error("Error sending message to chatbot:", error);
+      setMessages((prevMessages) => [...prevMessages, { text: "Error fetching chatbot response.", sender: "bot" }]);
+    }
   };
 
   // Functions to change month
