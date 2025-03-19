@@ -8,7 +8,7 @@ import axios from 'axios';
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState([
-    { text: "Hello! How can I help you today?", sender: "bot" }
+    { text: "Hello! My name's Moodi. How can I help you today?", sender: "bot" }
   ]);
   const [input, setInput] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
