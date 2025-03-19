@@ -20,7 +20,7 @@ export default function ChatbotPage() {
     setInput("");
 
     try {
-      const response = await axios.post('http://localhost:5000/chat', { message: userMessage });
+      const response = await axios.post('http://localhost:3000/chat', { message: userMessage });
       const botMessage = response.data[0].generated_text;
       setMessages((prevMessages) => [...prevMessages, { text: botMessage, sender: "bot" }]);
     } catch (error) {
