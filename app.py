@@ -2,24 +2,32 @@ import os
 import logging
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-from transformers import pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 load_dotenv()
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-api_key = os.getenv("HF_API_KEY")
+
+# Update LOCAL_MODEL_PATH to the path where your local repository is located.
+LOCAL_MODEL_PATH = r"C:\Users\Intern\Documents\GitHub\llama-3.1-8B-instruct-mental"
 
 try:
-    pipe = pipeline(
-        "text-generation",
-        model="Moonlighthxq/llama-3.1-8B-instruct-mental",  # Make sure this is correct
-        use_auth_token=api_key,
-        torch_dtype="auto",
-        device_map="auto",    # Automatically place on GPU if available
-        load_in_8bit=True
+    # Load the model in full precision (float32) on CPU
+    model = AutoModelForCausalLM.from_pretrained(
+        LOCAL_MODEL_PATH,
+        local_files_only=True,  # Use only local files
+        torch_dtype="float32",  # CPU typically uses float32
+        device_map="cpu"        # Force model to load on CPU
     )
-    logging.debug("Model loaded successfully in 8-bit.")
+    tokenizer = AutoTokenizer.from_pretrained(
+        LOCAL_MODEL_PATH,
+        local_files_only=True
+    )
+    
+    # Create the text-generation pipeline using the loaded model and tokenizer
+    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    logging.debug("Model loaded successfully in CPU mode.")
 except Exception as e:
     logging.error(f"Error loading model: {e}")
     raise

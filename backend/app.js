@@ -65,7 +65,7 @@ app.use((req, res, next) => {
 // Chat route to handle requests to the Hugging Face model
 app.post('/chat', async (req, res) => {
   const userMessage = req.body.message;
-  const apiKey = process.env.HUGGINGFACE_API_KEY;
+  const apiKey = process.env.HF_API_KEY;
 
   try {
     const response = await axios.post(
