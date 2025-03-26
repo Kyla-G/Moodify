@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
         entry_ID: {
             type: DataTypes.STRING,
             primaryKey: true,  // Set as Primary Key
-            allowNull: true
+            allowNull: false
         },
         mood: {
             type: DataTypes.ENUM('rad', 'good', 'meh', 'bad', 'awful'),

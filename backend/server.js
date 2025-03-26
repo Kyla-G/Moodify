@@ -4,7 +4,7 @@ const db = require('./API/models');
 const sqlite3 = require('sqlite3').verbose();
 const syncDatabase = require('./sync');
 const dbPath = './Moodify.db';
-const port1 = process.env.PORT || 3000; // SQLite
+const port1 = 3000; // SQLite
 const port2 = 8080; // MySQL
 
 // Function to check if a port is in use
