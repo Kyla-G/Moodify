@@ -1,31 +1,97 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
-import axios from 'axios';
+
+// Define the structure of the API response
+interface Message {
+  role?: string;
+  text: string;
+  sender: 'user' | 'bot';
+}
+
+interface APIResponse {
+  choices?: { message: { content: string } }[];
+  error?: string;
+}
 
 export default function ChatbotPage() {
-  const [messages, setMessages] = useState([
-    { text: "Hello! My name's Moodi. How can I help you today?", sender: "bot" }
+  const [messages, setMessages] = useState<Message[]>([
+    { text: "Hello! I'm Moodi, your AI friend. How are you feeling today?", sender: "bot" }
   ]);
   const [input, setInput] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(false);
 
   const sendMessage = async () => {
     if (input.trim() === "") return;
-    setMessages([...messages, { text: input, sender: "user" }]);
-    const userMessage = input;
+
+    // Add user message to chat
+    const userMessage: Message = { text: input, sender: "user" };
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setIsLoading(true);
     setInput("");
 
     try {
-      const response = await axios.post('http://10.10.50.23:3000/chat', { message: userMessage });
-      const botMessage = response.data[0].generated_text;
-      setMessages((prevMessages) => [...prevMessages, { text: botMessage, sender: "bot" }]);
+      const response = await fetch('https://router.huggingface.co/novita/v3/openai/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer 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', // Hugging Face API token
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are Moodi, an empathetic and understanding AI friend who listens, understands, and responds with genuine care and warmth. Respond in a conversational and concise manner. You aim to be conversational and natural, avoiding lengthy or overly formal responses.',
+            },
+            {
+              role: 'user',
+              content: input,
+            },
+          ],
+          max_tokens: 300, // Shorter responses
+          temperature: 0.7, // Balanced creativity
+          top_p: 0.9, // Balanced diversity
+          model: 'meta-llama/llama-3.3-70b-instruct',
+        }),
+      });
+
+      const data: APIResponse = await response.json();
+      setIsLoading(false);
+
+      if (data.error) {
+        // Handle API error
+        const errorMessage: Message = { 
+          text: 'Sorry, there was an error processing your message.', 
+          sender: "bot" 
+        };
+        setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      } else if (data.choices && data.choices[0] && data.choices[0].message) {
+        // Add bot response to chat
+        const botMessage: Message = { 
+          text: data.choices[0].message.content || 'No response received.', 
+          sender: "bot" 
+        };
+        setMessages((prevMessages) => [...prevMessages, botMessage]);
+      } else {
+        // Handle unexpected response format
+        const unexpectedMessage: Message = { 
+          text: 'Unexpected response from the AI.', 
+          sender: "bot" 
+        };
+        setMessages((prevMessages) => [...prevMessages, unexpectedMessage]);
+      }
     } catch (error) {
-      console.error("Error sending message to chatbot:", error);
-      setMessages((prevMessages) => [...prevMessages, { text: "Error fetching chatbot response.", sender: "bot" }]);
+      setIsLoading(false);
+      // Handle network or other errors
+      const errorMessage: Message = { 
+        text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+        sender: "bot" 
+      };
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
     }
   };
 
@@ -64,6 +130,15 @@ export default function ChatbotPage() {
             </View>
           </View>
         ))}
+        
+        {/* Loading indicator */}
+        {isLoading && (
+          <View className="items-start mb-2">
+            <View className="rounded-lg p-3 bg-[#333]">
+              <Text className="text-white">Typing...</Text>
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       <View className="flex-row items-center p-4 bg-[#1A1A1A]">
@@ -74,7 +149,11 @@ export default function ChatbotPage() {
           value={input}
           onChangeText={setInput}
         />
-        <TouchableOpacity className="ml-2 p-3 bg-[#FF6B35] rounded-lg" onPress={sendMessage}>
+        <TouchableOpacity 
+          className="ml-2 p-3 bg-[#FF6B35] rounded-lg" 
+          onPress={sendMessage}
+          disabled={isLoading}
+        >
           <Ionicons name="send" size={20} color="white" />
         </TouchableOpacity>
       </View>

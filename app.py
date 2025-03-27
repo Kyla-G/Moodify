@@ -33,7 +33,7 @@ except Exception as e:
     raise
 
 @app.route("/chat", methods=["POST"])
-def chat():
+def chat(): 
     data = request.get_json()
     user_message = data.get("message", "")
     try:
