@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { useState, useCallback } from "react";
+import { View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -7,7 +7,7 @@ import { format, subMonths, addMonths } from "date-fns";
 
 // Define the structure of the API response
 interface Message {
-  role?: string;
+  role?: 'system' | 'user' | 'assistant';
   text: string;
   sender: 'user' | 'bot';
 }
@@ -19,7 +19,7 @@ interface APIResponse {
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
-    { text: "Hello! I'm Moodi, your AI friend. How are you feeling today?", sender: "bot" }
+    { text: "Hello! I'm Moodi, your AI friend. How are you feeling today?", sender: "bot", role: "assistant" }
   ]);
   const [input, setInput] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
@@ -29,12 +29,27 @@ export default function ChatbotPage() {
     if (input.trim() === "") return;
 
     // Add user message to chat
-    const userMessage: Message = { text: input, sender: "user" };
-    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    const userMessage: Message = { text: input, sender: "user", role: "user" };
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setIsLoading(true);
     setInput("");
 
     try {
+      // Prepare messages for API call, converting to the format required by the API
+      const apiMessages = updatedMessages
+        .filter(msg => msg.role !== undefined)
+        .map(msg => ({
+          role: msg.role === 'bot' ? 'assistant' : msg.role,
+          content: msg.text
+        }));
+
+      // Prepend system message
+      const systemMessage = {
+        role: 'system',
+        content: 'You are Moodi, a warm, friendly, and emotionally intelligent AI. You are socially aware, empathetic, and act like a friend who supports users in a positive, engaging way. Maintain a warm and inviting tone at all times, but try not to ask too many questions after every prompt.'
+      };
+
       const response = await fetch('https://router.huggingface.co/novita/v3/openai/chat/completions', {
         method: 'POST',
         headers: {
@@ -43,14 +58,8 @@ export default function ChatbotPage() {
         },
         body: JSON.stringify({
           messages: [
-            {
-              role: 'system',
-              content: 'You are Moodi, an empathetic and understanding AI friend who listens, understands, and responds with genuine care and warmth. Respond in a conversational and concise manner. You aim to be conversational and natural, avoiding lengthy or overly formal responses.',
-            },
-            {
-              role: 'user',
-              content: input,
-            },
+            systemMessage,
+            ...apiMessages
           ],
           max_tokens: 300, // Shorter responses
           temperature: 0.7, // Balanced creativity
@@ -66,21 +75,24 @@ export default function ChatbotPage() {
         // Handle API error
         const errorMessage: Message = { 
           text: 'Sorry, there was an error processing your message.', 
-          sender: "bot" 
+          sender: "bot",
+          role: "assistant"
         };
         setMessages((prevMessages) => [...prevMessages, errorMessage]);
       } else if (data.choices && data.choices[0] && data.choices[0].message) {
         // Add bot response to chat
         const botMessage: Message = { 
           text: data.choices[0].message.content || 'No response received.', 
-          sender: "bot" 
+          sender: "bot",
+          role: "assistant"
         };
         setMessages((prevMessages) => [...prevMessages, botMessage]);
       } else {
         // Handle unexpected response format
         const unexpectedMessage: Message = { 
           text: 'Unexpected response from the AI.', 
-          sender: "bot" 
+          sender: "bot",
+          role: "assistant"
         };
         setMessages((prevMessages) => [...prevMessages, unexpectedMessage]);
       }
@@ -89,7 +101,8 @@ export default function ChatbotPage() {
       // Handle network or other errors
       const errorMessage: Message = { 
         text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 
-        sender: "bot" 
+        sender: "bot",
+        role: "assistant"
       };
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
     }
