@@ -4,43 +4,90 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
-import StartConversationModal from "./chatbot-start"; // Import the modal
+import { useNavigation, useIsFocused } from "@react-navigation/native";
 
 interface Message {
   role?: string;
   text: string;
-  sender: 'user' | 'bot';
-}
-
-interface APIResponse {
-  choices?: { message: { content: string } }[];
-  error?: string;
+  sender: "user" | "bot";
 }
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
-    { text: "Hello! I'm Moodi, your AI friend. How are you feeling today?", sender: "bot" }
+    { text: "Hello! I'm Moodi, your AI friend. How are you feeling today?", sender: "bot" },
   ]);
   const [input, setInput] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false); // Default to false
+
+  const navigation = useNavigation();
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    const checkModalStatus = async () => {
-      const hasSeenModal = await AsyncStorage.getItem("hasSeenChatbotModal");
-      if (!hasSeenModal) {
-        setIsModalVisible(true); // Show modal only if it hasn't been seen
+    if (isFocused) {
+      navigation.getParent()?.setOptions({ tabBarStyle: { display: "none" } });
+    } else {
+      navigation.getParent()?.setOptions({ tabBarStyle: { backgroundColor: "black", borderTopWidth: 0 } });
+    }
+  }, [isFocused]);
+
+  const sendMessage = async () => {
+    if (input.trim() === "") return;
+
+    const userMessage: Message = { text: input, sender: "user" };
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setIsLoading(true);
+    setInput("");
+
+    try {
+      const response = await fetch("https://router.huggingface.co/novita/v3/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer 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",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are Moodi, an empathetic and understanding AI friend who listens, understands, and responds with genuine care and warmth. Respond in a conversational and concise manner. You aim to be conversational and natural, avoiding lengthy or overly formal responses.",
+            },
+            {
+              role: "user",
+              content: input,
+            },
+          ],
+          max_tokens: 300,
+          temperature: 0.7,
+          top_p: 0.9,
+          model: "meta-llama/llama-3.3-70b-instruct",
+        }),
+      });
+
+      const data = await response.json();
+      setIsLoading(false);
+
+      if (data.error) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { text: "Sorry, there was an error processing your message.", sender: "bot" },
+        ]);
+      } else if (data.choices && data.choices[0]?.message) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { text: data.choices[0].message.content || "No response received.", sender: "bot" },
+        ]);
+      } else {
+        setMessages((prevMessages) => [...prevMessages, { text: "Unexpected response from the AI.", sender: "bot" }]);
       }
-    };
-
-    checkModalStatus();
-  }, []);
-
-  const handleStartChat = async () => {
-    await AsyncStorage.setItem("hasSeenChatbotModal", "true"); // Save flag in AsyncStorage
-    setIsModalVisible(false);
+    } catch (error) {
+      setIsLoading(false);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`, sender: "bot" },
+      ]);
+    }
   };
 
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
@@ -50,10 +97,6 @@ export default function ChatbotPage() {
     <SafeAreaView className="flex-1 bg-black">
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
 
-      {/* Start Conversation Modal */}
-      <StartConversationModal visible={isModalVisible} onStartChat={handleStartChat} />
-
-      {/* Top Bar with Settings, Pagination, and Streak Button */}
       <View className="items-center w-full pt-6 px-4">
         <View className="flex-row justify-between items-center w-full mb-4">
           <TouchableOpacity>
@@ -80,7 +123,6 @@ export default function ChatbotPage() {
             </View>
           </View>
         ))}
-
         {isLoading && (
           <View className="items-start mb-2">
             <View className="rounded-lg p-3 bg-[#333]">
@@ -98,11 +140,7 @@ export default function ChatbotPage() {
           value={input}
           onChangeText={setInput}
         />
-        <TouchableOpacity
-          className="ml-2 p-3 bg-[#FF6B35] rounded-lg"
-          onPress={() => {}}
-          disabled={isLoading}
-        >
+        <TouchableOpacity className="ml-2 p-3 bg-[#FF6B35] rounded-lg" onPress={sendMessage} disabled={isLoading}>
           <Ionicons name="send" size={20} color="white" />
         </TouchableOpacity>
       </View>
