@@ -3,17 +3,39 @@
 const fs = require("fs");
 const path = require("path");
 const Sequelize = require("sequelize");
-const process = require("process");
 require("dotenv").config();
 
 // Load database configurations
 const config = require("../config/config.json");
+
+// Ensure both database configurations exist
 const sqliteConfig = config["development"]; // SQLite settings
 const mysqlConfig = config["production"];   // MySQL settings
 
+if (!sqliteConfig || !sqliteConfig.dialect) {
+  throw new Error("❌ SQLite config is missing or incorrect.");
+}
+if (!mysqlConfig || !mysqlConfig.dialect) {
+  throw new Error("❌ MySQL config is missing or incorrect.");
+}
+
 // Initialize Sequelize instances for both databases
-const sqliteSequelize = new Sequelize(sqliteConfig);
-const mysqlSequelize = new Sequelize(mysqlConfig);
+const sqliteSequelize = new Sequelize({
+  dialect: sqliteConfig.dialect,
+  storage: sqliteConfig.storage
+});
+
+const mysqlSequelize = new Sequelize(
+  mysqlConfig.database,
+  mysqlConfig.username,
+  mysqlConfig.password,
+  {
+    host: mysqlConfig.host ,
+    dialect: mysqlConfig.dialect,
+    port: mysqlConfig.port,
+    logging: console.log
+  }
+);
 
 const db = {};
 
@@ -34,45 +56,6 @@ fs.readdirSync(__dirname)
     };
   });
 
-// Function to ensure MySQL tables are created
-// db.initializeDatabases = async () => {
-//   try {
-//     console.log("🔄 Syncing databases...");
-
-//     // Sync SQLite (force false to avoid data loss)
-//     await sqliteSequelize.sync();
-//     console.log("✅ SQLite tables created.");
-
-//     // Sync MySQL (force false to avoid data loss)
-//     await mysqlSequelize.sync();
-//     console.log("✅ MySQL tables created.");
-
-//   } catch (error) {
-//     console.error("❌ Error syncing databases:", error);
-//   }
-// };
-
-// // Function to sync new data from SQLite to MySQL
-// db.syncWithMySQL = async () => {
-//   try {
-//     const users = await db.User.sqlite.findAll({
-//       raw: true,
-//       attributes: { exclude: ["createdAt", "updatedAt"] },
-//     });
-
-//     for (const user of users) {
-//       const existingUser = await db.User.mysql.findOne({ where: { user_ID: user.user_ID } });
-
-//       if (!existingUser) {
-//         await db.Users.mysql.create(user);
-//       }
-//     }
-//     console.log("✅ MySQL sync completed.");
-//   } catch (err) {
-//     console.error("❌ Error syncing with MySQL:", err);
-//   }
-// };
-
 // Authenticate both databases
 (async () => {
   try {
@@ -82,18 +65,24 @@ fs.readdirSync(__dirname)
     await mysqlSequelize.authenticate();
     console.log("✅ Connected to MySQL database.");
 
-    // Ensure tables exist in both databases
-    // await db.initializeDatabases();
+    console.log("🔄 Syncing databases...");
+
+    await sqliteSequelize.sync({ alter: false });
+    console.log("✅ SQLite tables created.");
+
+    await mysqlSequelize.sync({ alter: false });
+    console.log("✅ MySQL tables created.");
 
   } catch (error) {
     console.error("❌ Database connection error:", error);
   }
 })();
 
+
 // Store Sequelize instances
 db.sqlite = sqliteSequelize;
 db.mysql = mysqlSequelize;
-db.sequelize = sqliteSequelize; // Keep SQLite as the primary instance
+db.sequelize = sqliteSequelize; // Default to SQLite
 db.Sequelize = Sequelize;
 
 module.exports = db;
