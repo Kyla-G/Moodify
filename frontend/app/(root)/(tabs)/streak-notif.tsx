@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Modal, TouchableOpacity, Image, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -10,12 +10,50 @@ interface XpStreakPopupModalProps {
   onClose: () => void;
   totalXp: number;
   streak: number;
+  xpAmount?: number;
+  xpSource?: 'mood_entry' | 'chatbot_rating' | null;
+  isPastDay?: boolean;
 }
 
-const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModalProps) => {
+const XpStreakPopup = ({ 
+  visible, 
+  onClose, 
+  totalXp, 
+  streak, 
+  xpAmount, 
+  xpSource, 
+  isPastDay = false 
+}: XpStreakPopupModalProps) => {
   const { width, height } = useWindowDimensions();
-
+  const [confettiActive, setConfettiActive] = useState(false);
   const modalWidth = width * 0.9;
+  
+  useEffect(() => {
+    if (visible) {
+      setConfettiActive(true);
+    }
+  }, [visible]);
+  
+  // Skip showing XP popup for past-day entries
+  if (isPastDay) {
+    return null;
+  }
+  
+  // Calculate XP amount based on source
+  const displayXpAmount = xpAmount || 
+    (xpSource === 'mood_entry' ? 5 : 
+     xpSource === 'chatbot_rating' ? 20 : 10);
+  
+  // Determine message based on XP source
+  const getMessage = () => {
+    if (xpSource === 'mood_entry') {
+      return "Good job on logging your mood today";
+    } else if (xpSource === 'chatbot_rating') {
+      return "Thanks for your feedback on the chatbot";
+    } else {
+      return "Good job on logging your mood today";
+    }
+  };
 
   return (
     <Modal
@@ -24,21 +62,18 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
       animationType="fade"
       onRequestClose={onClose}
     >
-      
       <View style={{
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.75)',
         justifyContent: 'center',
         alignItems: 'center',
       }}>
-        
         <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={{
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
           width: '100%',
         }}>
-          
           <View style={{
             backgroundColor: '#003049',
             borderRadius: 24,
@@ -47,8 +82,15 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
             borderWidth: 1,
             width: modalWidth
           }}> 
-
-            <ConfettiCannon count={300} origin={{ x: 200, y: 150 }} fadeOut={true} autoStart={true} />
+            {confettiActive && (
+              <ConfettiCannon 
+                count={300} 
+                origin={{ x: 200, y: 150 }} 
+                fadeOut={true} 
+                autoStart={true}
+                onAnimationEnd={() => setConfettiActive(false)}
+              />
+            )}
 
             <Image
               source={images.moodiwave}
@@ -58,6 +100,21 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
               }}
               resizeMode="contain"
             />
+
+            <View style={{
+              backgroundColor: '#004E89',
+              borderRadius: 15,
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              marginBottom: 20,
+            }}>
+              <Text style={{
+                fontFamily: 'LeagueSpartan-Bold',
+                color: '#F6C49E',
+                textAlign: 'center',
+                fontSize: 28
+              }}>+{displayXpAmount} XP</Text>
+            </View>
 
             <Text style={{
               fontFamily: 'LeagueSpartan-Bold',
@@ -73,7 +130,7 @@ const XpStreakPopup = ({ visible, onClose, totalXp, streak }: XpStreakPopupModal
               marginBottom: 50,
               textAlign: 'center',
               fontSize: 20
-            }}>Good job on logging your mood today</Text>
+            }}>{getMessage()}</Text>
 
             <View style={{
               flexDirection: 'row',
