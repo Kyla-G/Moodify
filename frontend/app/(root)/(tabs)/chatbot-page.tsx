@@ -17,9 +17,11 @@ interface APIResponse {
   error?: string;
 }
 
+
+
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
-    { text: "Hello! I'm Moodi, your AI friend. How are you feeling today?", sender: "bot", role: "assistant" }
+    { text: "Hey there. It's nice to meet you. I’m Moodi, your personal AI. My goal is to be useful, friendly and fun! Ask me for advice, for answers, or let’s talk about whatever’s on your mind. How's your day going?", sender: "bot", role: "assistant" }
   ]);
   const [input, setInput] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
