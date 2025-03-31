@@ -431,7 +431,6 @@ export default function HomeScreen() {
       {/* XP Streak Popup */}
       <XpStreakPopup 
         visible={xpPopupVisible}
-        earnedXp={10}
         totalXp={totalXp}
         streak={streak}
         onClose={closeXpPopup}
