@@ -1,6 +1,8 @@
-import { View, Text, TouchableOpacity, Dimensions } from "react-native";
+import { View, Text, Image, TouchableOpacity, Dimensions, SafeAreaView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useWindowDimensions } from "react-native";
+import images from "@/constants/images";
 
 const { height } = Dimensions.get("window");
 
@@ -9,19 +11,29 @@ type ChatbotStackParamList = {
 };
 
 export default function StartConversationModal() {
+  const { width, height } = useWindowDimensions();
   const navigation = useNavigation<NativeStackNavigationProp<ChatbotStackParamList>>();
 
   return (
-    <View className="absolute top-0 left-0 w-full bg-black" style={{ height: height - 80 }}>
-      <View className="flex-1 justify-center items-center">
-        <View className="bg-[#1A1A1A] p-6 rounded-lg w-80">
-          <Text className="text-white text-lg font-semibold mb-4">Start a Conversation</Text>
-          <Text className="text-gray-400 mb-6">Would you like to talk to Moodi?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("ChatbotPage")}>
-            <Text className="text-[#FF6B35] font-semibold text-right">Start Conversation</Text>
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView className="flex-1 justify-center items-center bg-bg-orange">
+      <Image
+        source={images.moodiwave}
+        style={{
+          width: width * 2.4,
+          marginBottom: height * -0.24,
+          height: width * 2,
+          marginLeft: height * 0.22,
+          resizeMode: "contain",
+        }}
+      />
+      
+      <View className="absolute w-90 bg-bg-dark p-6 rounded-lg">
+        <Text className="text-txt-orange font-LeagueSpartan-Bold text-3xl mb-4 text-left">Start a Conversation</Text>
+        <Text className="text-txt-light font-LeagueSpartan text-xl mb-6 text-center">Would you like to talk to Moodi?</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("ChatbotPage")}>
+          <Text className="text-[#FF6B35] font-LeagueSpartan-Bold text-lg text-right">START</Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
