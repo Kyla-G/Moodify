@@ -11,15 +11,21 @@ interface MoodSelectionModalProps {
   selectedDate: Date;
   setSelectedDate: React.Dispatch<React.SetStateAction<Date>>;
   onSelectMood: (mood: string) => void;
+  isDatePickerVisible: boolean;
+  setDatePickerVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  isTimePickerVisible: boolean;
+  setTimePickerVisible: React.Dispatch<React.SetStateAction<boolean>>; 
 }
 
-const moodIcons = {
+const moodIcons: Record<"rad" | "good" | "meh" | "bad" | "awful", any> = {
   rad: icons.MoodRad,
   good: icons.MoodGood,
   meh: icons.MoodMeh,
   bad: icons.MoodBad,
   awful: icons.MoodAwful,
 };
+
+const [mood, setMood] = useState<"rad" | "good" | "meh" | "bad" | "awful">("good");
 
 // Hours and minutes for the time picker
 const hours = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -349,8 +355,8 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
                     style={{ width: "20%" }}
                     onPress={() => onSelectMood(mood)}
                   >
-                    <Image
-                      source={moodIcons[mood]}
+                    <Image 
+                      source={moodIcons[mood as keyof typeof moodIcons]}
                       style={{
                         width: width < 350 ? 32 : 40,
                         height: width < 350 ? 32 : 40,

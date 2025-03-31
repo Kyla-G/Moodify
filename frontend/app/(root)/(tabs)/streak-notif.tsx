@@ -47,11 +47,11 @@ const XpStreakPopup = ({
   // Determine message based on XP source
   const getMessage = () => {
     if (xpSource === 'mood_entry') {
-      return "Good job on logging your mood today";
+      return "Good job on logging your mood today!";
     } else if (xpSource === 'chatbot_rating') {
-      return "Thanks for your feedback on the chatbot";
+      return "Thanks for your feedback on the Moodi!";
     } else {
-      return "Good job on logging your mood today";
+      return "Good job on logging your mood today!";
     }
   };
 
@@ -101,21 +101,6 @@ const XpStreakPopup = ({
               resizeMode="contain"
             />
 
-            <View style={{
-              backgroundColor: '#004E89',
-              borderRadius: 15,
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              marginBottom: 20,
-            }}>
-              <Text style={{
-                fontFamily: 'LeagueSpartan-Bold',
-                color: '#F6C49E',
-                textAlign: 'center',
-                fontSize: 28
-              }}>+{displayXpAmount} XP</Text>
-            </View>
-
             <Text style={{
               fontFamily: 'LeagueSpartan-Bold',
               color: '#FF6B35',
@@ -127,10 +112,27 @@ const XpStreakPopup = ({
             <Text style={{
               fontFamily: 'LeagueSpartan-Regular',
               color: '#EEEED0',
-              marginBottom: 50,
+              marginBottom: 25,
               textAlign: 'center',
               fontSize: 20
             }}>{getMessage()}</Text>
+            
+            <View style={{
+              flexDirection: 'row',
+              backgroundColor: '#F6C49E',
+              borderRadius: 10,
+              padding: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 25,
+            }}>
+              <Text style={{
+                fontFamily: 'LeagueSpartan-Bold',
+                color: '#004E89',
+                textAlign: 'center',
+                fontSize: 28
+              }}>+{displayXpAmount} XP</Text>
+            </View>
 
             <View style={{
               flexDirection: 'row',

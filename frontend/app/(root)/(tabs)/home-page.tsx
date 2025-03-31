@@ -38,13 +38,15 @@ export default function HomeScreen() {
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
   const [entries, setEntries] = useState<moodEntry[]>([
   ]);
-  const [xpHistory, setXpHistory] = useState({
+  const [xpHistory, setXpHistory] = useState<{ 
+    lastMoodEntryDate: string | null; 
+    lastChatbotRatingDate: string | null; 
+  }>({
     lastMoodEntryDate: null,
     lastChatbotRatingDate: null
   });
   const [xpAmount, setXpAmount] = useState(0);
-  const [xpSource, setXpSource] = useState(null);
-
+  const [xpSource, setXpSource] = useState<"mood_entry" | "chatbot_rating" | null>(null);
   const params = useLocalSearchParams();
   const [welcomeModalVisible, setWelcomeModalVisible] = useState(false);
   const nickname = params.nickname || "Friend";
@@ -154,14 +156,35 @@ export default function HomeScreen() {
       );
     }
     
-    // Update XP and streak
-    setTotalXp(prev => prev + 10); 
-    setStreak(prev => prev + 1);
-    
-    // Show XP popup
-    setTimeout(() => {
-      setXpPopupVisible(true);
-    }, 300);
+    // Check if entry is for today
+    const today = new Date();
+    const isPastDay = !isSameDay(selectedDate, today);
+  
+    // Check if already earned XP for mood entry today
+    const todayDateString = format(today, "yyyy-MM-dd");
+    const alreadyEarnedToday = xpHistory.lastMoodEntryDate === todayDateString;
+
+    // Only give XP for current day entries and if not already earned today
+    if (!isPastDay && !alreadyEarnedToday) {
+      // Update XP and streak
+      setTotalXp(prev => prev + 5);
+      setStreak(prev => prev + 1);
+
+      // Set XP popup info
+      setXpAmount(5);
+      setXpSource('mood_entry');
+      
+      // Record that XP was earned today
+      setXpHistory(prev => ({
+        ...prev,
+        lastMoodEntryDate: todayDateString
+      }));
+      
+      // Show XP popup
+      setTimeout(() => {
+        setXpPopupVisible(true);
+      }, 300);
+    }
     
     // Reset states
     setJournalEntry("");
@@ -177,6 +200,32 @@ export default function HomeScreen() {
     setSummaryModalVisible(false);
     Alert.alert("Redirecting", "Navigating to chatbot screen");
     // Implement actual navigation here
+  };
+
+  // Add a new function for chatbot rating
+  const handleChatbotRating = () => {
+    // Check if already earned XP for chatbot rating today
+    const today = new Date();
+    const todayDateString = format(today, "yyyy-MM-dd");
+    const alreadyEarnedToday = xpHistory.lastChatbotRatingDate === todayDateString;
+    
+    if (!alreadyEarnedToday) {
+      // Update XP (no streak update for chatbot rating)
+      setTotalXp(prev => prev + 20);
+      
+      // Set XP popup info
+      setXpAmount(20);
+      setXpSource('chatbot_rating');
+      
+      // Record that XP was earned today
+      setXpHistory(prev => ({
+        ...prev,
+        lastChatbotRatingDate: todayDateString
+      }));
+      
+      // Show XP popup
+      setXpPopupVisible(true);
+    }
   };
 
   const closeXpPopup = () => {
@@ -437,144 +486,13 @@ export default function HomeScreen() {
       {/* XP Streak Popup */}
       <XpStreakPopup 
         visible={xpPopupVisible}
+        onClose={closeXpPopup}
         totalXp={totalXp}
         streak={streak}
-        onClose={closeXpPopup}
+        xpAmount={xpAmount}
+        xpSource={xpSource}
+        isPastDay={selectedDate && !isSameDay(selectedDate, new Date())}
       />
     </SafeAreaView>
   );
 }
-
-
-
-// // Add these imports at the top if not already present
-// import { format, isSameDay } from "date-fns";
-
-// // Add these state variables to the HomeScreen component
-// const [xpHistory, setXpHistory] = useState({
-//   lastMoodEntryDate: null,
-//   lastChatbotRatingDate: null
-// });
-// const [xpAmount, setXpAmount] = useState(0);
-// const [xpSource, setXpSource] = useState(null);
-
-// // Update the finalSaveEntry function
-// const finalSaveEntry = () => {
-//   setSummaryModalVisible(false);
-  
-//   // Format date strings
-//   const formattedDate = format(selectedDate, "MMMM dd, yyyy");
-//   const dayOfWeek = format(selectedDate, "EEEE");
-//   const displayTime = format(selectedDate, "h:mm a");
-  
-//   // Create new entry
-//   const newEntry = {
-//     mood: selectedMood ?? "",
-//     emotion: selectedEmotion ?? "",
-//     day: dayOfWeek,
-//     date: formattedDate,
-//     time: displayTime,
-//     journal: journalEntry,
-//     timestamp: selectedDate.getTime() // Store timestamp for sorting
-//   };
-  
-//   // Check if we're updating an existing entry
-//   const existingEntryIndex = entries.findIndex(entry => 
-//     entry.date === formattedDate
-//   );
-  
-//   if (existingEntryIndex >= 0) {
-//     // Update existing entry
-//     const updatedEntries = [...entries];
-//     updatedEntries[existingEntryIndex] = newEntry;
-//     setEntries(updatedEntries);
-//   } else {
-//     // Add new entry
-//     setEntries(prevEntries =>
-//       [...prevEntries, newEntry].sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
-//     );
-//   }
-  
-//   // Check if entry is for today
-//   const today = new Date();
-//   const isPastDay = !isSameDay(selectedDate, today);
-  
-//   // Check if already earned XP for mood entry today
-//   const todayDateString = format(today, "yyyy-MM-dd");
-//   const alreadyEarnedToday = xpHistory.lastMoodEntryDate === todayDateString;
-  
-//   // Only give XP for current day entries and if not already earned today
-//   if (!isPastDay && !alreadyEarnedToday) {
-//     // Update XP and streak
-//     setTotalXp(prev => prev + 5);
-//     setStreak(prev => prev + 1);
-    
-//     // Set XP popup info
-//     setXpAmount(5);
-//     setXpSource('mood_entry');
-    
-//     // Record that XP was earned today
-//     setXpHistory(prev => ({
-//       ...prev,
-//       lastMoodEntryDate: todayDateString
-//     }));
-    
-//     // Show XP popup
-//     setTimeout(() => {
-//       setXpPopupVisible(true);
-//     }, 300);
-//   }
-  
-//   // Reset states
-//   setJournalEntry("");
-//   setSelectedMood(null);
-//   setSelectedEmotion(null);
-// };
-
-// // Update the redirectToChatbot function
-// const redirectToChatbot = () => {
-//   // First save the entry
-//   finalSaveEntry();
-  
-//   // Then redirect
-//   setSummaryModalVisible(false);
-//   Alert.alert("Redirecting", "Navigating to chatbot screen");
-//   // Implement actual navigation here
-// };
-
-// // Add a new function for chatbot rating
-// const handleChatbotRating = () => {
-//   // Check if already earned XP for chatbot rating today
-//   const today = new Date();
-//   const todayDateString = format(today, "yyyy-MM-dd");
-//   const alreadyEarnedToday = xpHistory.lastChatbotRatingDate === todayDateString;
-  
-//   if (!alreadyEarnedToday) {
-//     // Update XP (no streak update for chatbot rating)
-//     setTotalXp(prev => prev + 20);
-    
-//     // Set XP popup info
-//     setXpAmount(20);
-//     setXpSource('chatbot_rating');
-    
-//     // Record that XP was earned today
-//     setXpHistory(prev => ({
-//       ...prev,
-//       lastChatbotRatingDate: todayDateString
-//     }));
-    
-//     // Show XP popup
-//     setXpPopupVisible(true);
-//   }
-// };
-
-// // Update the XpStreakPopup component in the return statement
-// <XpStreakPopup 
-//   visible={xpPopupVisible}
-//   onClose={closeXpPopup}
-//   totalXp={totalXp}
-//   streak={streak}
-//   xpAmount={xpAmount}
-//   xpSource={xpSource}
-//   isPastDay={selectedDate && !isSameDay(selectedDate, new Date())}
-// />

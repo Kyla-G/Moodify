@@ -138,7 +138,7 @@ const SummaryModal: React.FC<SummaryModalProps> = ({
               height: width * 1,
               position: 'absolute',
               bottom: -130,
-              left: 80,
+              left: 85,
               resizeMode: 'contain'
             }}
           />
