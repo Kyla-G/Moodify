@@ -3,13 +3,13 @@ import { View, Text, TouchableOpacity, ScrollView, Image, useWindowDimensions, A
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { format, subMonths, addMonths, parseISO, isAfter, isSameDay } from "date-fns";
+import { format, subMonths, addMonths, isSameDay } from "date-fns";
 import { LinearGradient } from "expo-linear-gradient";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { useLocalSearchParams } from "expo-router";
 import XpStreakPopup from '../(tabs)/streak-notif';
-import { MoodEntry, moodColors, moodEmotions } from "@/app/services/type";
+import { moodEntry, moodColors } from "@/app/services/type";
 import MoodSelectionModal from "./mood-selection-modal";
 import EmotionJournalModal from "./emotion-journal-modal";
 import SummaryModal from "./summary-modal";
@@ -36,7 +36,7 @@ export default function HomeScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
-  const [entries, setEntries] = useState<MoodEntry[]>([
+  const [entries, setEntries] = useState<moodEntry[]>([
   ]);
 
   const params = useLocalSearchParams();
@@ -121,7 +121,7 @@ export default function HomeScreen() {
     const displayTime = format(selectedDate, "h:mm a");
     
     // Create new entry
-    const newEntry: MoodEntry = {
+    const newEntry: moodEntry = {
       mood: selectedMood ?? "",
       emotion: selectedEmotion ?? "",
       day: dayOfWeek,
@@ -192,7 +192,7 @@ export default function HomeScreen() {
        
       const timer = setTimeout(() => {
         setWelcomeModalVisible(false);
-      }, 5000);
+      }, 7000);
       return () => clearTimeout(timer);
     }
   }, [params.showWelcome]);

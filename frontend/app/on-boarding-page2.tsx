@@ -29,13 +29,13 @@ export default function OnBoarding2() {
                             height: width * 2,
                             resizeMode: "contain",
                             marginBottom: height * -0.15, 
-                            marginTop: height * -0.61
+                            marginTop: height * -0.58
                         }}
                     />
 
                    
                     <Text 
-                        style={{ fontSize: width * 0.18, lineHeight: width * 0.2, marginLeft: width * -0.09, marginTop: height * -0.08 }}
+                        style={{ fontSize: width * 0.18, lineHeight: width * 0.2, marginLeft: width * -0.09, marginTop: height * -0.06 }}
                         className="text-txt-orange font-LeagueSpartan-Bold tracking-[-0.4px]">
                         Recognize
                     </Text>

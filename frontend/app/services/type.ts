@@ -1,5 +1,5 @@
 // Types for the mood entry
-export interface MoodEntry {
+export interface moodEntry {
     mood: string;
     emotion: string;
     day: string;
@@ -16,13 +16,4 @@ export interface MoodEntry {
     meh: "#828282", // gray
     bad: "#507EE3", // blue
     awful: "#C22222", // red
-  };
-  
-  // Types for mood emotions
-  export const moodEmotions = {
-    rad: ["energetic", "excited", "confident"],
-    good: ["happy", "calm", "grateful", "hopeful"],
-    meh: ["bored", "nervous", "confused", "anxious"],
-    bad: ["sad", "fearful", "stressed"],
-    awful: ["irritated", "angry"],
   };
