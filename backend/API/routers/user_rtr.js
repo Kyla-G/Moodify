@@ -1,4 +1,5 @@
 const express = require('express');
+const { User } = require("../models"); // Adjust the path based on your project structure
 const user_ctrl = require('../controllers/user_ctrl');
 const router = express.Router();
 

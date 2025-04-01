@@ -7,6 +7,9 @@ require("dotenv").config();
 
 // Load database configurations
 const config = require("../config/config.json");
+// const User = require("../backend/API/models");
+
+
 
 // Ensure both database configurations exist
 const sqliteConfig = config["development"]; // SQLite settings
@@ -59,19 +62,9 @@ fs.readdirSync(__dirname)
 // Authenticate both databases
 (async () => {
   try {
-    await sqliteSequelize.authenticate();
-    console.log("✅ Connected to SQLite database.");
-
-    await mysqlSequelize.authenticate();
-    console.log("✅ Connected to MySQL database.");
-
-    console.log("🔄 Syncing databases...");
-
-    await sqliteSequelize.sync({ alter: false });
-    console.log("✅ SQLite tables created.");
 
     await mysqlSequelize.sync({ alter: false });
-    console.log("✅ MySQL tables created.");
+    console.log("✅ MySQL connected.");
 
   } catch (error) {
     console.error("❌ Database connection error:", error);

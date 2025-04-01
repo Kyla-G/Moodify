@@ -2,14 +2,8 @@ const db = require("../backend/API/models/index");
 
 module.exports = async function syncDatabase() {
   try {
-    console.log(`🔍 MySQL Dialect Detected: ${db.mysql.getDialect()}`);
-    console.log(`🔍 SQLite Dialect Detected: ${db.sqlite.getDialect()}`);
+   
 
-    await db.mysql.authenticate();
-    console.log("✅ MySQL connected successfully from sync.js.");
-
-    await db.sqlite.authenticate();
-    console.log("✅ SQLite connected successfully from sync.js.");
 
     // Fetch data from SQLite
     const rows = await db.User.sqlite.findAll({

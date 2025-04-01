@@ -48,6 +48,9 @@
 
 const sqlite3 = require('sqlite3').verbose();
 const { nanoid } = require('nanoid');
+const { User } = require("../models"); // Adjust the path based on your project structure
+
+
 
 const db = new sqlite3.Database ('Moodify.db');
 
@@ -130,14 +133,13 @@ const addUser = async (req, res) => {
 
 
 const getAllUsers = async (req, res, next) => {
+    console.log(db.User + "boink"); // Should not be undefined
 
-    // console.log("=== getAllUsers method called ===");
-    // console.log("DB object keys:", Object.keys(db));
-    // console.log("DB User model:", db.User);
+    
 
-  
     try {
-        const users = await users.findAll();
+        const users = await User.findAll();
+
 
         if (!users || users.length === 0) {
             return res.status(200).json({

@@ -2,18 +2,24 @@ const { ALLOWED_EMOTIONS } = require("../../emotion_values");
 const { nanoid } = require("nanoid");
 
 module.exports = (sequelize, DataTypes) => {
-    const dialect = sequelize.options.dialect;
-    const isSQLite = dialect === "sqlite";
-    const isMySQL = dialect === "mysql";
-
     const MoodEntry = sequelize.define(
         "MoodEntry",
         {
             entry_ID: {
                 type: DataTypes.STRING,
                 primaryKey: true,
-                allowNull: false, // Ensure it's required
-                defaultValue: () => nanoid(8), // Generates ID automatically
+                allowNull: false,
+                defaultValue: () => nanoid(8),
+            },
+            user_ID: {  // Explicitly defining the foreign key
+                type: DataTypes.STRING,
+                allowNull: false,
+                references: {
+                    model: "Users",  // Ensure the correct table name
+                    key: "user_ID",
+                },
+                onDelete: "CASCADE",
+                onUpdate: "CASCADE",
             },
             mood: {
                 type: DataTypes.ENUM("rad", "good", "meh", "bad", "awful"),
@@ -27,9 +33,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING,
                 allowNull: false,
                 get() {
-                    return this.getDataValue("emotions")
-                        ? this.getDataValue("emotions").split(",")
-                        : [];
+                    return this.getDataValue("emotions")?.split(",") || [];
                 },
                 set(value) {
                     if (!Array.isArray(value)) {
@@ -42,34 +46,17 @@ module.exports = (sequelize, DataTypes) => {
                     this.setDataValue("emotions", validEmotions.join(","));
                 },
             },
-            ...(isSQLite && {
-                journal: {
-                    type: DataTypes.TEXT,
-                    allowNull: true,
-                },
-            }),
-            createdAt: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: isSQLite ? new Date() : sequelize.literal("CURRENT_TIMESTAMP"),
-            },
-            updatedAt: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: isSQLite ? new Date() : sequelize.literal("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
-            },
         },
         {
-            timestamps: false, // Keeping this false since timestamps are manually handled
+            timestamps: true,  // Let Sequelize handle timestamps automatically
         }
     );
 
-    // Ensure associations are registered
+    // Association
     MoodEntry.associate = (models) => {
         MoodEntry.belongsTo(models.User, {
             foreignKey: "user_ID",
             as: "user",
-            onDelete: "CASCADE",
         });
     };
 
