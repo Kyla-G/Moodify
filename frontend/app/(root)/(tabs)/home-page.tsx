@@ -232,14 +232,6 @@ export default function HomeScreen() {
     setXpPopupVisible(false);
   };
   
-  const backgroundHeight = height * 0.86;
-  const backgroundWidth = width;
-  const backgroundBottomOffset = height * -0.06;
-  const titleFontSize = width < 350 ? 40 : 55;
-  const moodButtonSize = width < 350 ? 60 : 80;
-  const contentPadding = width < 350 ? 12 : 20;
-  const iconSize = width < 350 ? 22 : 28;
-  
   useEffect(() => {
     // Show welcome popup if coming from nickname page
     if (params.showWelcome === "true") {
@@ -261,30 +253,30 @@ export default function HomeScreen() {
         source={images.homepagebg}
         style={{
           position: "absolute",
-          bottom: backgroundBottomOffset - 40,
-          width: backgroundWidth,
-          height: backgroundHeight,
+          bottom: (height * -0.06) - 40,
+          width: width,
+          height: height * 0.86,
           resizeMode: "contain",
         }}
       />
 
       {/* Header Navigation */}
       <View className="relative z-20">
-        <View style={{ paddingHorizontal: contentPadding }} className="flex-row justify-between items-center w-full pt-6 pb-4">
+        <View style={{ paddingHorizontal: width < 350 ? 12 : 20 }} className="flex-row justify-between items-center w-full pt-6 pb-4">
           <TouchableOpacity>
-            <Ionicons name="settings-outline" size={iconSize} color="#EEEED0" />
+            <Ionicons name="settings-outline" size={width < 350 ? 22 : 28} color="#EEEED0" />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPreviousMonth}>
-            <Ionicons name="chevron-back-outline" size={iconSize} color="#545454" />
+            <Ionicons name="chevron-back-outline" size={width < 350 ? 22 : 28} color="#545454" />
           </TouchableOpacity>
           <Text className="text-txt-light font-LeagueSpartan-Bold text-3xl">
             {format(selectedMonth, "MMMM yyyy")}
           </Text>
           <TouchableOpacity onPress={goToNextMonth}>
-            <Ionicons name="chevron-forward-outline" size={iconSize} color="#545454" />
+            <Ionicons name="chevron-forward-outline" size={width < 350 ? 22 : 28} color="#545454" />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Ionicons name="flame-outline" size={iconSize} color="#EEEED0" />
+            <Ionicons name="flame-outline" size={width < 350 ? 22 : 28} color="#EEEED0" />
           </TouchableOpacity>
         </View>
       </View>
@@ -312,12 +304,12 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={{
           flexGrow: 1,
           alignItems: "center",
-          paddingHorizontal: contentPadding,
+          paddingHorizontal: width < 350 ? 12 : 20,
         }}>
         <Text
           className="text-txt-orange font-LeagueSpartan-Bold mt-16 tracking-[.-3.5]"
           style={{ 
-            fontSize: titleFontSize, 
+            fontSize: width < 350 ? 40 : 55,
             textAlign: "center",
             marginTop: height * 0.05,
           }}>
@@ -329,8 +321,8 @@ export default function HomeScreen() {
           <TouchableOpacity
             onPress={openMoodModal}
             style={{
-              width: moodButtonSize,
-              height: moodButtonSize,
+              width: width < 350 ? 60 : 80,
+              height: width < 350 ? 60 : 80,
             }}
             className="bg-bg-light rounded-full shadow-md flex items-center justify-center">
             <Text className="text-txt-orange text-8xl">+</Text>
@@ -351,7 +343,7 @@ export default function HomeScreen() {
               <View
                 key={index}
                 className="bg-[#101011] p-4 rounded-[20] mb-4 shadow w-full"
-                style={{ paddingHorizontal: contentPadding }}
+                style={{ paddingHorizontal: width < 350 ? 12 : 20 }}
               >
                 <View className="flex-row items-center">
                   <Image

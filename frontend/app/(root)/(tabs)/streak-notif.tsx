@@ -153,7 +153,7 @@ const XpStreakPopup = ({
               }}>
                 <Text style={{
                   color: '#F6C49E',
-                  fontSize: 15,
+                  fontSize: 20,
                   fontFamily: 'LeagueSpartan-Bold'
                 }}>TOTAL XP</Text>
                 <View style={{
@@ -188,7 +188,7 @@ const XpStreakPopup = ({
                 <Text style={{
                   color: '#FF6B35',
                   fontFamily: 'LeagueSpartan-Bold',
-                  fontSize: 15,
+                  fontSize: 20,
                 }}>STREAK</Text>
                 <View style={{
                   flexDirection: 'row',

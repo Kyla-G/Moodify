@@ -12,6 +12,7 @@ import journal from "@/assets/images/journal.png";
 import moodiwave from "@/assets/images/moodiwave.png";
 import homepagebg from "@/assets/images/homepagebg.png";
 import moodichat from "@/assets/images/moodichat.png";
+import chatbotbg from "@/assets/images/chatbotbg.png";
 
 export default {
   iconlight,
@@ -27,5 +28,6 @@ export default {
   journal,
   moodiwave,
   homepagebg,
-  moodichat
+  moodichat,
+  chatbotbg
 };
