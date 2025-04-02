@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -21,14 +22,22 @@ interface APIResponse {
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
-    { text: "Hey there. It's nice to meet you. I’m Moodi, your personal AI. My goal is to be useful, friendly and fun! Ask me for advice, for answers, or let’s talk about whatever’s on your mind. How's your day going?", sender: "bot", role: "assistant" }
+    { text: "Hey there. I’m Moodi, your AI friend. How's your day going?", sender: "bot", role: "assistant" }
   ]);
   const [input, setInput] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const sendMessage = async () => {
+  const sendMessage = async () => {
     if (input.trim() === "") return;
+
+    // Add user message to chat
+    const userMessage: Message = { text: input, sender: "user", role: "user" };
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+    setIsLoading(true);
 
     // Add user message to chat
     const userMessage: Message = { text: input, sender: "user", role: "user" };
@@ -154,6 +163,15 @@ export default function ChatbotPage() {
             </View>
           </View>
         )}
+        
+        {/* Loading indicator */}
+        {isLoading && (
+          <View className="items-start mb-2">
+            <View className="rounded-lg p-3 bg-[#333]">
+              <Text className="text-white">Typing...</Text>
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       <View className="flex-row items-center p-4 bg-[#1A1A1A]">
@@ -164,6 +182,11 @@ export default function ChatbotPage() {
           value={input}
           onChangeText={setInput}
         />
+        <TouchableOpacity 
+          className="ml-2 p-3 bg-[#FF6B35] rounded-lg" 
+          onPress={sendMessage}
+          disabled={isLoading}
+        >
         <TouchableOpacity 
           className="ml-2 p-3 bg-[#FF6B35] rounded-lg" 
           onPress={sendMessage}
