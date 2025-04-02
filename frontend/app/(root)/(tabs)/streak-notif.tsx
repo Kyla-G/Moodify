@@ -153,7 +153,7 @@ const XpStreakPopup = ({
               }}>
                 <Text style={{
                   color: '#F6C49E',
-                  fontSize: 20,
+                  fontSize: 15,
                   fontFamily: 'LeagueSpartan-Bold'
                 }}>TOTAL XP</Text>
                 <View style={{
@@ -168,7 +168,7 @@ const XpStreakPopup = ({
                 }}>
                   <Ionicons name="flash" size={24} color="#004E89" />
                   <Text style={{
-                    fontSize: 24,
+                    fontSize: 20,
                     fontFamily: 'LeagueSpartan-Regular',
                     color: '#004E89',
                     marginRight: 5,
@@ -188,7 +188,7 @@ const XpStreakPopup = ({
                 <Text style={{
                   color: '#FF6B35',
                   fontFamily: 'LeagueSpartan-Bold',
-                  fontSize: 20,
+                  fontSize: 15,
                 }}>STREAK</Text>
                 <View style={{
                   flexDirection: 'row',
@@ -202,7 +202,7 @@ const XpStreakPopup = ({
                 }}>
                   <Ionicons name="flame" size={24} color="#F6C49E" />
                   <Text style={{
-                    fontSize: 24,
+                    fontSize: 20,
                     fontFamily: 'LeagueSpartan-Regular',
                     color: '#EEEED0',
                     marginRight: 5,
