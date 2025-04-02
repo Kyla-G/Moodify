@@ -15,7 +15,7 @@ export default function StartConversationModal() {
   const navigation = useNavigation<NativeStackNavigationProp<ChatbotStackParamList>>();
 
   return (
-    <SafeAreaView className="flex-1 justify-center items-center bg-bg-orange">
+    <SafeAreaView className="flex-1 justify-center items-center bg-bg-dark">
       <Image
         source={images.moodiwave}
         style={{
@@ -27,7 +27,8 @@ export default function StartConversationModal() {
         }}
       />
       
-      <View className="absolute w-90 bg-bg-dark p-6 rounded-lg">
+      Pop up
+      <View className="absolute w-90 bg-black p-6 rounded-lg">
         <Text className="text-txt-orange font-LeagueSpartan-Bold text-3xl mb-4 text-left">Start a Conversation</Text>
         <Text className="text-txt-light font-LeagueSpartan text-xl mb-6 text-center">Would you like to talk to Moodi?</Text>
         <TouchableOpacity onPress={() => navigation.navigate("ChatbotPage")}>

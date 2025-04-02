@@ -1,12 +1,13 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Dimensions, Image, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Dimensions, Image, Keyboard, KeyboardAvoidingView, Platform, Modal } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
 import images from "@/constants/images";
 import { useWindowDimensions } from "react-native";
+import ChatbotRatingModal from "./chatbot-rating-modal"; // Import the rating modal component
 
-const { height, width } = Dimensions.get("window");
+const { height, width} = Dimensions.get("window");
 
 // Define the structure of the API response
 interface Message {
@@ -29,29 +30,7 @@ export default function ChatbotPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { width, height } = useWindowDimensions();
   const scrollViewRef = useRef<ScrollView>(null);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
-
-  // Track keyboard showing and hiding
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => {
-        // You can adjust this value to control how high above the keyboard the chatbox appears
-        setKeyboardOffset(e.endCoordinates.height);
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => {
-        setKeyboardOffset(0);
-      }
-    );
-
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
+  const [ratingModalVisible, setRatingModalVisible] = useState(false);
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -71,9 +50,6 @@ export default function ChatbotPage() {
     setMessages(updatedMessages);
     setIsLoading(true);
     setInput("");
-    
-    // Dismiss keyboard after sending
-    Keyboard.dismiss();
 
     try {
       // Prepare messages for API call, converting to the format required by the API
@@ -151,106 +127,122 @@ export default function ChatbotPage() {
   // Functions to change month
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
-
-  // Handle Enter/Return key press
-  const handleKeyPress = ({ nativeEvent }) => {
-    if (nativeEvent.key === 'Enter' || nativeEvent.key === 'Return') {
-      sendMessage();
-    }
+  
+  // Function to handle END button press
+  const handleEndChat = () => {
+    setRatingModalVisible(true);
   };
 
-  // Dismiss keyboard when tapping outside
-  const dismissKeyboard = () => {
-    Keyboard.dismiss();
+  // Function to handle rating submission
+  const handleRatingSubmit = (rating: number, feedback: string) => {
+    // Here you would typically send the rating data to your backend
+    console.log("Rating submitted:", rating, feedback);
+    setRatingModalVisible(false);
+    // Additional actions after submission if needed
   };
 
   return (
-    <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      <SafeAreaView className="flex-1 bg-black">
-        <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
-        
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
-          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    <SafeAreaView className="flex-1 bg-black">
+      <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
+
+      {/* Top Bar with Settings, Pagination, and Streak Button */}
+      <View className="items-center w-full pt-6 px-4">
+        <View className="flex-row justify-between items-center w-full mb-4">
+          <TouchableOpacity>
+            <Ionicons name="settings-outline" size={28} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={goToPreviousMonth}>
+            <Ionicons name="chevron-back-outline" size={28} color="white" />
+          </TouchableOpacity>
+          <Text className="text-xl font-semibold text-white">{format(selectedMonth, "MMMM yyyy")}</Text>
+          <TouchableOpacity onPress={goToNextMonth}>
+            <Ionicons name="chevron-forward-outline" size={28} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Ionicons name="flame-outline" size={28} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <Image
+        source={images.chatbotbg}
+        style={{
+          position: "absolute",
+          bottom: (height * -0.06) - 10,
+          width: width,
+          height: height * 1,
+          resizeMode: "contain",
+        }}
+      />
+
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      >
+        <ScrollView 
+          ref={scrollViewRef}
+          className="flex-1 px-8 py-6 mt-60"
+          contentContainerStyle={{ paddingBottom: 20 }}
         >
-          {/* Top Bar with Settings, Pagination, and Streak Button */}
-          <View className="items-center w-full pt-6 px-4">
-            <View className="flex-row justify-between items-center w-full mb-4">
-              <TouchableOpacity>
-                <Ionicons name="settings-outline" size={28} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={goToPreviousMonth}>
-                <Ionicons name="chevron-back-outline" size={28} color="white" />
-              </TouchableOpacity>
-              <Text className="text-xl font-semibold text-white">{format(selectedMonth, "MMMM yyyy")}</Text>
-              <TouchableOpacity onPress={goToNextMonth}>
-                <Ionicons name="chevron-forward-outline" size={28} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <Ionicons name="flame-outline" size={28} color="white" />
-              </TouchableOpacity>
+          {messages.map((msg, index) => (
+            <View key={index} className={`mb-2 ${msg.sender === "user" ? "items-end" : "items-start"}`}>
+              <View className={`rounded-lg p-3 max-w-[80%] ${msg.sender === "user" ? "bg-bg-medium" : ""}`}>
+                <Text className="text-[#000746] text-[20px]">{msg.text}</Text>
+              </View>
             </View>
-          </View>
-
-          <Image
-            source={images.chatbotbg}
-            style={{
-              position: "absolute",
-              bottom: (height * -0.06) - 10,
-              width: width,
-              height: height * 1,
-              resizeMode: "contain",
-            }}
-          />
-
-          <ScrollView 
-            ref={scrollViewRef}
-            className="flex-1 px-8 py-6 mt-60"
-            contentContainerStyle={{ paddingBottom: 0 }}
-            keyboardShouldPersistTaps="handled"
-          >
-            {messages.map((msg, index) => (
-              <View key={index} className={`mb-2 ${msg.sender === "user" ? "items-end" : "items-start"}`}>
-                <View className={`rounded-lg p-3 max-w-[80%] ${msg.sender === "user" ? "bg-bg-medium" : ""}`}>
-                  <Text className="text-[#000746] text-[20px]">{msg.text}</Text>
-                </View>
+          ))}
+          
+          {/* Loading indicator */}
+          {isLoading && (
+            <View className="items-start mb-2">
+              <View className="rounded-lg p-3 bg-bg-medium">
+                <Text className="text-txt-darkblue">Typing...</Text>
               </View>
-            ))}
-            
-            {/* Loading indicator */}
-            {isLoading && (
-              <View className="items-start mb-2">
-                <View className="rounded-lg p-3 bg-bg-medium">
-                  <Text className="text-txt-darkblue">Typing...</Text>
-                </View>
-              </View>
-            )}
-          </ScrollView>
+            </View>
+          )}
+        </ScrollView>
 
-          <View className="flex-row items-center p-4 ml-4 mr-4 mb-4 bg-bg-medium rounded-full" style={{ paddingBottom: Platform.OS === 'ios' ? 4 + Math.min(keyboardOffset * 0.1, 10) : 4 }}>
+        <View className="px-4 mb-4">
+          <View className="flex-row items-center p-4 bg-bg-orange rounded-full">
             <TextInput
-              className="flex-1 bg-bg-medium text-[#000746] text-[18px] px-4 py-4 mb-2 rounded-full"
+              className="flex-1 bg-bg-medium text-white p-3 rounded-full"
               placeholder="Talk with Moodi..."
-              placeholderTextColor="#000746"
+              placeholderTextColor="#777"
               value={input}
               onChangeText={setInput}
-              onKeyPress={handleKeyPress}
-              multiline={false}
-              blurOnSubmit={false}
-              onSubmitEditing={sendMessage}
-              returnKeyType="send"
             />
             <TouchableOpacity 
-              className=" p-4 bg-bg-orange mb-1.5 rounded-full" 
+              className="ml-2 p-3 bg-[#FF6B35] rounded-lg" 
               onPress={sendMessage}
               disabled={isLoading}
             >
               <Ionicons name="send" size={20} color="white" />
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </TouchableWithoutFeedback>
+          
+          {/* END button */}
+          <TouchableOpacity 
+            className="mt-3 p-3 bg-[#FF3535] rounded-lg items-center"
+            onPress={handleEndChat}
+          >
+            <Text className="text-white font-bold text-lg">END</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+
+      {/* Rating Modal */}
+      <Modal
+        visible={ratingModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {/* Prevent closing by back button */}}
+      >
+        <ChatbotRatingModal 
+          onSubmit={handleRatingSubmit} 
+          // Modal can only be closed via the submit function
+        />
+      </Modal>
+    </SafeAreaView>
   );
 }
