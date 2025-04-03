@@ -224,7 +224,7 @@ export default function CalendarScreen() {
                 >
                   <View style={{ alignItems: "center", marginBottom: 24 }}>
                     <View
-                      style={{
+                      style={{                                                                                
                         width: 56,
                         height: 56,
                         borderRadius: 28,
