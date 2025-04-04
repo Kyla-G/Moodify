@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { format, subMonths, addMonths, startOfMonth,endOfMonth, eachDayOfInterval, getDay, subDays, addDays,} from "date-fns";
+import { format, subMonths, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subDays, addDays } from "date-fns";
 import { useWindowDimensions } from "react-native";
+import { useTheme } from "@/app/(root)/properties/themecontext"; // Import the theme hook
 
 import MoodRad from "@/assets/icons/MoodRad.png";
 import MoodGood from "@/assets/icons/MoodGood.png";
@@ -36,6 +37,9 @@ export default function CalendarScreen() {
   const { width, height } = useWindowDimensions();
   const [view, setView] = useState("Calendar");
   const [selectedReward, setSelectedReward] = useState(null);
+  
+  // Use the theme context with multiple themes
+  const { theme, setThemeName, availableThemes } = useTheme();
 
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
@@ -58,69 +62,118 @@ export default function CalendarScreen() {
     dummyEntries.map((entry) => [entry.date, entry.mood])
   );
 
+  // The available theme palettes
+  const palettes = [
+    {
+      title: "🔶 Orange Palette",
+      themeName: "dark",
+      icon: "https://cdn-icons-png.flaticon.com/128/2913/2913136.png",
+      description: "Default orange theme",
+      color: "#FF6B35"
+    },
+    {
+      title: "🔵 Blue Palette",
+      themeName: "blue",
+      icon: "https://cdn-icons-png.flaticon.com/128/3523/3523063.png",
+      description: "Cool blue accents",
+      color: "#3498DB"
+    },
+    {
+      title: "🟡 Yellow Palette",
+      themeName: "yellow",
+      icon: "https://cdn-icons-png.flaticon.com/128/1688/1688535.png",
+      description: "Sunny yellow accents",
+      color: "#F1C40F"
+    },
+    {
+      title: "💗 Pink Palette",
+      themeName: "pink",
+      icon: "https://cdn-icons-png.flaticon.com/128/1104/1104935.png",
+      description: "Vibrant pink accents",
+      color: "#E84393"
+    },
+  ];
+
+  // Handle reward selection and theme change
+  const handleRewardSelect = (palette) => {
+    setSelectedReward(palette.title);
+    setThemeName(palette.themeName);
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-black">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
       <StatusBar
-        style="light"
+        style={theme.background === "#000000" ? "light" : "dark"}
         hidden={false}
         translucent
         backgroundColor="transparent"
       />
 
-      <StatusBar
-        style="light"
-        hidden={false}
-        translucent
-        backgroundColor="transparent"
-      />
-      <View className="items-center w-full pt-6 px-4">
-        <View className="flex-row justify-between items-center w-full mb-4">
+      <View style={{ alignItems: "center", width: "100%", paddingTop: 24, paddingHorizontal: 16 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: 16 }}>
           <TouchableOpacity>
-            <Ionicons name="settings-outline" size={28} color="white" />
+            <Ionicons name="settings-outline" size={28} color={theme.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPreviousMonth}>
-            <Ionicons name="chevron-back-outline" size={28} color="white" />
+            <Ionicons name="chevron-back-outline" size={28} color={theme.text} />
           </TouchableOpacity>
-          <Text className="text-txt-medium font-LeagueSpartan-Bold text-3xl">
+          <Text style={{ color: theme.text, fontWeight: "bold", fontSize: 24 }}>
             {format(selectedMonth, "MMMM yyyy")}
           </Text>
           <TouchableOpacity onPress={goToNextMonth}>
             <Ionicons
               name="chevron-forward-outline"
               size={28}
-              color="#545454"
+              color={theme.dimmedText}
             />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Ionicons name="flame-outline" size={28} color="white" />
+            <Ionicons name="flame-outline" size={28} color={theme.text} />
           </TouchableOpacity>
         </View>
 
-        <View className="flex-row bg-[#1A1A1A] rounded-lg p-1 w-[80%] mb-4">
+        <View style={{ 
+          flexDirection: "row", 
+          backgroundColor: theme.calendarBg, 
+          borderRadius: 8, 
+          padding: 4, 
+          width: "80%", 
+          marginBottom: 16 
+        }}>
           <TouchableOpacity
-            className={`flex-1 items-center py-2 rounded-lg ${
-              view === "Calendar" ? "bg-[#FF6B35]" : ""
-            }`}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              paddingVertical: 8,
+              borderRadius: 8,
+              backgroundColor: view === "Calendar" ? theme.buttonBg : "transparent"
+            }}
             onPress={() => setView("Calendar")}
           >
             <Text
-              className={`text-white font-semibold ${
-                view === "Calendar" ? "text-black" : ""
-              }`}
+              style={{
+                color: view === "Calendar" ? (theme.background === "#000000" ? "#000000" : "#FFFFFF") : theme.text,
+                fontWeight: "600"
+              }}
             >
               Calendar
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className={`flex-1 items-center py-2 rounded-lg ${
-              view === "Streak" ? "bg-[#FF6B35]" : ""
-            }`}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              paddingVertical: 8,
+              borderRadius: 8,
+              backgroundColor: view === "Streak" ? theme.buttonBg : "transparent"
+            }}
             onPress={() => setView("Streak")}
           >
             <Text
-              className={`text-white font-semibold ${
-                view === "Streak" ? "text-black" : ""
-              }`}
+              style={{
+                color: view === "Streak" ? (theme.background === "#000000" ? "#000000" : "#FFFFFF") : theme.text,
+                fontWeight: "600"
+              }}
             >
               Streak
             </Text>
@@ -136,19 +189,19 @@ export default function CalendarScreen() {
         }}
       >
         {view === "Calendar" ? (
-          <View className="w-full">
-            <View className="flex-row justify-around mb-4">
+          <View style={{ width: "100%" }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 16 }}>
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                 <Text
                   key={day}
-                  className="text-white text-center flex-1 font-semibold"
+                  style={{ color: theme.text, textAlign: "center", flex: 1, fontWeight: "600" }}
                 >
                   {day}
                 </Text>
               ))}
             </View>
 
-            <View className="w-full flex-wrap flex-row">
+            <View style={{ width: "100%", flexDirection: "row", flexWrap: "wrap" }}>
               {[...prevMonthDays, ...daysInMonth, ...nextMonthDays].map(
                 (day, index) => {
                   const formattedDate = format(day, "yyyy-MM-dd");
@@ -158,12 +211,19 @@ export default function CalendarScreen() {
                   return (
                     <View
                       key={index}
-                      className="w-[14.28%] items-center justify-center mb-2"
+                      style={{ width: "14.28%", alignItems: "center", justifyContent: "center", marginBottom: 8 }}
                     >
                       <View
-                        className={`rounded-lg w-12 h-12 items-center justify-center ${
-                          isDimmed ? "bg-[#050505]" : "bg-[#1A1A1A]"
-                        }`}
+                        style={{
+                          borderRadius: 8,
+                          width: 48,
+                          height: 48,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: isDimmed ? 
+                            (theme.background === "#000000" ? "#050505" : "#E5E5E5") : 
+                            theme.calendarBg
+                        }}
                       >
                         {moodIcon && (
                           <Image
@@ -177,9 +237,11 @@ export default function CalendarScreen() {
                         )}
                       </View>
                       <Text
-                        className={`text-sm mt-1 ${
-                          isDimmed ? "text-gray-700" : "text-white"
-                        }`}
+                        style={{
+                          fontSize: 14,
+                          marginTop: 4,
+                          color: isDimmed ? theme.dimmedText : theme.text
+                        }}
                       >
                         {format(day, "d")}
                       </Text>
@@ -190,37 +252,25 @@ export default function CalendarScreen() {
             </View>
           </View>
         ) : (
-          <View className="mt-6 w-full px-6 items-center">
-            <Text className="text-white text-xl font-bold mb-8">
+          <View style={{ marginTop: 24, width: "100%", paddingHorizontal: 24, alignItems: "center" }}>
+            <Text style={{ color: theme.text, fontSize: 20, fontWeight: "bold", marginBottom: 32 }}>
               🔥 XP Progress
             </Text>
-            <Text className="text-white text-center">
-              Track your streaks and unlock rewards for maintaining consistent
-              moods!
+            <Text style={{ color: theme.text, textAlign: "center", marginBottom: 24 }}>
+              Track your streaks and unlock theme palettes for maintaining consistent moods!
+            </Text>
+
+            {/* Theme title with current theme name */}
+            <Text style={{ color: theme.buttonBg, fontWeight: "bold", fontSize: 16, marginBottom: 16 }}>
+              Current Theme: {theme.name}
             </Text>
 
             <View style={{ alignItems: "center", justifyContent: "center" }}>
-              {[
-                {
-                  title: "🎨 Palette 1",
-                  icon: "https://cdn-icons-png.flaticon.com/128/2913/2913136.png",
-                },
-                {
-                  title: "😀 Emoji Set",
-                  icon: "https://cdn-icons-png.flaticon.com/128/3523/3523063.png",
-                },
-                {
-                  title: "😎 Moodi Emotes",
-                  icon: "https://cdn-icons-png.flaticon.com/128/1688/1688535.png",
-                },
-                {
-                  title: "🎭 Moodi Accessories",
-                  icon: "https://cdn-icons-png.flaticon.com/128/1104/1104935.png",
-                },
-              ].map((reward, index) => (
+              {palettes.map((palette, index) => (
                 <TouchableOpacity
                   key={index}
-                  onPress={() => setSelectedReward(reward.title)}
+                  onPress={() => handleRewardSelect(palette)}
+                  style={{ marginBottom: 16 }}
                 >
                   <View style={{ alignItems: "center", marginBottom: 24 }}>
                     <View
@@ -228,26 +278,39 @@ export default function CalendarScreen() {
                         width: 56,
                         height: 56,
                         borderRadius: 28,
-                        backgroundColor: "#4A4A4A",
+                        backgroundColor: theme.calendarBg,
                         alignItems: "center",
                         justifyContent: "center",
+                        borderWidth: selectedReward === palette.title ? 2 : 0,
+                        borderColor: palette.color
                       }}
                     >
-                      <Image
-                        source={{ uri: reward.icon }}
-                        style={{ width: 32, height: 32 }}
-                      />
+                      <View style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        backgroundColor: palette.color
+                      }} />
                     </View>
                     <Text
                       style={{
-                        color: "white",
+                        color: theme.text,
                         fontSize: 14,
                         fontWeight: "600",
                         marginTop: 8,
-                        marginBottom: 30,
                       }}
                     >
-                      {reward.title}
+                      {palette.title}
+                    </Text>
+                    <Text
+                      style={{
+                        color: theme.dimmedText,
+                        fontSize: 12,
+                        marginTop: 4,
+                        marginBottom: 16,
+                      }}
+                    >
+                      {palette.description}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -255,7 +318,9 @@ export default function CalendarScreen() {
             </View>
 
             {selectedReward && (
-              <Text className="text-white mt-4 text-lg font-semibold">{`You unlocked: ${selectedReward}`}</Text>
+              <Text style={{ color: theme.buttonBg, marginTop: 16, fontSize: 18, fontWeight: "600" }}>
+                {`Theme Unlocked: ${selectedReward}`}
+              </Text>
             )}
           </View>
         )}
