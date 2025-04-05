@@ -2,6 +2,9 @@ const { ALLOWED_EMOTIONS } = require("../../emotion_values");
 const { nanoid } = require("nanoid");
 
 module.exports = (sequelize, DataTypes) => {
+    const dialect = sequelize.options.dialect; // Get the database dialect
+    const sqliteDB = dialect === "sqlite"; // Check if using SQLite
+
     const MoodEntry = sequelize.define(
         "MoodEntry",
         {
@@ -46,6 +49,13 @@ module.exports = (sequelize, DataTypes) => {
                     this.setDataValue("emotions", validEmotions.join(","));
                 },
             },
+            // Add journalText field only for SQLite
+            ...(sqliteDB && {
+                journal: {
+                    type: DataTypes.TEXT,  // Use TEXT for larger strings
+                    allowNull: true, // Allow empty journal entries
+                }
+            }),
         },
         {
             timestamps: true,  // Let Sequelize handle timestamps automatically

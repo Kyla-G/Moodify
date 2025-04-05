@@ -5,15 +5,10 @@ const path = require("path");
 const Sequelize = require("sequelize");
 require("dotenv").config();
 
-// Load database configurations
 const config = require("../config/config.json");
-// const User = require("../backend/API/models");
 
-
-
-// Ensure both database configurations exist
-const sqliteConfig = config["development"]; // SQLite settings
-const mysqlConfig = config["production"];   // MySQL settings
+const sqliteConfig = config["development"];
+const mysqlConfig = config["production"];
 
 if (!sqliteConfig || !sqliteConfig.dialect) {
   throw new Error("❌ SQLite config is missing or incorrect.");
@@ -22,18 +17,19 @@ if (!mysqlConfig || !mysqlConfig.dialect) {
   throw new Error("❌ MySQL config is missing or incorrect.");
 }
 
-// Initialize Sequelize instances for both databases
-const sqliteSequelize = new Sequelize({
+// Initialize Sequelize instances
+const sqlite = new Sequelize({
   dialect: sqliteConfig.dialect,
-  storage: sqliteConfig.storage
+  storage: sqliteConfig.storage,
+  logging: console.log
 });
 
-const mysqlSequelize = new Sequelize(
+const mysql = new Sequelize(
   mysqlConfig.database,
   mysqlConfig.username,
   mysqlConfig.password,
   {
-    host: mysqlConfig.host ,
+    host: mysqlConfig.host,
     dialect: mysqlConfig.dialect,
     port: mysqlConfig.port,
     logging: console.log
@@ -42,40 +38,44 @@ const mysqlSequelize = new Sequelize(
 
 const db = {};
 
-// Load all models and initialize them for both SQLite and MySQL
+// Load and initialize all models for both SQLite and MySQL
 fs.readdirSync(__dirname)
   .filter((file) => file.endsWith(".js") && file !== "index.js")
   .forEach((file) => {
-    const modelDefinition = require(path.join(__dirname, file));
+    const defineModel = require(path.join(__dirname, file));
 
-    // Initialize models for both databases
-    const sqliteModel = modelDefinition(sqliteSequelize, Sequelize.DataTypes);
-    const mysqlModel = modelDefinition(mysqlSequelize, Sequelize.DataTypes);
+    const sqliteModel = defineModel(sqlite, Sequelize.DataTypes);
+    const mysqlModel = defineModel(mysql, Sequelize.DataTypes);
 
-    // Store models separately for each database
-    db[sqliteModel.name] = {
-      sqlite: sqliteModel,
-      mysql: mysqlModel,
-    };
+    db[sqliteModel.name] = sqliteModel; // For SQLite
+    db[`mysql_${mysqlModel.name}`] = mysqlModel; // For MySQL
   });
 
-// Authenticate both databases
-(async () => {
-  try {
-
-    await mysqlSequelize.sync({ alter: false });
-    console.log("✅ MySQL connected.");
-
-  } catch (error) {
-    console.error("❌ Database connection error:", error);
+// Setup associations for both databases
+Object.entries(db).forEach(([name, model]) => {
+  if (typeof model.associate === "function") {
+    model.associate(db);
   }
-})();
+});
 
-
-// Store Sequelize instances
-db.sqlite = sqliteSequelize;
-db.mysql = mysqlSequelize;
-db.sequelize = sqliteSequelize; // Default to SQLite
+// Attach Sequelize instances
+db.sqlite = sqlite;
+db.mysql = mysql;
 db.Sequelize = Sequelize;
+
+// Default db.sequelize should not be overwritten, so it's better to explicitly call `db.syncAll()` for each instance.
+db.syncAll = async () => {
+  try {
+    // Sync SQLite database
+    await sqlite.sync({ alter: false });
+    console.log("✅ SQLite activated.");
+
+    // Sync MySQL database
+    await mysql.sync({ alter: false });
+    console.log("✅ MySQL activated.");
+  } catch (err) {
+    console.error("❌ Sync Error:", err);
+  }
+};
 
 module.exports = db;

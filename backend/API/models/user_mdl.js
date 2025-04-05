@@ -49,7 +49,7 @@ module.exports = (sequelize, DataTypes) => {
         }
     );
 
-    // Fix: Move this outside sequelize.define
+    // Define associations
     User.associate = (models) => {
         User.hasMany(models.MoodEntry, {
             foreignKey: "user_ID",

@@ -2,8 +2,11 @@ const db = require("../backend/API/models/index");
 
 module.exports = async function syncDatabase() {
   try {
-   
-
+    // Ensure User model exists for SQLite
+    if (!db.User || !db.User.sqlite) {
+      console.error("❌ User model is not defined for SQLite.");
+      return;
+    }
 
     // Fetch data from SQLite
     const rows = await db.User.sqlite.findAll({
@@ -39,6 +42,6 @@ module.exports = async function syncDatabase() {
     }
 
   } catch (error) {
-    console.error("❌ Sync Error:", error);
+    console.error("❌ Syncing of data :", error);
   }
 };
