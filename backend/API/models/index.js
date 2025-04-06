@@ -49,6 +49,9 @@ fs.readdirSync(__dirname)
 
     db[sqliteModel.name] = sqliteModel; // For SQLite
     db[`mysql_${mysqlModel.name}`] = mysqlModel; // For MySQL
+
+    
+
   });
 
 // Setup associations for both databases

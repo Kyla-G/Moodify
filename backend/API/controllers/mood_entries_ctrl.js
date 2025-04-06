@@ -10,7 +10,7 @@ const formatDateTime = d => d ? dayjs(d).format('MMM D, YYYY hh:mm A') : 'N/A';
 // Add Mood Only
 const addMoodEntry = async (req, res, next) => {
     try {
-        const { user_ID, mood, emotions, logged_date } = req.body;
+        const { user_ID, mood, emotions, logged_date, journal } = req.body;
 
         // Validate mandatory fields
         if (!util.checkMandatoryFields([user_ID, mood, emotions, logged_date])) {
@@ -59,12 +59,13 @@ const addMoodEntry = async (req, res, next) => {
             });
         }
 
-        // Create new mood entry
+        // Create new mood entry (with optional journal)
         const newMoodEntry = await MoodEntry.create({
             user_ID,
             mood,
             emotions,
-            logged_date: providedDate // Store the normalized date
+            logged_date: providedDate, // Store the normalized date
+            ...(journal && { journal: journal }) 
         });
 
         return res.status(201).json({
@@ -74,7 +75,8 @@ const addMoodEntry = async (req, res, next) => {
                 entry_ID: newMoodEntry.entry_ID, 
                 user_ID: newMoodEntry.user_ID, 
                 mood: newMoodEntry.mood, 
-                emotions: newMoodEntry.emotions 
+                emotions: newMoodEntry.emotions,
+                ...(journal && { journal }) // Include journal in response if provided
             }
         });
 
@@ -86,6 +88,7 @@ const addMoodEntry = async (req, res, next) => {
         });
     }
 };
+
 
 
 
