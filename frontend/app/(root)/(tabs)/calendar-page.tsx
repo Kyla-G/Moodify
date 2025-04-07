@@ -32,14 +32,33 @@ const dummyEntries = [
   { mood: "Meh", date: "2025-02-08" },
 ];
 
+// Array of daily affirmations
+const affirmations = [
+  "Today I choose joy and positivity",
+  "I am worthy of all good things",
+  "Every day is a fresh start",
+  "I am getting stronger each day",
+  "My feelings are valid and important",
+  "Small steps lead to big changes",
+  "I celebrate my progress today",
+  "I deserve peace and happiness",
+];
+
 export default function CalendarScreen() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const { width, height } = useWindowDimensions();
   const [view, setView] = useState("Calendar");
   const [selectedReward, setSelectedReward] = useState(null);
+  const [todayAffirmation, setTodayAffirmation] = useState("");
   
   // Use the theme context with multiple themes
   const { theme, setThemeName, availableThemes } = useTheme();
+
+  useEffect(() => {
+    // Get a random affirmation for the day
+    const randomIndex = Math.floor(Math.random() * affirmations.length);
+    setTodayAffirmation(affirmations[randomIndex]);
+  }, []);
 
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
@@ -62,15 +81,8 @@ export default function CalendarScreen() {
     dummyEntries.map((entry) => [entry.date, entry.mood])
   );
 
-  // The available theme palettes
+  // The available theme palettes - reordered to match the requested order
   const palettes = [
-    {
-      title: "🔶 Orange Palette",
-      themeName: "dark",
-      icon: "https://cdn-icons-png.flaticon.com/128/2913/2913136.png",
-      description: "Default orange theme",
-      color: "#FF6B35"
-    },
     {
       title: "🔵 Blue Palette",
       themeName: "blue",
@@ -91,6 +103,13 @@ export default function CalendarScreen() {
       icon: "https://cdn-icons-png.flaticon.com/128/1104/1104935.png",
       description: "Vibrant pink accents",
       color: "#E84393"
+    },
+    {
+      title: "🔶 Orange Palette",
+      themeName: "dark",
+      icon: "https://cdn-icons-png.flaticon.com/128/2913/2913136.png",
+      description: "Default orange theme",
+      color: "#FF6B35"
     },
   ];
 
@@ -179,6 +198,34 @@ export default function CalendarScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Affirmation Banner */}
+        <View style={{
+          backgroundColor: theme.accent2,
+          paddingVertical: 20,
+          paddingHorizontal: 16,
+          borderRadius: 8,
+          width: "100%",
+          marginBottom: 16,
+          alignItems: "center",
+          flexDirection: "row",
+          justifyContent: "center"
+        }}>
+          <Ionicons 
+            name="sunny-outline" 
+            size={20} 
+            color={theme.background === "#000000" ? "#000000" : "#FFFFFF"} 
+            style={{ marginRight: 8 }}
+          />
+          <Text style={{
+            color: theme.background === "#000000" ? "#000000" : "#FFFFFF",
+            fontWeight: "600",
+            textAlign: "center",
+            fontSize: 16
+          }}>
+            {todayAffirmation}
+          </Text>
+        </View>
       </View>
 
       <ScrollView
@@ -252,7 +299,7 @@ export default function CalendarScreen() {
             </View>
           </View>
         ) : (
-          <View style={{ marginTop: 24, width: "100%", paddingHorizontal: 24, alignItems: "center" }}>
+          <View style={{ marginTop: 24, width: "100%", paddingHorizontal: 16, alignItems: "center" }}>
             <Text style={{ color: theme.text, fontSize: 20, fontWeight: "bold", marginBottom: 32 }}>
               🔥 XP Progress
             </Text>
@@ -264,58 +311,119 @@ export default function CalendarScreen() {
             <Text style={{ color: theme.buttonBg, fontWeight: "bold", fontSize: 16, marginBottom: 16 }}>
               Current Theme: {theme.name}
             </Text>
-
-            <View style={{ alignItems: "center", justifyContent: "center" }}>
-              {palettes.map((palette, index) => (
+            
+            {/* Themes section header */}
+            <View style={{ 
+              backgroundColor: theme.calendarBg, 
+              paddingVertical: 12, 
+              borderTopLeftRadius: 8, 
+              borderTopRightRadius: 8,
+              width: "100%",
+              alignItems: "center"
+            }}>
+              <Text style={{ color: theme.text, fontWeight: "bold" }}>
+                Themes
+              </Text>
+            </View>
+            
+            {/* Horizontal theme tabs */}
+            <View style={{ 
+              flexDirection: "row", 
+              justifyContent: "space-around", 
+              width: "100%",
+              backgroundColor: theme.calendarBg,
+              borderBottomLeftRadius: 8,
+              borderBottomRightRadius: 8,
+              paddingVertical: 16,
+              paddingHorizontal: 8,
+              marginBottom: 24
+            }}>
+              {palettes.slice(0, 3).map((palette, index) => (
                 <TouchableOpacity
                   key={index}
                   onPress={() => handleRewardSelect(palette)}
-                  style={{ marginBottom: 16 }}
+                  style={{ 
+                    alignItems: "center",
+                    flex: 1
+                  }}
                 >
-                  <View style={{ alignItems: "center", marginBottom: 24 }}>
-                    <View
-                      style={{                                                                                
-                        width: 56,
-                        height: 56,
-                        borderRadius: 28,
-                        backgroundColor: theme.calendarBg,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderWidth: selectedReward === palette.title ? 2 : 0,
-                        borderColor: palette.color
-                      }}
-                    >
-                      <View style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 16,
-                        backgroundColor: palette.color
-                      }} />
-                    </View>
-                    <Text
-                      style={{
-                        color: theme.text,
-                        fontSize: 14,
-                        fontWeight: "600",
-                        marginTop: 8,
-                      }}
-                    >
-                      {palette.title}
-                    </Text>
-                    <Text
-                      style={{
-                        color: theme.dimmedText,
-                        fontSize: 12,
-                        marginTop: 4,
-                        marginBottom: 16,
-                      }}
-                    >
-                      {palette.description}
-                    </Text>
+                  <View
+                    style={{                                                                                
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      backgroundColor: theme.calendarBg,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderWidth: selectedReward === palette.title ? 2 : 0,
+                      borderColor: palette.color
+                    }}
+                  >
+                    <View style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: palette.color
+                    }} />
                   </View>
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontSize: 12,
+                      fontWeight: "600",
+                      marginTop: 8,
+                      textAlign: "center"
+                    }}
+                  >
+                    {palette.title.split(" ")[0]}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
+
+            {/* Default theme option below the horizontal tabs */}
+            <TouchableOpacity
+              onPress={() => handleRewardSelect(palettes[3])}
+              style={{ marginBottom: 16 }}
+            >
+              <View style={{ 
+                flexDirection: "row", 
+                alignItems: "center", 
+                backgroundColor: theme.calendarBg,
+                padding: 12,
+                borderRadius: 8,
+                width: "100%"
+              }}>
+                <View
+                  style={{                                                                                
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: theme.calendarBg,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderWidth: selectedReward === palettes[3].title ? 2 : 0,
+                    borderColor: palettes[3].color,
+                    marginRight: 16
+                  }}
+                >
+                  <View style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    backgroundColor: palettes[3].color
+                  }} />
+                </View>
+                <View>
+                  <Text style={{ color: theme.text, fontWeight: "600" }}>
+                    {palettes[3].title}
+                  </Text>
+                  <Text style={{ color: theme.dimmedText, fontSize: 12 }}>
+                    {palettes[3].description}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
 
             {selectedReward && (
               <Text style={{ color: theme.buttonBg, marginTop: 16, fontSize: 18, fontWeight: "600" }}>
