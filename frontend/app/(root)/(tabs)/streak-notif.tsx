@@ -28,6 +28,13 @@ const XpStreakPopup = ({
   const [confettiActive, setConfettiActive] = useState(false);
   const modalWidth = width * 0.9;
   
+  // Define standard XP amounts for different sources
+  const XP_AMOUNTS = {
+    mood_entry: 5,
+    chatbot_rating: 20,
+    default: 10
+  };
+  
   useEffect(() => {
     if (visible) {
       setConfettiActive(true);
@@ -39,10 +46,11 @@ const XpStreakPopup = ({
     return null;
   }
   
-  // Calculate XP amount based on source
+  // Calculate XP amount based on source, prioritizing passed xpAmount
   const displayXpAmount = xpAmount || 
-    (xpSource === 'mood_entry' ? 5 : 
-     xpSource === 'chatbot_rating' ? 20 : 10);
+    (xpSource === 'mood_entry' ? XP_AMOUNTS.mood_entry : 
+     xpSource === 'chatbot_rating' ? XP_AMOUNTS.chatbot_rating : 
+     XP_AMOUNTS.default);
   
   // Determine message based on XP source
   const getMessage = () => {

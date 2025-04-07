@@ -1,13 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Dimensions, Image, Keyboard, KeyboardAvoidingView, Platform, Modal } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Dimensions, Image, KeyboardAvoidingView, Platform, Modal } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
 import images from "@/constants/images";
 import { useWindowDimensions } from "react-native";
 import ChatbotRatingModal from "./chatbot-rating-modal"; // Import the rating modal component
+import EndChatModal from "./end-chat-modal"; // Import the end chat confirmation modal
 
-const { height, width} = Dimensions.get("window");
+const { height, width } = Dimensions.get("window");
 
 // Define the structure of the API response
 interface Message {
@@ -31,6 +32,8 @@ export default function ChatbotPage() {
   const { width, height } = useWindowDimensions();
   const scrollViewRef = useRef<ScrollView>(null);
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
+  const [endChatModalVisible, setEndChatModalVisible] = useState(false);
+  const [chatEnded, setChatEnded] = useState(false);
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -42,7 +45,7 @@ export default function ChatbotPage() {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (input.trim() === "") return;
+    if (input.trim() === "" || chatEnded) return;
 
     // Add user message to chat
     const userMessage: Message = { text: input, sender: "user", role: "user" };
@@ -89,24 +92,24 @@ export default function ChatbotPage() {
 
       if (data.error) {
         // Handle API error
-        const errorMessage: Message = { 
-          text: 'Sorry, there was an error processing your message.', 
+        const errorMessage: Message = {
+          text: 'Sorry, there was an error processing your message.',
           sender: "bot",
           role: "assistant"
         };
         setMessages((prevMessages) => [...prevMessages, errorMessage]);
       } else if (data.choices && data.choices[0] && data.choices[0].message) {
         // Add bot response to chat
-        const botMessage: Message = { 
-          text: data.choices[0].message.content || 'No response received.', 
+        const botMessage: Message = {
+          text: data.choices[0].message.content || 'No response received.',
           sender: "bot",
           role: "assistant"
         };
         setMessages((prevMessages) => [...prevMessages, botMessage]);
       } else {
         // Handle unexpected response format
-        const unexpectedMessage: Message = { 
-          text: 'Unexpected response from the AI.', 
+        const unexpectedMessage: Message = {
+          text: 'Unexpected response from the AI.',
           sender: "bot",
           role: "assistant"
         };
@@ -115,8 +118,8 @@ export default function ChatbotPage() {
     } catch (error) {
       setIsLoading(false);
       // Handle network or other errors
-      const errorMessage: Message = { 
-        text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+      const errorMessage: Message = {
+        text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         sender: "bot",
         role: "assistant"
       };
@@ -127,10 +130,35 @@ export default function ChatbotPage() {
   // Functions to change month
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
-  
+
   // Function to handle END button press
   const handleEndChat = () => {
-    setRatingModalVisible(true);
+    setEndChatModalVisible(true);
+  };
+
+  // Function to handle confirmation of ending chat
+  const handleConfirmEndChat = () => {
+    setEndChatModalVisible(false);
+    setChatEnded(true);
+    
+    // Add farewell message from the bot
+    const farewellMessage: Message = {
+      text: "Thank you for chatting with me! I'm always here whenever you need someone to talk to. Take care!",
+      sender: "bot",
+      role: "assistant"
+    };
+    
+    setMessages((prevMessages) => [...prevMessages, farewellMessage]);
+    
+    // Show rating modal after the farewell message
+    setTimeout(() => {
+      setRatingModalVisible(true);
+    }, 1000);
+  };
+
+  // Function to handle cancellation of ending chat
+  const handleCancelEndChat = () => {
+    setEndChatModalVisible(false);
   };
 
   // Function to handle rating submission
@@ -174,73 +202,87 @@ export default function ChatbotPage() {
           resizeMode: "contain",
         }}
       />
-
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      <ScrollView
+        ref={scrollViewRef}
+        className="flex-1 px-8 mt-60"
       >
-        <ScrollView 
-          ref={scrollViewRef}
-          className="flex-1 px-8 py-6 mt-60"
-          contentContainerStyle={{ paddingBottom: 20 }}
-        >
-          {messages.map((msg, index) => (
-            <View key={index} className={`mb-2 ${msg.sender === "user" ? "items-end" : "items-start"}`}>
-              <View className={`rounded-lg p-3 max-w-[80%] ${msg.sender === "user" ? "bg-bg-medium" : ""}`}>
-                <Text className="text-[#000746] text-[20px]">{msg.text}</Text>
-              </View>
+        {messages.map((msg, index) => (
+          <View key={index}
+            className={`mb-2 ${msg.sender === "user" ? "items-end" : "items-start"}`}
+          >
+            <View className={`rounded-lg p-3 max-w-[80%] ${msg.sender === "user" ? "bg-bg-gray" : "" }`}
+            >
+              <Text className={`text-[20px] font-LeagueSpartan ${msg.sender === "user" ? "text-[#EEEED0]" : "text-[#101011]"}`}
+              >
+                {msg.text}
+              </Text>
             </View>
-          ))}
-          
-          {/* Loading indicator */}
-          {isLoading && (
-            <View className="items-start mb-2">
-              <View className="rounded-lg p-3 bg-bg-medium">
-                <Text className="text-txt-darkblue">Typing...</Text>
-              </View>
-            </View>
-          )}
-        </ScrollView>
+          </View>
+        ))}
 
-        <View className="px-4 mb-4">
-          <View className="flex-row items-center p-4 bg-bg-orange rounded-full">
+        {/* Loading indicator */}
+        {isLoading && (
+          <View className="items-start mb-2">
+            <View className="rounded-lg p-3 bg-bg-gray">
+              <Text className="text-txt-light">Typing...</Text>
+            </View>
+          </View>
+        )}
+      </ScrollView>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+        <View className="px-8 mb-3">
+          <View className="bg-bg-gray rounded-full flex-row items-center px-4 py-2 shadow-md">
             <TextInput
-              className="flex-1 bg-bg-medium text-white p-3 rounded-full"
-              placeholder="Talk with Moodi..."
-              placeholderTextColor="#777"
+              className="flex-1 text-txt-light font-LeagueSpartan text-base"
+              placeholder=" Talk with Moodi..."
+              placeholderTextColor="#545454"
               value={input}
               onChangeText={setInput}
+              editable={!chatEnded}
             />
-            <TouchableOpacity 
-              className="ml-2 p-3 bg-[#FF6B35] rounded-lg" 
+            <TouchableOpacity
+              className={`ml-2 p-2 rounded-full ${chatEnded ? "opacity-50" : ""}`}
               onPress={sendMessage}
-              disabled={isLoading}
+              disabled={isLoading || chatEnded}
             >
-              <Ionicons name="send" size={20} color="white" />
+              <Ionicons name="send" size={18} color="#EEEED0" />
             </TouchableOpacity>
           </View>
-          
-          {/* END button */}
-          <TouchableOpacity 
-            className="mt-3 p-3 bg-[#FF3535] rounded-lg items-center"
-            onPress={handleEndChat}
-          >
-            <Text className="text-white font-bold text-lg">END</Text>
-          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* END button - only show if chat is not ended */}
+      {!chatEnded && (
+        <View className="px-32 mb-4">
+          <TouchableOpacity
+            className="p-2 bg-[#FF6B35] rounded-full items-center"
+            onPress={handleEndChat}
+          >
+            <Text className="text-txt-darkgray font-LeagueSpartan-Bold text-xl">End Conversation</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* End Chat Confirmation Modal */}
+      <EndChatModal
+        visible={endChatModalVisible}
+        onCancel={handleCancelEndChat}
+        onConfirm={handleConfirmEndChat}
+      />
 
       {/* Rating Modal */}
       <Modal
         visible={ratingModalVisible}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => {/* Prevent closing by back button */}}
+        onRequestClose={() => {/* Prevent closing by back button */ }}
       >
-        <ChatbotRatingModal 
-          onSubmit={handleRatingSubmit} 
-          // Modal can only be closed via the submit function
+        <ChatbotRatingModal
+          onSubmit={handleRatingSubmit}
         />
       </Modal>
     </SafeAreaView>
