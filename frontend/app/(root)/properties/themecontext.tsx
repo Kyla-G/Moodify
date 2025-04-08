@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 
 const themes = {
-  dark: {
+  autumn: {
     background: "#000000",
     text: "#FFFFFF",
     dimmedText: "#545454",
@@ -11,43 +11,43 @@ const themes = {
     accent2: "#F6C49E",
     accent3: "#D62828",
     accent4: "#E0E0E0",
-    name: "Default"
+    name: "Autumn"
   },
-  blue: {
+  spring: {
     background: "#000000",
     text: "#FFFFFF",
     dimmedText: "#545454",
     calendarBg: "#1A1A1A",
-    accent2: "#ffe700", // Baby Blue
-    accent1: "#74ee15", // Lighter Baby Blue
-    accent3: "#f000ff", // Soft Light Blue
-    buttonBg: "#4deeea", // Moderate Blue
-    accent4: "#001eff", // Sky Blue
-    name: "Blue"
+    buttonBg: "#ffbc48", // yellow
+    accent1: "#a2b973", // green
+    accent2: "#ff6780", // pink
+    accent3: "#b85c78", // dull pink
+    accent4: "#776c8e", // purple
+    name: "Spring"
   },
-  yellow: {
+  winter: {
     background: "#000000",
     text: "#FFFFFF",
     dimmedText: "#545454",
     calendarBg: "#1A1A1A",
-    buttonBg: "#5fa55a", // Mustard Yellow
-    accent1: "#01b4bc", // Bright Yellow
-    accent2: "#f6d51f", // Pale Yellow
-    accent3: "#fa8925", // Golden Yellow
-    accent4: "#fa5457", // Canary Yellow
-    name: "Yellow"
+    buttonBg: "#b3e220", // light green
+    accent1: "#6ad23d", // green
+    accent2: "#19ad6b", // sage green
+    accent3: "#197b7a", // dark teal
+    accent4: "#2b57b8", // blue
+    name: "Winter"
   },
-  pink: {
+  summer: {
     background: "#000000",
     text: "#FFFFFF",
     dimmedText: "#545454",
     calendarBg: "#1A1A1A",
-    accent3: "#0d0b33", // Cool-toned Pastel Pink
-    accent1: "#4c2f6f", // Soft Lavender Pink
-    buttonBg: "#c266a7", // Light Cool Pink
-    accent2: "#52489f", // Cool Periwinkle
-    accent4: "#e7c8e7", // Very Light Cool Pink
-    name: "Pink"
+    buttonBg: "#f6d51f", // Pink
+    accent1: "#fa8925", // Deep purple
+    accent2: "#5fa55a", // Blue-purple
+    accent3: "#01b4bc", // Dark blue
+    accent4: "#fa5457", // Light pink
+    name: "Summer"
   },
   light: {
     background: "#FFFFFF",
@@ -63,17 +63,14 @@ const themes = {
   }
 };
 
-
-
-
 const ThemeContext = createContext({
-  theme: themes.dark,
+  theme: themes.autumn,
   setThemeName: (themeName: string) => {},
   availableThemes: themes
 });
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setTheme] = useState(themes.dark);
+  const [theme, setTheme] = useState(themes.autumn);
 
   const setThemeName = (themeName: string) => {
     const newTheme = themes[themeName.toLowerCase()];

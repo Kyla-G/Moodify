@@ -6,6 +6,9 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subDays, addDays } from "date-fns";
 import { useWindowDimensions } from "react-native";
 import { useTheme } from "@/app/(root)/properties/themecontext"; // Import the theme hook
+// Import specific functions from API to avoid "undefined" errors
+import { getMoodEntriesForCalendar, subscribeToChanges } from "@/app/services/moodEntriesApi";
+import { moodColors } from "@/app/services/type";
 
 import MoodRad from "@/assets/icons/MoodRad.png";
 import MoodGood from "@/assets/icons/MoodGood.png";
@@ -20,17 +23,6 @@ const moodIcons = {
   Bad: MoodBad,
   Awful: MoodAwful,
 };
-
-const dummyEntries = [
-  { mood: "Rad", date: "2025-02-15" },
-  { mood: "Bad", date: "2025-02-14" },
-  { mood: "Rad", date: "2025-02-13" },
-  { mood: "Bad", date: "2025-02-12" },
-  { mood: "Good", date: "2025-02-11" },
-  { mood: "Awful", date: "2025-02-10" },
-  { mood: "Good", date: "2025-02-09" },
-  { mood: "Meh", date: "2025-02-08" },
-];
 
 // Array of daily affirmations
 const affirmations = [
@@ -50,23 +42,50 @@ export default function CalendarScreen() {
   const [view, setView] = useState("Calendar");
   const [selectedReward, setSelectedReward] = useState(null);
   const [todayAffirmation, setTodayAffirmation] = useState("");
+  const [calendarEntries, setCalendarEntries] = useState([]);
   
   // Use the theme context with multiple themes
   const { theme, setThemeName, availableThemes } = useTheme();
 
-  // Define mood background colors based on theme
-  const moodColors = {
-    Rad: theme.accent1,    // Using accent1 for Rad
-    Good: theme.buttonBg,  // Using buttonBg for Good
-    Meh: theme.accent2,    // Using accent2 for Meh
-    Bad: theme.accent3,    // Using accent3 for Bad
-    Awful: theme.accent4,  // Using accent4 for Awful
+  // Theme-based mood colors (override with theme colors if needed)
+  const themeMoodColors = {
+    Rad: theme.buttonBg,    // Using buttonBg for Rad
+    Good: theme.accent1,    // Using accent1 for Good
+    Meh: theme.accent2,     // Using accent2 for Meh
+    Bad: theme.accent3,     // Using accent3 for Bad
+    Awful: theme.accent4,   // Using accent4 for Awful
   };
 
   useEffect(() => {
     // Get a random affirmation for the day
     const randomIndex = Math.floor(Math.random() * affirmations.length);
     setTodayAffirmation(affirmations[randomIndex]);
+  }, []);
+  
+  // Load mood entries from API
+  useEffect(() => {
+    // Add console logs for debugging
+    console.log("API functions available:", {
+      getMoodEntriesForCalendar: typeof getMoodEntriesForCalendar,
+      subscribeToChanges: typeof subscribeToChanges
+    });
+
+    try {
+      // Get initial calendar entries
+      const entries = getMoodEntriesForCalendar();
+      console.log("Calendar entries:", entries);
+      setCalendarEntries(entries);
+      
+      // Subscribe to future changes
+      const unsubscribe = subscribeToChanges(() => {
+        console.log("Mood entries updated, refreshing calendar");
+        setCalendarEntries(getMoodEntriesForCalendar());
+      });
+      
+      return unsubscribe; // Cleanup subscription on unmount
+    } catch (error) {
+      console.error("Error loading calendar entries:", error);
+    }
   }, []);
 
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
@@ -86,38 +105,39 @@ export default function CalendarScreen() {
     addDays(lastDay, index + 1)
   );
 
+  // Create a lookup map for mood entries by date
   const moodMap = Object.fromEntries(
-    dummyEntries.map((entry) => [entry.date, entry.mood])
+    calendarEntries.map((entry) => [entry.date, entry.mood])
   );
 
-  // The available theme palettes - reordered to match the requested order
+  // The available theme palettes - seasonal themes
   const palettes = [
     {
-      title: "🔵 Blue Palette",
-      themeName: "blue",
-      icon: "https://cdn-icons-png.flaticon.com/128/3523/3523063.png",
-      description: "Cool blue accents",
-      color: "#3498DB"
-    },
-    {
-      title: "🟡 Yellow Palette",
-      themeName: "yellow",
+      title: "🌱 Spring Theme",
+      themeName: "spring",
       icon: "https://cdn-icons-png.flaticon.com/128/1688/1688535.png",
-      description: "Sunny yellow accents",
-      color: "#F1C40F"
+      description: "Fresh green & yellow tones",
+      color: "#5fa55a"
     },
     {
-      title: "💗 Pink Palette",
-      themeName: "pink",
+      title: "❄️ Winter Theme",
+      themeName: "winter",
+      icon: "https://cdn-icons-png.flaticon.com/128/3523/3523063.png",
+      description: "Cool blue & ice tones",
+      color: "#4deeea"
+    },
+    {
+      title: "☀️ Summer Theme",
+      themeName: "summer",
       icon: "https://cdn-icons-png.flaticon.com/128/1104/1104935.png",
-      description: "Vibrant pink accents",
-      color: "#E84393"
+      description: "Vibrant pink & purple",
+      color: "#c266a7"
     },
     {
-      title: "🔶 Orange Palette",
-      themeName: "dark",
+      title: "🍂 Autumn Theme",
+      themeName: "autumn",
       icon: "https://cdn-icons-png.flaticon.com/128/2913/2913136.png",
-      description: "Default orange theme",
+      description: "Warm orange & red tones",
       color: "#FF6B35"
     },
   ];
@@ -264,6 +284,8 @@ export default function CalendarScreen() {
                   const isDimmed = day < firstDay || day > lastDay;
                   const mood = moodMap[formattedDate];
                   const moodIcon = mood ? moodIcons[mood] : null;
+                  
+                  // Use the mood colors from the imported type - this ensures consistency
                   const moodColor = mood ? moodColors[mood] : null;
                   
                   return (
@@ -317,12 +339,12 @@ export default function CalendarScreen() {
               🔥 XP Progress
             </Text>
             <Text style={{ color: theme.text, textAlign: "center", marginBottom: 24 }}>
-              Track your streaks and unlock theme palettes for maintaining consistent moods!
+              Track your streaks and unlock seasonal themes for maintaining consistent moods!
             </Text>
 
             {/* Theme title with current theme name */}
             <Text style={{ color: theme.buttonBg, fontWeight: "bold", fontSize: 16, marginBottom: 16 }}>
-              Current Theme: {theme.name}
+              Current Season: {theme.name}
             </Text>
             
             {/* Themes section header */}
@@ -335,7 +357,7 @@ export default function CalendarScreen() {
               alignItems: "center"
             }}>
               <Text style={{ color: theme.text, fontWeight: "bold" }}>
-                Themes
+                Seasonal Themes
               </Text>
             </View>
             
@@ -369,7 +391,7 @@ export default function CalendarScreen() {
                       alignItems: "center",
                       justifyContent: "center",
                       borderWidth: selectedReward === palette.title ? 2 : 0,
-                      borderColor: palette.color
+                      borderColor: selectedReward === palette.title ? palette.color : 'transparent'
                     }}
                   >
                     <View style={{
@@ -394,7 +416,7 @@ export default function CalendarScreen() {
               ))}
             </View>
 
-            {/* Default theme option below the horizontal tabs */}
+            {/* Autumn theme option below the horizontal tabs */}
             <TouchableOpacity
               onPress={() => handleRewardSelect(palettes[3])}
               style={{ marginBottom: 16 }}
@@ -416,7 +438,7 @@ export default function CalendarScreen() {
                     alignItems: "center",
                     justifyContent: "center",
                     borderWidth: selectedReward === palettes[3].title ? 2 : 0,
-                    borderColor: palettes[3].color,
+                    borderColor: selectedReward === palettes[3].title ? palettes[3].color : 'transparent',
                     marginRight: 16
                   }}
                 >
