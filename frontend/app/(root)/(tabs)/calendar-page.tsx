@@ -54,6 +54,15 @@ export default function CalendarScreen() {
   // Use the theme context with multiple themes
   const { theme, setThemeName, availableThemes } = useTheme();
 
+  // Define mood background colors based on theme
+  const moodColors = {
+    Rad: theme.accent1,    // Using accent1 for Rad
+    Good: theme.buttonBg,  // Using buttonBg for Good
+    Meh: theme.accent2,    // Using accent2 for Meh
+    Bad: theme.accent3,    // Using accent3 for Bad
+    Awful: theme.accent4,  // Using accent4 for Awful
+  };
+
   useEffect(() => {
     // Get a random affirmation for the day
     const randomIndex = Math.floor(Math.random() * affirmations.length);
@@ -255,6 +264,8 @@ export default function CalendarScreen() {
                   const isDimmed = day < firstDay || day > lastDay;
                   const mood = moodMap[formattedDate];
                   const moodIcon = mood ? moodIcons[mood] : null;
+                  const moodColor = mood ? moodColors[mood] : null;
+                  
                   return (
                     <View
                       key={index}
@@ -267,9 +278,10 @@ export default function CalendarScreen() {
                           height: 48,
                           alignItems: "center",
                           justifyContent: "center",
-                          backgroundColor: isDimmed ? 
-                            (theme.background === "#000000" ? "#050505" : "#E5E5E5") : 
-                            theme.calendarBg
+                          backgroundColor: mood ? moodColor : 
+                            (isDimmed ? 
+                              (theme.background === "#000000" ? "#050505" : "#E5E5E5") : 
+                              theme.calendarBg)
                         }}
                       >
                         {moodIcon && (
@@ -279,6 +291,7 @@ export default function CalendarScreen() {
                               width: 30,
                               height: 30,
                               resizeMode: "contain",
+                              tintColor: theme.calendarBg // This line makes all mood icons black
                             }}
                           />
                         )}
