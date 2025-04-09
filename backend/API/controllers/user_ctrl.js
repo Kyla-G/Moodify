@@ -1,4 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
+const util = require('../../utils');
 const { nanoid } = require('nanoid');
 const { User } = require("../models"); // Adjust the path based on your project structure
 
@@ -52,7 +53,56 @@ const addUser = async (req, res) => {
     }
 };
 
-// Close database connection when done (optional, if running once)
+const setPasscode = async (req, res, next) => {
+    try {
+        const { passcode } = req.body;
+
+        // Check if the user exists
+        const user = await User.findByPk(req.params.id);
+        if (!user) {
+            return res.status(404).json({
+                successful: false,
+                message: "User not found."
+            });
+        }
+
+        // Validate mandatory fields
+        if (!util.checkMandatoryFields([passcode])) {
+            return res.status(400).json({
+                successful: false,
+                message: "A mandatory field is missing."
+            });
+        }
+
+        // Check if passcode is exactly 4 digits (including leading zeros)
+        const passcodeStr = passcode.toString();
+        const isValid = /^\d{4}$/.test(passcodeStr);
+        if (!isValid) {
+            return res.status(400).json({
+                successful: false,
+                message: "Passcode must be exactly 4 digits"
+            });
+        }
+
+        // Update user passcode
+        await user.update({
+            passcode: parseInt(passcodeStr)
+        });
+
+        return res.status(200).json({
+            successful: true,
+            message: "User passcode updated successfully.",
+            data: "Updated Passcode: " + passcodeStr
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            successful: false,
+            message: err
+        });
+    }
+};
 
 
 
@@ -186,8 +236,11 @@ const deleteUser = async (req, res) => {
     }
 };
 
+
+
 module.exports = {
     addUser,
+    setPasscode,
     getUserById,
     getAllUsers,
     updateUserById,

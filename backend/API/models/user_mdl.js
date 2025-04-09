@@ -1,55 +1,59 @@
 const { nanoid } = require("nanoid");
 
 module.exports = (sequelize, DataTypes) => {
-    const dialect = sequelize.options.dialect; // Get the database dialect
-    const sqliteDB = dialect === "sqlite"; // Check if using SQLite
-    const mysqlDB = dialect === "mysql"; // Check if using MySQL
+    const dialect = sequelize.options.dialect;
+    const sqliteDB = dialect === "sqlite";
+    const mysqlDB = dialect === "mysql";
 
-    const User = sequelize.define(
-        "User",
-        {
-            user_ID: {
-                type: DataTypes.STRING,
-                primaryKey: true,
-                allowNull: true,
-            },
-            nickname: {
-                type: DataTypes.STRING,
-                allowNull: false,
-                validate: {
-                    notEmpty: { msg: "Nickname is required." },
-                },
-            },
-            createdAt: {
-                type: DataTypes.DATE,
-                defaultValue: sqliteDB
-                    ? DataTypes.NOW
-                    : mysqlDB
-                    ? sequelize.literal("CURRENT_TIMESTAMP")
-                    : null,
-            },
-            updatedAt: {
-                type: DataTypes.DATE,
-                defaultValue: sqliteDB
-                    ? DataTypes.NOW
-                    : mysqlDB
-                    ? sequelize.literal("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-                    : null,
+    const User = sequelize.define("User", {
+        user_ID: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+            allowNull: true,
+        },
+        nickname: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            validate: {
+                notEmpty: { msg: "Nickname is required." },
             },
         },
-        {
-            timestamps: true, // Enable automatic timestamps
-            hooks: {
-                beforeCreate: (user) => {
-                    if (!user.user_ID) {
-                        user.user_ID = nanoid(8); // Always use nanoid for ID
-                    }
+        ...(sqliteDB && {
+            passcode: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+                validate: {
+                    isInt: { msg: "Passcode must be a number." },
                 },
             },
-        }
-    );
+        }),
+        createdAt: {
+            type: DataTypes.DATE,
+            defaultValue: sqliteDB
+                ? DataTypes.NOW
+                : mysqlDB
+                ? sequelize.literal("CURRENT_TIMESTAMP")
+                : null,
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+            defaultValue: sqliteDB
+                ? DataTypes.NOW
+                : mysqlDB
+                ? sequelize.literal("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+                : null,
+        },
+    }, {
+        timestamps: true,
+        hooks: {
+            beforeCreate: (user) => {
+                if (!user.user_ID) {
+                    user.user_ID = nanoid(8);
+                }
+            },
+        },
+    });
 
-    // Define associations
     User.associate = (models) => {
         User.hasMany(models.MoodEntry, {
             foreignKey: "user_ID",
