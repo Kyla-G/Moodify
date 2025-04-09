@@ -37,7 +37,8 @@ export default function HomeScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
-  const [entries, setEntries] = useState<moodEntry[]>([]);
+  const [entries, setEntries] = useState<moodEntry[]>([
+  ]);
   const [xpHistory, setXpHistory] = useState<{ 
     lastMoodEntryDate: string | null; 
     lastChatbotRatingDate: string | null; 
@@ -78,47 +79,6 @@ export default function HomeScreen() {
 
   const selectEmotion = (emotion: string) => {
     setSelectedEmotion(emotion);
-  };
-
-  // Consolidated XP update function that both mood entries and chatbot ratings can use
-  const updateXp = (amount: number, source: 'mood_entry' | 'chatbot_rating') => {
-    const today = new Date();
-    const todayDateString = format(today, "yyyy-MM-dd");
-    
-    // Track which source this XP is coming from
-    const alreadyEarnedToday = source === 'mood_entry' 
-      ? xpHistory.lastMoodEntryDate === todayDateString
-      : xpHistory.lastChatbotRatingDate === todayDateString;
-    
-    // Only award XP if not already earned today from this source
-    if (!alreadyEarnedToday) {
-      // Update total XP
-      setTotalXp(prev => prev + amount);
-      
-      // Only update streak for mood entries
-      if (source === 'mood_entry') {
-        setStreak(prev => prev + 1);
-      }
-      
-      // Set XP popup info
-      setXpAmount(amount);
-      setXpSource(source);
-      
-      // Record that XP was earned today for this source
-      setXpHistory(prev => ({
-        ...prev,
-        ...(source === 'mood_entry' 
-          ? { lastMoodEntryDate: todayDateString } 
-          : { lastChatbotRatingDate: todayDateString })
-      }));
-      
-      // Show XP popup
-      setXpPopupVisible(true);
-      
-      return true; // XP was awarded
-    }
-    
-    return false; // No XP was awarded (already earned today)
   };
 
   const handleSaveEntry = () => {
@@ -198,11 +158,33 @@ export default function HomeScreen() {
     }
     
     // Check if entry is for today
-    const isPastDay = !isSameDay(selectedDate, new Date());
+    const today = new Date();
+    const isPastDay = !isSameDay(selectedDate, today);
   
-    // Only update XP for current day entries
-    if (!isPastDay) {
-      updateXp(5, 'mood_entry');
+    // Check if already earned XP for mood entry today
+    const todayDateString = format(today, "yyyy-MM-dd");
+    const alreadyEarnedToday = xpHistory.lastMoodEntryDate === todayDateString;
+
+    // Only give XP for current day entries and if not already earned today
+    if (!isPastDay && !alreadyEarnedToday) {
+      // Update XP and streak
+      setTotalXp(prev => prev + 5);
+      setStreak(prev => prev + 1);
+
+      // Set XP popup info
+      setXpAmount(5);
+      setXpSource('mood_entry');
+      
+      // Record that XP was earned today
+      setXpHistory(prev => ({
+        ...prev,
+        lastMoodEntryDate: todayDateString
+      }));
+      
+      // Show XP popup
+      setTimeout(() => {
+        setXpPopupVisible(true);
+      }, 300);
     }
     
     // Reset states
@@ -221,10 +203,30 @@ export default function HomeScreen() {
     // Implement actual navigation here
   };
 
-  // Handler for chatbot rating submission
-  const handleChatbotRatingSubmit = (rating: number, feedback: string) => {
-    console.log(`Rating: ${rating}, Feedback: ${feedback}`);
-    // Here you would save the rating and feedback to your backend
+  // Add a new function for chatbot rating
+  const handleChatbotRating = () => {
+    // Check if already earned XP for chatbot rating today
+    const today = new Date();
+    const todayDateString = format(today, "yyyy-MM-dd");
+    const alreadyEarnedToday = xpHistory.lastChatbotRatingDate === todayDateString;
+    
+    if (!alreadyEarnedToday) {
+      // Update XP (no streak update for chatbot rating)
+      setTotalXp(prev => prev + 20);
+      
+      // Set XP popup info
+      setXpAmount(20);
+      setXpSource('chatbot_rating');
+      
+      // Record that XP was earned today
+      setXpHistory(prev => ({
+        ...prev,
+        lastChatbotRatingDate: todayDateString
+      }));
+      
+      // Show XP popup
+      setXpPopupVisible(true);
+    }
   };
 
   const closeXpPopup = () => {
@@ -312,7 +314,7 @@ export default function HomeScreen() {
             textAlign: "center",
             marginTop: height * 0.05,
           }}>
-          How are you feeling?
+          How are you feeling??
         </Text>
 
         {/* Add Mood Button */}
@@ -472,16 +474,6 @@ export default function HomeScreen() {
         width={width}
         height={height}
         moodColors={moodColors}
-      />
-
-      {/* Chatbot Rating Modal */}
-      <ChatbotRatingModal
-        visible={xpPopupVisible}
-        onClose={closeXpPopup}
-        totalXp={totalXp}
-        streak={streak}
-        onSubmitRating={handleChatbotRatingSubmit}
-        updateXp={(amount, source) => updateXp(amount, source)}
       />
 
       {/* XP Streak Popup */}
