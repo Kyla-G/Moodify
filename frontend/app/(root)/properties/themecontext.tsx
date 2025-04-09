@@ -1,16 +1,40 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const themes = {
+// Storage key for theme persistence
+const THEME_STORAGE_KEY = "app_selected_theme";
+
+// Define the theme structure with TypeScript interface
+interface ThemeColors {
+  background: string;
+  text: string;
+  dimmedText: string;
+  calendarBg: string;
+  buttonBg: string;
+  accent1: string;
+  accent2: string;
+  accent3: string;
+  accent4: string;
+  name: string;
+}
+
+interface ThemeContextType {
+  theme: ThemeColors;
+  setThemeName: (themeName: string) => void;
+  availableThemes: Record<string, ThemeColors>;
+}
+
+const themes: Record<string, ThemeColors> = {
   autumn: {
     background: "#000000",
     text: "#FFFFFF",
     dimmedText: "#545454",
     calendarBg: "#1A1A1A",
-    buttonBg: "#FF6B35",
-    accent1: "#F77F00",
-    accent2: "#F6C49E",
-    accent3: "#D62828",
-    accent4: "#E0E0E0",
+    buttonBg: "#FF6B35", // Orange shade for rad mood
+    accent1: "#4CAF50", // Green for good mood
+    accent2: "#A9A9A9", // Gray for meh mood
+    accent3: "#4169E1", // Blue for bad mood
+    accent4: "#E53935", // Red for awful mood
     name: "Autumn"
   },
   spring: {
@@ -42,11 +66,11 @@ const themes = {
     text: "#FFFFFF",
     dimmedText: "#545454",
     calendarBg: "#1A1A1A",
-    buttonBg: "#f6d51f", // Pink
-    accent1: "#fa8925", // Deep purple
-    accent2: "#5fa55a", // Blue-purple
-    accent3: "#01b4bc", // Dark blue
-    accent4: "#fa5457", // Light pink
+    buttonBg: "#f6d51f", // bright yellow
+    accent1: "#fa8925", // orange
+    accent2: "#5fa55a", // green
+    accent3: "#01b4bc", // teal
+    accent4: "#fa5457", // red
     name: "Summer"
   },
   light: {
@@ -63,19 +87,44 @@ const themes = {
   }
 };
 
-const ThemeContext = createContext({
+// Create the context with default values
+const ThemeContext = createContext<ThemeContextType>({
   theme: themes.autumn,
-  setThemeName: (themeName: string) => {},
+  setThemeName: () => {},
   availableThemes: themes
 });
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setTheme] = useState(themes.autumn);
+  const [theme, setTheme] = useState<ThemeColors>(themes.autumn);
+
+  // Load saved theme on initial mount
+  useEffect(() => {
+    const loadSavedTheme = async () => {
+      try {
+        const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        if (savedTheme && themes[savedTheme.toLowerCase()]) {
+          setTheme(themes[savedTheme.toLowerCase()]);
+          console.log(`Loaded saved theme: ${savedTheme}`);
+        }
+      } catch (error) {
+        console.error("Error loading saved theme:", error);
+      }
+    };
+    
+    loadSavedTheme();
+  }, []);
 
   const setThemeName = (themeName: string) => {
     const newTheme = themes[themeName.toLowerCase()];
     if (newTheme) {
       setTheme(newTheme);
+      
+      // Save theme to AsyncStorage
+      AsyncStorage.setItem(THEME_STORAGE_KEY, themeName.toLowerCase())
+        .then(() => console.log(`Theme ${themeName} saved to storage`))
+        .catch(error => console.error("Error saving theme:", error));
+    } else {
+      console.warn(`Theme "${themeName}" not found`);
     }
   };
 
