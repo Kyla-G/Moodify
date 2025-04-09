@@ -8,7 +8,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 interface XpStreakPopupModalProps {
   visible: boolean;
   onClose: () => void;
-  totalXp: number;
+  calculatedTotalXp: number;
   streak: number;
   xpAmount?: number;
   xpSource?: 'mood_entry' | 'chatbot_rating' | null;
@@ -18,7 +18,6 @@ interface XpStreakPopupModalProps {
 const XpStreakPopup = ({ 
   visible, 
   onClose, 
-  totalXp, 
   streak, 
   xpAmount, 
   xpSource, 
@@ -27,13 +26,6 @@ const XpStreakPopup = ({
   const { width, height } = useWindowDimensions();
   const [confettiActive, setConfettiActive] = useState(false);
   const modalWidth = width * 0.9;
-  
-  // Define standard XP amounts for different sources
-  const XP_AMOUNTS = {
-    mood_entry: 5,
-    chatbot_rating: 20,
-    default: 10
-  };
   
   useEffect(() => {
     if (visible) {
@@ -46,11 +38,13 @@ const XpStreakPopup = ({
     return null;
   }
   
-  // Calculate XP amount based on source, prioritizing passed xpAmount
+  // Calculate XP amount based on source - exactly 5 XP for mood_entry and 20 XP for chatbot_rating
   const displayXpAmount = xpAmount || 
-    (xpSource === 'mood_entry' ? XP_AMOUNTS.mood_entry : 
-     xpSource === 'chatbot_rating' ? XP_AMOUNTS.chatbot_rating : 
-     XP_AMOUNTS.default);
+    (xpSource === 'mood_entry' ? 5 : 
+     xpSource === 'chatbot_rating' ? 20 : 0);
+  
+  // Calculate total XP by adding accumulated XP from both sources
+  const calculatedTotalXp = (xpSource === 'mood_entry' ? 5 : 0) + (xpSource === 'chatbot_rating' ? 20 : 0);
   
   // Determine message based on XP source
   const getMessage = () => {
@@ -180,7 +174,7 @@ const XpStreakPopup = ({
                     fontFamily: 'LeagueSpartan-Regular',
                     color: '#004E89',
                     marginRight: 5,
-                  }}>{totalXp}</Text>
+                  }}>{calculatedTotalXp}</Text>
                 </View>
               </View>
 

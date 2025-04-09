@@ -8,7 +8,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { useLocalSearchParams } from "expo-router";
-import XpStreakPopup from '../(tabs)/streak-notif';
 import { moodColors } from "@/app/services/type";
 // Import specific functions from API to avoid "undefined" errors
 import { 
@@ -18,11 +17,11 @@ import {
   addMoodEntry 
 } from "@/app/services/moodEntriesApi";
 
+import XpStreakManager from "./XpStreakManager";
 import MoodSelectionModal from "./mood-selection-modal";
 import EmotionJournalModal from "./emotion-journal-modal";
 import SummaryModal from "./summary-modal";
 import WelcomeModal from "./welcome-modal";
-import ChatbotRatingModal from "./chatbot-rating-modal";
 
 const moodIcons = {
   rad: icons.MoodRad,
@@ -46,20 +45,13 @@ export default function HomeScreen() {
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
   const [entries, setEntries] = useState([]);
-  const [xpHistory, setXpHistory] = useState({
-    lastMoodEntryDate: null,
-    lastChatbotRatingDate: null
-  });
-  const [xpAmount, setXpAmount] = useState(0);
-  const [xpSource, setXpSource] = useState(null);
   const params = useLocalSearchParams();
   const [welcomeModalVisible, setWelcomeModalVisible] = useState(false);
   const nickname = params.nickname || "Friend";
   
-  // XP popup state
-  const [xpPopupVisible, setXpPopupVisible] = useState(false);
-  const [totalXp, setTotalXp] = useState(0); 
-  const [streak, setStreak] = useState(0);
+  // XP and streak-related state
+  const [moodEntrySaved, setMoodEntrySaved] = useState(false);
+  const [chatbotRated, setChatbotRated] = useState(false);
 
   // Load entries from API
   useEffect(() => {
@@ -176,38 +168,13 @@ export default function HomeScreen() {
     try {
       addMoodEntry(newEntry);
       console.log("Entry saved:", newEntry);
+      
+      // Trigger XP reward if entry is for today
+      if (isSameDay(selectedDate, new Date())) {
+        setMoodEntrySaved(prev => !prev); // Toggle to trigger effect in XpStreakManager
+      }
     } catch (error) {
       console.error("Error saving entry:", error);
-    }
-    
-    // Check if entry is for today
-    const today = new Date();
-    const isPastDay = !isSameDay(selectedDate, today);
-  
-    // Check if already earned XP for mood entry today
-    const todayDateString = format(today, "yyyy-MM-dd");
-    const alreadyEarnedToday = xpHistory.lastMoodEntryDate === todayDateString;
-
-    // Only give XP for current day entries and if not already earned today
-    if (!isPastDay && !alreadyEarnedToday) {
-      // Update XP and streak
-      setTotalXp(prev => prev + 5);
-      setStreak(prev => prev + 1);
-
-      // Set XP popup info
-      setXpAmount(5);
-      setXpSource('mood_entry');
-      
-      // Record that XP was earned today
-      setXpHistory(prev => ({
-        ...prev,
-        lastMoodEntryDate: todayDateString
-      }));
-      
-      // Show XP popup
-      setTimeout(() => {
-        setXpPopupVisible(true);
-      }, 300);
     }
     
     // Reset states
@@ -226,34 +193,9 @@ export default function HomeScreen() {
     // Implement actual navigation here
   };
 
-  // Add a new function for chatbot rating
+  // Handle chatbot rating
   const handleChatbotRating = () => {
-    // Check if already earned XP for chatbot rating today
-    const today = new Date();
-    const todayDateString = format(today, "yyyy-MM-dd");
-    const alreadyEarnedToday = xpHistory.lastChatbotRatingDate === todayDateString;
-    
-    if (!alreadyEarnedToday) {
-      // Update XP (no streak update for chatbot rating)
-      setTotalXp(prev => prev + 20);
-      
-      // Set XP popup info
-      setXpAmount(20);
-      setXpSource('chatbot_rating');
-      
-      // Record that XP was earned today
-      setXpHistory(prev => ({
-        ...prev,
-        lastChatbotRatingDate: todayDateString
-      }));
-      
-      // Show XP popup
-      setXpPopupVisible(true);
-    }
-  };
-
-  const closeXpPopup = () => {
-    setXpPopupVisible(false);
+    setChatbotRated(prev => !prev); // Toggle to trigger effect in XpStreakManager
   };
   
   useEffect(() => {
@@ -499,15 +441,11 @@ export default function HomeScreen() {
         moodColors={moodColors}
       />
 
-      {/* XP Streak Popup */}
-      <XpStreakPopup 
-        visible={xpPopupVisible}
-        onClose={closeXpPopup}
-        totalXp={totalXp}
-        streak={streak}
-        xpAmount={xpAmount}
-        xpSource={xpSource}
-        isPastDay={selectedDate && !isSameDay(selectedDate, new Date())}
+      {/* XP and Streak Manager */}
+      <XpStreakManager 
+        selectedDate={selectedDate}
+        onMoodEntrySaved={moodEntrySaved}
+        onChatbotRating={chatbotRated}
       />
     </SafeAreaView>
   );
