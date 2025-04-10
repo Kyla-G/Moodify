@@ -132,6 +132,36 @@ const getUserById = async (req, res, next) => {
     }
 };
 
+const checkUserExists = async (req, res, next) => {
+    try {
+        const users = await User.findOne();
+
+        if (!users) {
+            return res.status(404).json({
+                successful: false,
+                exists: false,
+                message: err.message
+            });
+        }
+
+        return res.status(200).json({
+            successful: true,
+            exists: true,
+            message: "A user already exists on this device.",
+            data: users
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            successful: false,
+            message: "Failed to check user existence.",
+            error: err.message
+        });
+    }
+};
+
+
 
 
 const getAllUsers = async (req, res, next) => {
@@ -242,6 +272,7 @@ module.exports = {
     addUser,
     setPasscode,
     getUserById,
+    checkUserExists,
     getAllUsers,
     updateUserById,
     deleteUser
