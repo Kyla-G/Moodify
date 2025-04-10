@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Image, useWindowDimensions, A
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { format, subMonths, addMonths, isSameDay } from "date-fns";
+import { format, isSameDay, startOfWeek, endOfWeek, addWeeks, subWeeks, isWithinInterval, parseISO, subMonths, addMonths, startOfMonth, endOfMonth } from "date-fns";
 import { LinearGradient } from "expo-linear-gradient";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
@@ -46,7 +46,10 @@ export default function HomeScreen() {
   // Use the theme context
   const { theme } = useTheme();
   
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  // Toggle between weekly and monthly views
+  const [viewMode, setViewMode] = useState("weekly"); // "weekly" or "monthly"
+  
+  const [selectedDate, setSelectedDate] = useState(new Date()); // Central date for both week and month views
   const [moodModalVisible, setMoodModalVisible] = useState(false);
   const [emotionModalVisible, setEmotionModalVisible] = useState(false);
   const [summaryModalVisible, setSummaryModalVisible] = useState(false);
@@ -55,10 +58,10 @@ export default function HomeScreen() {
   const [journalEntry, setJournalEntry] = useState("");
   const { width, height } = useWindowDimensions();
   const [expandedEntries, setExpandedEntries] = useState({});
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
   const [entries, setEntries] = useState([]);
+  const [filteredEntries, setFilteredEntries] = useState([]);
   const [xpHistory, setXpHistory] = useState({
     lastMoodEntryDate: null,
     lastChatbotRatingDate: null
@@ -102,12 +105,76 @@ export default function HomeScreen() {
     }
   }, []);
 
+  // Filter entries based on selected view mode (weekly or monthly)
+  useEffect(() => {
+    if (entries.length > 0) {
+      let filteredList = [];
+      
+      if (viewMode === "weekly") {
+        const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 }); // Sunday
+        const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0 }); // Saturday
+        
+        filteredList = entries.filter(entry => {
+          // Parse the date from the entry
+          const entryDate = entry.timestamp ? new Date(entry.timestamp) : parseISO(entry.formattedDate);
+          // Check if it falls within the selected week
+          return isWithinInterval(entryDate, { start: weekStart, end: weekEnd });
+        });
+      } else {
+        // Monthly view
+        const monthStart = startOfMonth(selectedDate);
+        const monthEnd = endOfMonth(selectedDate);
+        
+        filteredList = entries.filter(entry => {
+          // Parse the date from the entry
+          const entryDate = entry.timestamp ? new Date(entry.timestamp) : parseISO(entry.formattedDate);
+          // Check if it falls within the selected month
+          return isWithinInterval(entryDate, { start: monthStart, end: monthEnd });
+        });
+      }
+      
+      setFilteredEntries(filteredList);
+      // Reset expanded state when changing time periods
+      setExpandedEntries({});
+    }
+  }, [selectedDate, entries, viewMode]);
+
   const toggleEntryExpansion = (index) => {
     setExpandedEntries(prev => ({ ...prev, [index]: !prev[index] }));
   };
 
-  const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
-  const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
+  // Navigation functions
+  const goToPrevious = () => {
+    if (viewMode === "weekly") {
+      setSelectedDate(subWeeks(selectedDate, 1));
+    } else {
+      setSelectedDate(subMonths(selectedDate, 1));
+    }
+  };
+  
+  const goToNext = () => {
+    if (viewMode === "weekly") {
+      setSelectedDate(addWeeks(selectedDate, 1));
+    } else {
+      setSelectedDate(addMonths(selectedDate, 1));
+    }
+  };
+
+  // Format for displaying the date range
+  const getDateRangeText = () => {
+    if (viewMode === "weekly") {
+      const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
+      const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0 });
+      return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
+    } else {
+      return format(selectedDate, "MMMM yyyy");
+    }
+  };
+
+  // Toggle between weekly and monthly views
+  const toggleViewMode = () => {
+    setViewMode(viewMode === "weekly" ? "monthly" : "weekly");
+  };
 
   const openMoodModal = () => {
     setSelectedDate(new Date()); // Reset to current date/time when opening modal
@@ -313,7 +380,7 @@ export default function HomeScreen() {
         }}
       />
 
-      {/* Header Navigation */}
+      {/* Header Navigation with Weekly/Monthly Toggle */}
       <View style={{ zIndex: 20 }}>
         <View style={{ 
           paddingHorizontal: width < 350 ? 12 : 20, 
@@ -327,22 +394,81 @@ export default function HomeScreen() {
           <TouchableOpacity>
             <Ionicons name="settings-outline" size={width < 350 ? 22 : 28} color={theme.text} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={goToPreviousMonth}>
+          <TouchableOpacity onPress={goToPrevious}>
             <Ionicons name="chevron-back-outline" size={width < 350 ? 22 : 28} color={theme.dimmedText} />
           </TouchableOpacity>
           <Text style={{ 
             color: theme.text, 
             fontFamily: "LeagueSpartan-Bold", 
-            fontSize: 24 
+            fontSize: width < 350 ? 18 : 22,
+            flex: 1,
+            textAlign: "center"
           }}>
-            {format(selectedMonth, "MMMM yyyy")}
+            {getDateRangeText()}
           </Text>
-          <TouchableOpacity onPress={goToNextMonth}>
+          <TouchableOpacity onPress={goToNext}>
             <Ionicons name="chevron-forward-outline" size={width < 350 ? 22 : 28} color={theme.dimmedText} />
           </TouchableOpacity>
-          <TouchableOpacity>
-            <Ionicons name="flame-outline" size={width < 350 ? 22 : 28} color={theme.text} />
+          <TouchableOpacity onPress={toggleViewMode} style={{ paddingHorizontal: 5 }}>
+            <Ionicons 
+              name={viewMode === "weekly" ? "calendar-outline" : "calendar-number-outline"} 
+              size={width < 350 ? 22 : 28} 
+              color={theme.text} 
+            />
           </TouchableOpacity>
+        </View>
+        
+        {/* View Mode Indicator */}
+        <View style={{ 
+          alignItems: "center", 
+          paddingBottom: 10 
+        }}>
+          <View style={{ 
+            flexDirection: "row", 
+            backgroundColor: theme.calendarBg, 
+            borderRadius: 16, 
+            padding: 4, 
+          }}>
+            <TouchableOpacity
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 6,
+                borderRadius: 12,
+                backgroundColor: viewMode === "weekly" ? theme.buttonBg : "transparent",
+              }}
+              onPress={() => setViewMode("weekly")}
+            >
+              <Text style={{ 
+                color: viewMode === "weekly" ? 
+                  (theme.background === "#000000" ? "#000000" : "#FFFFFF") : 
+                  theme.text,
+                fontWeight: "600",
+                fontSize: 14
+              }}>
+                Weekly
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 6,
+                borderRadius: 12,
+                backgroundColor: viewMode === "monthly" ? theme.buttonBg : "transparent",
+              }}
+              onPress={() => setViewMode("monthly")}
+            >
+              <Text style={{ 
+                color: viewMode === "monthly" ? 
+                  (theme.background === "#000000" ? "#000000" : "#FFFFFF") : 
+                  theme.text,
+                fontWeight: "600",
+                fontSize: 14
+              }}>
+                Monthly
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -423,124 +549,164 @@ export default function HomeScreen() {
             marginTop: height * 0.2 
           }}
         >
-          {entries.map((entry, index) => {
-            const moodIcon = moodIcons[entry.mood];
-            const hasJournal = entry.journal && entry.journal.trim().length > 0;
-            const isExpanded = expandedEntries[index];
-            // Use theme colors for mood
-            const moodColor = getMoodThemeColor(entry.mood);
+          {filteredEntries.length > 0 ? (
+            filteredEntries.map((entry, index) => {
+              const moodIcon = moodIcons[entry.mood];
+              const hasJournal = entry.journal && entry.journal.trim().length > 0;
+              const isExpanded = expandedEntries[index];
+              // Use theme colors for mood
+              const moodColor = getMoodThemeColor(entry.mood);
 
-            return (
-              <View
-                key={index}
-                style={{ 
-                  backgroundColor: theme.calendarBg, 
-                  padding: 16, 
-                  borderRadius: 20, 
-                  marginBottom: 16, 
-                  width: "100%",
-                  paddingHorizontal: width < 350 ? 12 : 20,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.22,
-                  shadowRadius: 2.22,
-                  elevation: 3
-                }}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Image
-                    source={moodIcon}
-                    style={{
-                      width: width < 350 ? 35 : 45,
-                      height: width < 350 ? 35 : 45,
-                      marginRight: width < 350 ? 10 : 15,
-                      resizeMode: "contain",
-                      tintColor: moodColor
-                    }}
-                  />
+              return (
+                <View
+                  key={index}
+                  style={{ 
+                    backgroundColor: theme.calendarBg, 
+                    padding: 16, 
+                    borderRadius: 20, 
+                    marginBottom: 16, 
+                    width: "100%",
+                    paddingHorizontal: width < 350 ? 12 : 20,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.22,
+                    shadowRadius: 2.22,
+                    elevation: 3
+                  }}
+                >
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Image
+                      source={moodIcon}
+                      style={{
+                        width: width < 350 ? 35 : 45,
+                        height: width < 350 ? 35 : 45,
+                        marginRight: width < 350 ? 10 : 15,
+                        resizeMode: "contain",
+                        tintColor: moodColor
+                      }}
+                    />
 
-                  <View style={{ flex: 1 }}>
-                    <Text style={{
-                      fontFamily: "LaoSansPro-Regular",
-                      fontSize: width < 350 ? 12 : 15,
-                      fontWeight: "600",
-                      color: theme.text
-                    }}>
-                      {entry.day}, {entry.date}
-                    </Text>
-                    <View style={{ flex: 1, marginTop: 12 }}>
-                      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                        <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Text style={{
-                            fontFamily: "LeagueSpartan-Bold",
-                            fontSize: width < 350 ? 24 : 30,
-                            fontWeight: "600",
-                            color: moodColor,
-                          }}>
-                            {entry.mood}{" "}
-                          </Text>
-                          <Text style={{
-                            fontFamily: "LaoSansPro-Regular", 
-                            fontSize: width < 350 ? 11 : 13,
-                            color: theme.text, 
-                          }}>
-                            {entry.time}
-                          </Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        fontFamily: "LaoSansPro-Regular",
+                        fontSize: width < 350 ? 12 : 15,
+                        fontWeight: "600",
+                        color: theme.text
+                      }}>
+                        {entry.day}, {entry.date}
+                      </Text>
+                      <View style={{ flex: 1, marginTop: 12 }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                          <View style={{ flexDirection: "row", alignItems: "center" }}>
+                            <Text style={{
+                              fontFamily: "LeagueSpartan-Bold",
+                              fontSize: width < 350 ? 24 : 30,
+                              fontWeight: "600",
+                              color: moodColor,
+                            }}>
+                              {entry.mood}{" "}
+                            </Text>
+                            <Text style={{
+                              fontFamily: "LaoSansPro-Regular", 
+                              fontSize: width < 350 ? 11 : 13,
+                              color: theme.text, 
+                            }}>
+                              {entry.time}
+                            </Text>
+                          </View>
+
+                          <TouchableOpacity 
+                            onPress={() => toggleEntryExpansion(index)}
+                            style={{ flexDirection: "row", alignItems: "center" }}
+                          >
+                            <Text style={{
+                              fontFamily: "LaoSansPro-Regular", 
+                              fontSize: width < 350 ? 12 : 14,
+                              color: theme.dimmedText
+                            }}>
+                              {hasJournal ? "Journal" : "Emotion"}
+                            </Text>
+                            <Ionicons 
+                              name={isExpanded ? "chevron-up" : "chevron-down"} 
+                              size={width < 350 ? 14 : 18} 
+                              color={theme.dimmedText} 
+                            />
+                          </TouchableOpacity>
                         </View>
-
-                        <TouchableOpacity 
-                          onPress={() => toggleEntryExpansion(index)}
-                          style={{ flexDirection: "row", alignItems: "center" }}
-                        >
-                          <Text style={{
-                            fontFamily: "LaoSansPro-Regular", 
-                            fontSize: width < 350 ? 12 : 14,
-                            color: theme.dimmedText
-                          }}>
-                            {hasJournal ? "Journal" : "Emotion"}
-                          </Text>
-                          <Ionicons 
-                            name={isExpanded ? "chevron-up" : "chevron-down"} 
-                            size={width < 350 ? 14 : 18} 
-                            color={theme.dimmedText} 
-                          />
-                        </TouchableOpacity>
                       </View>
                     </View>
                   </View>
-                </View>
 
-                {isExpanded && (
-                  <View style={{ 
-                    marginTop: 16, 
-                    paddingTop: 12, 
-                    borderTopWidth: 1, 
-                    borderTopColor: `${theme.dimmedText}33` 
-                  }}>
-                    <Text style={{ 
-                      color: theme.text, 
-                      fontFamily: "LeagueSpartan", 
-                      marginBottom: 8,
-                      fontSize: width < 350 ? 16 : 18 
+                  {isExpanded && (
+                    <View style={{ 
+                      marginTop: 16, 
+                      paddingTop: 12, 
+                      borderTopWidth: 1, 
+                      borderTopColor: `${theme.dimmedText}33` 
                     }}>
-                      Feeling <Text style={{ color: moodColor }}>{entry.emotion}</Text>
-                    </Text>
-                    
-                    {hasJournal && (
                       <Text style={{ 
                         color: theme.text, 
                         fontFamily: "LeagueSpartan", 
-                        marginTop: 8,
+                        marginBottom: 8,
                         fontSize: width < 350 ? 16 : 18 
                       }}>
-                        {entry.journal}
+                        Feeling <Text style={{ color: moodColor }}>{entry.emotion}</Text>
                       </Text>
-                    )}
-                  </View>
-                )}
-              </View>
-            );
-          })}
+                      
+                      {hasJournal && (
+                        <Text style={{ 
+                          color: theme.text, 
+                          fontFamily: "LeagueSpartan", 
+                          marginTop: 8,
+                          fontSize: width < 350 ? 16 : 18 
+                        }}>
+                          {entry.journal}
+                        </Text>
+                      )}
+                    </View>
+                  )}
+                </View>
+              );
+            })
+          ) : (
+            <View style={{ 
+              backgroundColor: theme.calendarBg, 
+              padding: 20, 
+              borderRadius: 20, 
+              marginTop: 10,
+              alignItems: 'center',
+              width: "100%",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.22,
+              shadowRadius: 2.22,
+              elevation: 3
+            }}>
+              <Ionicons 
+                name="calendar-outline" 
+                size={width < 350 ? 32 : 42} 
+                color={theme.dimmedText} 
+                style={{ marginBottom: 10 }}
+              />
+              <Text style={{ 
+                color: theme.text, 
+                fontFamily: "LeagueSpartan-Bold", 
+                fontSize: width < 350 ? 16 : 18,
+                textAlign: "center"
+              }}>
+                No entries for this {viewMode === "weekly" ? "week" : "month"}
+              </Text>
+              <Text style={{ 
+                color: theme.dimmedText, 
+                fontFamily: "LaoSansPro-Regular", 
+                fontSize: width < 350 ? 14 : 16,
+                textAlign: "center",
+                marginTop: 8
+              }}>
+                Tap the + button to add your first mood entry
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
