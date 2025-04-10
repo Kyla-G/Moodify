@@ -8,15 +8,22 @@ import { LinearGradient } from "expo-linear-gradient";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { useLocalSearchParams } from "expo-router";
-import XpStreakPopup from '../(tabs)/streak-notif';
-import { moodEntry, moodColors } from "@/app/services/type";
+import { moodColors } from "@/app/services/type";
+// Import specific functions from API to avoid "undefined" errors
+import { 
+  getAllMoodEntries, 
+  subscribeToChanges, 
+  getMoodEntryByDate, 
+  addMoodEntry 
+} from "@/app/services/moodEntriesApi";
+
+import XpStreakManager from "./XpStreakManager";
 import MoodSelectionModal from "./mood-selection-modal";
 import EmotionJournalModal from "./emotion-journal-modal";
 import SummaryModal from "./summary-modal";
 import WelcomeModal from "./welcome-modal";
-import ChatbotRatingModal from "./chatbot-rating-modal";
 
-const moodIcons: { [key: string]: any } = {
+const moodIcons = {
   rad: icons.MoodRad,
   good: icons.MoodGood,
   meh: icons.MoodMeh,
@@ -29,34 +36,52 @@ export default function HomeScreen() {
   const [moodModalVisible, setMoodModalVisible] = useState(false);
   const [emotionModalVisible, setEmotionModalVisible] = useState(false);
   const [summaryModalVisible, setSummaryModalVisible] = useState(false);
-  const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [selectedEmotion, setSelectedEmotion] = useState<string | null>(null);
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [journalEntry, setJournalEntry] = useState("");
   const { width, height } = useWindowDimensions();
-  const [expandedEntries, setExpandedEntries] = useState<Record<number, boolean>>({});
+  const [expandedEntries, setExpandedEntries] = useState({});
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
-  const [entries, setEntries] = useState<moodEntry[]>([]);
-  const [xpHistory, setXpHistory] = useState<{ 
-    lastMoodEntryDate: string | null; 
-    lastChatbotRatingDate: string | null; 
-  }>({
-    lastMoodEntryDate: null,
-    lastChatbotRatingDate: null
-  });
-  const [xpAmount, setXpAmount] = useState(0);
-  const [xpSource, setXpSource] = useState<"mood_entry" | "chatbot_rating" | null>(null);
+  const [entries, setEntries] = useState([]);
   const params = useLocalSearchParams();
   const [welcomeModalVisible, setWelcomeModalVisible] = useState(false);
   const nickname = params.nickname || "Friend";
   
-  // XP popup state
-  const [xpPopupVisible, setXpPopupVisible] = useState(false);
-  const [totalXp, setTotalXp] = useState(0); 
-  const [streak, setStreak] = useState(0);
+  // XP and streak-related state
+  const [moodEntrySaved, setMoodEntrySaved] = useState(false);
+  const [chatbotRated, setChatbotRated] = useState(false);
 
-  const toggleEntryExpansion = (index: number) => {
+  // Load entries from API
+  useEffect(() => {
+    // Check if API functions are available
+    console.log("API functions available:", {
+      getAllMoodEntries: typeof getAllMoodEntries,
+      subscribeToChanges: typeof subscribeToChanges,
+      getMoodEntryByDate: typeof getMoodEntryByDate,
+      addMoodEntry: typeof addMoodEntry
+    });
+
+    try {
+      // Get initial entries
+      const initialEntries = getAllMoodEntries();
+      console.log("Initial entries:", initialEntries);
+      setEntries(initialEntries);
+      
+      // Subscribe to future changes
+      const unsubscribe = subscribeToChanges(() => {
+        console.log("Mood entries updated");
+        setEntries(getAllMoodEntries());
+      });
+      
+      return unsubscribe; // Cleanup subscription on unmount
+    } catch (error) {
+      console.error("Error loading mood entries:", error);
+    }
+  }, []);
+
+  const toggleEntryExpansion = (index) => {
     setExpandedEntries(prev => ({ ...prev, [index]: !prev[index] }));
   };
 
@@ -70,55 +95,14 @@ export default function HomeScreen() {
   
   const closeMoodModal = () => setMoodModalVisible(false);
 
-  const selectMood = (mood: string) => {
+  const selectMood = (mood) => {
     setSelectedMood(mood);
     setMoodModalVisible(false);
     setEmotionModalVisible(true);
   };
 
-  const selectEmotion = (emotion: string) => {
+  const selectEmotion = (emotion) => {
     setSelectedEmotion(emotion);
-  };
-
-  // Consolidated XP update function that both mood entries and chatbot ratings can use
-  const updateXp = (amount: number, source: 'mood_entry' | 'chatbot_rating') => {
-    const today = new Date();
-    const todayDateString = format(today, "yyyy-MM-dd");
-    
-    // Track which source this XP is coming from
-    const alreadyEarnedToday = source === 'mood_entry' 
-      ? xpHistory.lastMoodEntryDate === todayDateString
-      : xpHistory.lastChatbotRatingDate === todayDateString;
-    
-    // Only award XP if not already earned today from this source
-    if (!alreadyEarnedToday) {
-      // Update total XP
-      setTotalXp(prev => prev + amount);
-      
-      // Only update streak for mood entries
-      if (source === 'mood_entry') {
-        setStreak(prev => prev + 1);
-      }
-      
-      // Set XP popup info
-      setXpAmount(amount);
-      setXpSource(source);
-      
-      // Record that XP was earned today for this source
-      setXpHistory(prev => ({
-        ...prev,
-        ...(source === 'mood_entry' 
-          ? { lastMoodEntryDate: todayDateString } 
-          : { lastChatbotRatingDate: todayDateString })
-      }));
-      
-      // Show XP popup
-      setXpPopupVisible(true);
-      
-      return true; // XP was awarded
-    }
-    
-    return false; // No XP was awarded (already earned today)
   };
 
   const handleSaveEntry = () => {
@@ -128,12 +112,10 @@ export default function HomeScreen() {
       selectedDate.getMonth(),
       selectedDate.getDate()
     );
+    const formattedDate = format(entryDate, "yyyy-MM-dd");
+    const existingEntry = getMoodEntryByDate(formattedDate);
     
-    const existingEntryIndex = entries.findIndex(entry => 
-      entry.timestamp != null && isSameDay(new Date(entry.timestamp ?? 0), entryDate)
-    );
-    
-    if (existingEntryIndex !== -1) {
+    if (existingEntry) {
       Alert.alert(
         "Mood exists",
         "You already have a mood entry for this date. Would you like to update it?",
@@ -168,41 +150,31 @@ export default function HomeScreen() {
     const formattedDate = format(selectedDate, "MMMM dd, yyyy");
     const dayOfWeek = format(selectedDate, "EEEE");
     const displayTime = format(selectedDate, "h:mm a");
+    const calendarDate = format(selectedDate, "yyyy-MM-dd");
     
     // Create new entry
-    const newEntry: moodEntry = {
-      mood: selectedMood ?? "",
-      emotion: selectedEmotion ?? "",
+    const newEntry = {
+      mood: selectedMood || "",
+      emotion: selectedEmotion || "",
       day: dayOfWeek,
       date: formattedDate,
       time: displayTime,
       journal: journalEntry,
-      timestamp: selectedDate.getTime() // Store timestamp for sorting
+      timestamp: selectedDate.getTime(),
+      formattedDate: calendarDate // For calendar lookups
     };
     
-    // Check if we're updating an existing entry
-    const existingEntryIndex = entries.findIndex(entry => 
-      entry.date === formattedDate
-    );
-    
-    if (existingEntryIndex >= 0) {
-      // Update existing entry
-      const updatedEntries = [...entries];
-      updatedEntries[existingEntryIndex] = newEntry;
-      setEntries(updatedEntries);
-    } else {
-      // Add new entry
-      setEntries(prevEntries =>
-        [...prevEntries, newEntry].sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
-      );
-    }
-    
-    // Check if entry is for today
-    const isPastDay = !isSameDay(selectedDate, new Date());
-  
-    // Only update XP for current day entries
-    if (!isPastDay) {
-      updateXp(5, 'mood_entry');
+    // Save to API - this will handle both new and existing entries
+    try {
+      addMoodEntry(newEntry);
+      console.log("Entry saved:", newEntry);
+      
+      // Trigger XP reward if entry is for today
+      if (isSameDay(selectedDate, new Date())) {
+        setMoodEntrySaved(prev => !prev); // Toggle to trigger effect in XpStreakManager
+      }
+    } catch (error) {
+      console.error("Error saving entry:", error);
     }
     
     // Reset states
@@ -221,14 +193,9 @@ export default function HomeScreen() {
     // Implement actual navigation here
   };
 
-  // Handler for chatbot rating submission
-  const handleChatbotRatingSubmit = (rating: number, feedback: string) => {
-    console.log(`Rating: ${rating}, Feedback: ${feedback}`);
-    // Here you would save the rating and feedback to your backend
-  };
-
-  const closeXpPopup = () => {
-    setXpPopupVisible(false);
+  // Handle chatbot rating
+  const handleChatbotRating = () => {
+    setChatbotRated(prev => !prev); // Toggle to trigger effect in XpStreakManager
   };
   
   useEffect(() => {
@@ -312,7 +279,7 @@ export default function HomeScreen() {
             textAlign: "center",
             marginTop: height * 0.05,
           }}>
-          How are you feeling?
+          How are you feeling??
         </Text>
 
         {/* Add Mood Button */}
@@ -371,7 +338,7 @@ export default function HomeScreen() {
                             fontFamily: "LeagueSpartan-Bold",
                             fontSize: width < 350 ? 24 : 30,
                             fontWeight: "600",
-                            color: moodColors[entry.mood as keyof typeof moodColors],
+                            color: moodColors[entry.mood],
                           }}>
                             {entry.mood}{" "}
                           </Text>
@@ -409,7 +376,7 @@ export default function HomeScreen() {
                   <View className="mt-4 pt-3 border-t border-gray-900">
                     <Text className="text-txt-light font-LeagueSpartan mb-2"
                       style={{ fontSize: width < 350 ? 16 : 18 }}>
-                      Feeling <Text style={{ color: moodColors[entry.mood as keyof typeof moodColors] }}>{entry.emotion}</Text>
+                      Feeling <Text style={{ color: moodColors[entry.mood] }}>{entry.emotion}</Text>
                     </Text>
                     
                     {hasJournal && (
@@ -474,6 +441,7 @@ export default function HomeScreen() {
         moodColors={moodColors}
       />
 
+<<<<<<< HEAD
       {/* XP Streak Popup */}
       <XpStreakPopup 
         visible={xpPopupVisible}
@@ -483,6 +451,13 @@ export default function HomeScreen() {
         xpAmount={xpAmount}
         xpSource={xpSource}
         isPastDay={selectedDate && !isSameDay(selectedDate, new Date())}
+=======
+      {/* XP and Streak Manager */}
+      <XpStreakManager 
+        selectedDate={selectedDate}
+        onMoodEntrySaved={moodEntrySaved}
+        onChatbotRating={chatbotRated}
+>>>>>>> b8f8a3de5d4c36b0c4c5346fc9360f4ac9e9078d
       />
     </SafeAreaView>
   );
