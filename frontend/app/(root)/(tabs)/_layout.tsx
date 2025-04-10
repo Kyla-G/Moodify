@@ -6,6 +6,7 @@ import ChatbotStartScreen from "../(tabs)/chatbot-start";
 import ChatbotPageScreen from "../(tabs)/chatbot-page";
 import CalendarScreen from "../(tabs)/calendar-page";
 import StatsScreen from "../(tabs)/stats-page";
+import SettingsPage from './settings-page';
 import { useTheme } from "@/app/(root)/properties/themecontext"; // Import the theme context
 
 const Tab = createBottomTabNavigator();
@@ -20,9 +21,18 @@ function ChatbotStack() {
   );
 }
 
-export default function Layout() {
+function AppStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Home" component={Layout} />
+      <Stack.Screen name="Settings" component={SettingsPage} />
+    </Stack.Navigator>
+  );
+}
+
+function Layout() {
   const { theme } = useTheme(); // Use the theme context to access current theme
-  
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -55,5 +65,11 @@ export default function Layout() {
       <Tab.Screen name="Calendar" component={CalendarScreen} />
       <Tab.Screen name="Stats" component={StatsScreen} />
     </Tab.Navigator>
+  );
+}
+
+export default function App() {
+  return (
+    <AppStack />
   );
 }

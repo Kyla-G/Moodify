@@ -7,7 +7,7 @@ import { format, subMonths, addMonths, isSameDay } from "date-fns";
 import { LinearGradient } from "expo-linear-gradient";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { moodColors } from "@/app/services/type";
 // Import specific functions from API to avoid "undefined" errors
 import { 
@@ -48,6 +48,7 @@ export default function HomeScreen() {
   const params = useLocalSearchParams();
   const [welcomeModalVisible, setWelcomeModalVisible] = useState(false);
   const nickname = params.nickname || "Friend";
+  const router = useRouter();
   
   // XP and streak-related state
   const [moodEntrySaved, setMoodEntrySaved] = useState(false);
@@ -193,6 +194,20 @@ export default function HomeScreen() {
     // Implement actual navigation here
   };
 
+  // Navigate to settings page
+  const navigateToSettings = () => {
+    try {
+      router.push({
+        pathname: '/settings-page',
+        params: { nickname: nickname }
+      });
+    } catch (error) {
+      console.error('Error navigating to settings page:', error);
+    }
+  };
+  
+  
+
   // Handle chatbot rating
   const handleChatbotRating = () => {
     setChatbotRated(prev => !prev); // Toggle to trigger effect in XpStreakManager
@@ -229,7 +244,7 @@ export default function HomeScreen() {
       {/* Header Navigation */}
       <View className="relative z-20">
         <View style={{ paddingHorizontal: width < 350 ? 12 : 20 }} className="flex-row justify-between items-center w-full pt-6 pb-4">
-          <TouchableOpacity>
+          <TouchableOpacity onPress={navigateToSettings}>
             <Ionicons name="settings-outline" size={width < 350 ? 22 : 28} color="#EEEED0" />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPreviousMonth}>
