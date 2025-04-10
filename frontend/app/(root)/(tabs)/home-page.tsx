@@ -474,16 +474,6 @@ export default function HomeScreen() {
         moodColors={moodColors}
       />
 
-      {/* Chatbot Rating Modal */}
-      <ChatbotRatingModal
-        visible={xpPopupVisible}
-        onClose={closeXpPopup}
-        totalXp={totalXp}
-        streak={streak}
-        onSubmitRating={handleChatbotRatingSubmit}
-        updateXp={(amount, source) => updateXp(amount, source)}
-      />
-
       {/* XP Streak Popup */}
       <XpStreakPopup 
         visible={xpPopupVisible}

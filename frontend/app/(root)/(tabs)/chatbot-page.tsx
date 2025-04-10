@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Dimensions, Image, KeyboardAvoidingView, Platform, Modal } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -34,15 +34,6 @@ export default function ChatbotPage() {
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
   const [endChatModalVisible, setEndChatModalVisible] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
-
-  // Auto scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (scrollViewRef.current) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
-  }, [messages]);
 
   const sendMessage = async () => {
     if (input.trim() === "" || chatEnded) return;
@@ -169,28 +160,18 @@ export default function ChatbotPage() {
     // Additional actions after submission if needed
   };
 
+  // Auto scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
+
   return (
     <SafeAreaView className="flex-1 bg-black">
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
-
-      {/* Top Bar with Settings, Pagination, and Streak Button */}
-      <View className="items-center w-full pt-6 px-4">
-        <View className="flex-row justify-between items-center w-full mb-4">
-          <TouchableOpacity>
-            <Ionicons name="settings-outline" size={28} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={goToPreviousMonth}>
-            <Ionicons name="chevron-back-outline" size={28} color="white" />
-          </TouchableOpacity>
-          <Text className="text-xl font-semibold text-white">{format(selectedMonth, "MMMM yyyy")}</Text>
-          <TouchableOpacity onPress={goToNextMonth}>
-            <Ionicons name="chevron-forward-outline" size={28} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Ionicons name="flame-outline" size={28} color="white" />
-          </TouchableOpacity>
-        </View>
-      </View>
 
       <Image
         source={images.chatbotbg}
@@ -232,13 +213,13 @@ export default function ChatbotPage() {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        style={{ flex: 1 }}
       >
-        <View className="px-8 mb-3">
-          <View className="bg-bg-gray rounded-full flex-row items-center px-4 py-2 shadow-md">
+        <View className="px-15 mb-3">
+          <View className="bg-bg-gray rounded-full flex-row px-4 py-2 shadow-md">
             <TextInput
               className="flex-1 text-txt-light font-LeagueSpartan text-base"
-              placeholder=" Talk with Moodi..."
+              placeholder=" Talk with Moodiy..."
               placeholderTextColor="#545454"
               value={input}
               onChangeText={setInput}
@@ -278,8 +259,8 @@ export default function ChatbotPage() {
       <Modal
         visible={ratingModalVisible}
         transparent={true}
-        animationType="slide"
-        onRequestClose={() => {/* Prevent closing by back button */ }}
+        animationType="fade"
+        onRequestClose={() => {}}
       >
         <ChatbotRatingModal
           onSubmit={handleRatingSubmit}

@@ -25,8 +25,6 @@ const moodIcons: Record<"rad" | "good" | "meh" | "bad" | "awful", any> = {
   awful: icons.MoodAwful,
 };
 
-const [mood, setMood] = useState<"rad" | "good" | "meh" | "bad" | "awful">("good");
-
 // Hours and minutes for the time picker
 const hours = Array.from({ length: 12 }, (_, i) => i + 1);
 const minutes = Array.from({ length: 60 }, (_, i) => i);
