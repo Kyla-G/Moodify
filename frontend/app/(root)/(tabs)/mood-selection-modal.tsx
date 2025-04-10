@@ -5,25 +5,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, getDaysInMonth, startOfMonth, getDay, addMonths, subMonths } from "date-fns";
 import icons from "@/constants/icons";
 
-interface MoodSelectionModalProps {
-  visible: boolean;
-  onClose: () => void;
-  selectedDate: Date;
-  setSelectedDate: React.Dispatch<React.SetStateAction<Date>>;
-  onSelectMood: (mood: string) => void;
-  isDatePickerVisible: boolean;
-  setDatePickerVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  isTimePickerVisible: boolean;
-  setTimePickerVisible: React.Dispatch<React.SetStateAction<boolean>>; 
-}
-
-const moodIcons: Record<"rad" | "good" | "meh" | "bad" | "awful", any> = {
-  rad: icons.MoodRad,
-  good: icons.MoodGood,
-  meh: icons.MoodMeh,
-  bad: icons.MoodBad,
-  awful: icons.MoodAwful,
-};
+// Remove the incorrectly placed useState hook
+// const [mood, setMood] = useState<"rad" | "good" | "meh" | "bad" | "awful">("good");
 
 // Hours and minutes for the time picker
 const hours = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -33,12 +16,34 @@ const periods = ["AM", "PM"];
 // Weekday names
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
+const moodIcons = {
+  rad: icons.MoodRad,
+  good: icons.MoodGood,
+  meh: icons.MoodMeh,
+  bad: icons.MoodBad,
+  awful: icons.MoodAwful,
+};
+
+// Map mood types to theme color properties
+const moodToThemeMap = {
+  "rad": "buttonBg",
+  "good": "accent1",
+  "meh": "accent2",
+  "bad": "accent3",
+  "awful": "accent4"
+};
+
+const MoodSelectionModal = ({
   visible,
   onClose,
   selectedDate,
   setSelectedDate,
   onSelectMood,
+  isDatePickerVisible,
+  setDatePickerVisible,
+  isTimePickerVisible,
+  setTimePickerVisible,
+  theme
 }) => {
   const { width, height } = useWindowDimensions();
   const modalPadding = width < 350 ? 12 : 24;
@@ -50,7 +55,7 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
   
   // States for custom calendar
   const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
-  const [calendarDays, setCalendarDays] = useState<Array<{ date: Date | null; isCurrentMonth: boolean }>>([]);
+  const [calendarDays, setCalendarDays] = useState([]);
   
   // Get current values for time picker
   const currentHour = selectedDate.getHours();
@@ -93,7 +98,7 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
   }, [currentMonth]);
 
   // Handle date selection from calendar
-  const handleDateSelect = (date: Date) => {
+  const handleDateSelect = (date) => {
     if (date) {
       const newDate = new Date(selectedDate);
       newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
@@ -116,7 +121,7 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
   };
 
   // Check if a date is equal to the selected date (only comparing year, month, day)
-  const isDateEqual = (date1: Date, date2: Date) => {
+  const isDateEqual = (date1, date2) => {
     return (
       date1.getFullYear() === date2.getFullYear() &&
       date1.getMonth() === date2.getMonth() &&
@@ -125,7 +130,7 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
   };
 
   // Check if a date is today
-  const isToday = (date: Date) => {
+  const isToday = (date) => {
     const today = new Date();
     return isDateEqual(date, today);
   };
@@ -147,12 +152,30 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
     setShowTimePicker(false);
   };
 
+  // Get mood color from theme
+  const getMoodThemeColor = (mood) => {
+    if (!mood) return theme.calendarBg;
+    
+    // Convert "rad" to "Rad" if needed for mapping
+    const normalizedMood = mood.toLowerCase();
+    const themeProperty = moodToThemeMap[normalizedMood];
+    
+    if (themeProperty && theme[themeProperty]) {
+      return theme[themeProperty];
+    }
+    
+    return theme.text; // Fallback
+  };
+
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <SafeAreaView edges={["top", "left", "right", "bottom"]} className="flex-1 bg-bg-black">
+      <SafeAreaView edges={["top", "left", "right", "bottom"]} style={{ flex: 1, backgroundColor: theme.background }}>
         <View
-          className="flex-1 justify-center items-center relative"
           style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            position: "relative",
             paddingHorizontal: modalPadding,
           }}
         >
@@ -166,11 +189,16 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
               zIndex: 10,
             }}
           >
-            <Ionicons name="close" size={iconSize} color="#EEEED0" />
+            <Ionicons name="close" size={iconSize} color={theme.text} />
           </TouchableOpacity>
 
           {/* Date & Time Selection */}
-          <View className="flex-row justify-between w-full mb-6">
+          <View style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "100%",
+            marginBottom: 24
+          }}>
             {/* Date Picker Button */}
             <TouchableOpacity
               onPress={() => {
@@ -178,10 +206,19 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
                 setShowTimePicker(false);
                 setCurrentMonth(new Date(selectedDate));
               }}
-              className="bg-bg-light flex-1 mr-4 rounded-xl p-2 flex-row items-center justify-center"
+              style={{
+                backgroundColor: theme.calendarBg,
+                flex: 1,
+                marginRight: 16,
+                borderRadius: 12,
+                padding: 8,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
             >
-              <Ionicons name="calendar-outline" size={iconSize} color="#272528" style={{ marginRight: 8 }} />
-              <Text className="text-txt-dark font-LeagueSpartan-Bold">{format(selectedDate, "MMMM dd, yyyy")}</Text>
+              <Ionicons name="calendar-outline" size={iconSize} color={theme.text} style={{ marginRight: 8 }} />
+              <Text style={{ color: theme.text, fontFamily: "LeagueSpartan-Bold" }}>{format(selectedDate, "MMMM dd, yyyy")}</Text>
             </TouchableOpacity>
 
             {/* Time Picker Button */}
@@ -190,36 +227,68 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
                 setShowTimePicker(true);
                 setShowDatePicker(false);
               }}
-              className="bg-bg-light flex-1 ml-4 rounded-xl p-2 flex-row items-center justify-center"
+              style={{
+                backgroundColor: theme.calendarBg,
+                flex: 1,
+                marginLeft: 16,
+                borderRadius: 12,
+                padding: 8,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
             >
-              <Ionicons name="time-outline" size={iconSize} color="#272528" style={{ marginRight: 8 }} />
-              <Text className="text-txt-dark font-LeagueSpartan-Bold">{format(selectedDate, "h:mm a")}</Text>
+              <Ionicons name="time-outline" size={iconSize} color={theme.text} style={{ marginRight: 8 }} />
+              <Text style={{ color: theme.text, fontFamily: "LeagueSpartan-Bold" }}>{format(selectedDate, "h:mm a")}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Custom Calendar View */}
           {showDatePicker && (
-            <View className="w-full bg-bg-light rounded-xl p-4 mb-6">
+            <View style={{
+              width: "100%",
+              backgroundColor: theme.calendarBg,
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 24
+            }}>
               {/* Month Navigation */}
-              <View className="flex-row justify-between items-center mb-4">
+              <View style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16
+              }}>
                 <TouchableOpacity onPress={handlePrevMonth}>
-                  <Ionicons name="chevron-back" size={iconSize} color="#272528" />
+                  <Ionicons name="chevron-back" size={iconSize} color={theme.text} />
                 </TouchableOpacity>
-                <Text className="text-txt-dark font-LeagueSpartan-Bold text-lg">
+                <Text style={{
+                  color: theme.text,
+                  fontFamily: "LeagueSpartan-Bold",
+                  fontSize: 18
+                }}>
                   {format(currentMonth, "MMMM yyyy")}
                 </Text>
                 <TouchableOpacity onPress={handleNextMonth}>
-                  <Ionicons name="chevron-forward" size={iconSize} color="#272528" />
+                  <Ionicons name="chevron-forward" size={iconSize} color={theme.text} />
                 </TouchableOpacity>
               </View>
               
               {/* Weekday headers */}
-              <View className="flex-row justify-between mb-2">
+              <View style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: 8
+              }}>
                 {weekDays.map((day) => (
                   <Text 
                     key={day} 
-                    className="text-txt-dark font-LeagueSpartan-Bold text-center"
-                    style={{ width: `${100/7}%` }}
+                    style={{
+                      color: theme.text,
+                      fontFamily: "LeagueSpartan-Bold",
+                      textAlign: "center",
+                      width: `${100/7}%`
+                    }}
                   >
                     {day}
                   </Text>
@@ -227,7 +296,10 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
               </View>
               
               {/* Calendar grid */}
-              <View className="flex-row flex-wrap">
+              <View style={{
+                flexDirection: "row",
+                flexWrap: "wrap"
+              }}>
                 {calendarDays.map((item, index) => (
                   <TouchableOpacity
                     key={index}
@@ -240,23 +312,29 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
                     onPress={() => item.date && handleDateSelect(item.date)}
                   >
                     <View 
-                      className={`flex-1 justify-center items-center m-1 rounded-full ${
-                        item.date && isDateEqual(item.date, selectedDate) 
-                          ? 'bg-bg-orange' 
+                      style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        margin: 4,
+                        borderRadius: 100,
+                        backgroundColor: item.date && isDateEqual(item.date, selectedDate) 
+                          ? theme.buttonBg
                           : item.date && isToday(item.date)
-                            ? 'bg-bg-light'
-                            : ''
-                      }`}
+                            ? `${theme.buttonBg}30`
+                            : 'transparent'
+                      }}
                     >
                       {item.date && (
                         <Text 
-                          className={`${
-                            isDateEqual(item.date, selectedDate) 
-                              ? 'font-LeagueSpartan-Bold' 
-                              : isToday(item.date)
-                                ? 'text-txt-dark font-LeagueSpartan-Bold'
-                                : 'text-txt-dark'
-                          } font-LeagueSpartan`}
+                          style={{
+                            color: item.date && isDateEqual(item.date, selectedDate)
+                              ? theme.calendarBg
+                              : theme.text,
+                            fontFamily: (isDateEqual(item.date, selectedDate) || isToday(item.date))
+                              ? "LeagueSpartan-Bold"
+                              : "LeagueSpartan"
+                          }}
                         >
                           {item.date.getDate()}
                         </Text>
@@ -270,19 +348,43 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
 
           {/* Custom Time Picker */}
           {showTimePicker && (
-            <View className="w-full bg-bg-light rounded-xl p-4 mb-6">
-              <View className="flex-row justify-between">
-                <View className="flex-1 mr-2">
-                  <Text className="text-txt-dark text-center mb-2 font-LeagueSpartan-Bold">Hour</Text>
-                  <View className="h-32 bg-bg-light rounded-lg">
-                    <ScrollView showsVerticalScrollIndicator={false} className="flex-1 pt-2 pb-12">
+            <View style={{
+              width: "100%",
+              backgroundColor: theme.calendarBg,
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 24
+            }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <Text style={{
+                    color: theme.text,
+                    textAlign: "center",
+                    marginBottom: 8,
+                    fontFamily: "LeagueSpartan-Bold"
+                  }}>Hour</Text>
+                  <View style={{
+                    height: 128,
+                    backgroundColor: theme.calendarBg,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: `${theme.text}20`
+                  }}>
+                    <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, paddingTop: 8, paddingBottom: 48 }}>
                       {hours.map((hour) => (
                         <TouchableOpacity
                           key={`hour-${hour}`}
-                          className={`py-2 ${selectedHour === hour ? 'bg-bg-orange' : ''}`}
+                          style={{
+                            padding: 8,
+                            backgroundColor: selectedHour === hour ? theme.buttonBg : 'transparent'
+                          }}
                           onPress={() => setSelectedHour(hour)}
                         >
-                          <Text className={`text-center text-txt-dark font-LeagueSpartan ${selectedHour === hour ? 'font-LeagueSpartan-Bold' : ''}`}>
+                          <Text style={{
+                            textAlign: "center",
+                            color: selectedHour === hour ? theme.calendarBg : theme.text,
+                            fontFamily: selectedHour === hour ? "LeagueSpartan-Bold" : "LeagueSpartan"
+                          }}>
                             {String(hour).padStart(2, '0')}
                           </Text>
                         </TouchableOpacity>
@@ -291,17 +393,35 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
                   </View>
                 </View>
                 
-                <View className="flex-1 mx-2">
-                  <Text className="text-txt-dark text-center mb-2 font-LeagueSpartan-Bold">Minute</Text>
-                  <View className="h-32 bg-bg-light rounded-lg">
-                    <ScrollView showsVerticalScrollIndicator={false} className="flex-1 pt-2 pb-12">
+                <View style={{ flex: 1, marginHorizontal: 8 }}>
+                  <Text style={{
+                    color: theme.text,
+                    textAlign: "center",
+                    marginBottom: 8,
+                    fontFamily: "LeagueSpartan-Bold"
+                  }}>Minute</Text>
+                  <View style={{
+                    height: 128,
+                    backgroundColor: theme.calendarBg,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: `${theme.text}20`
+                  }}>
+                    <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, paddingTop: 8, paddingBottom: 48 }}>
                       {minutes.map((minute) => (
                         <TouchableOpacity
                           key={`minute-${minute}`}
-                          className={`py-2 ${selectedMinute === minute ? 'bg-bg-orange' : ''}`}
+                          style={{
+                            padding: 8,
+                            backgroundColor: selectedMinute === minute ? theme.buttonBg : 'transparent'
+                          }}
                           onPress={() => setSelectedMinute(minute)}
                         >
-                          <Text className={`text-center text-txt-dark font-LeagueSpartan ${selectedMinute === minute ? 'font-LeagueSpartan-Bold' : ''}`}>
+                          <Text style={{
+                            textAlign: "center",
+                            color: selectedMinute === minute ? theme.calendarBg : theme.text,
+                            fontFamily: selectedMinute === minute ? "LeagueSpartan-Bold" : "LeagueSpartan"
+                          }}>
                             {String(minute).padStart(2, '0')}
                           </Text>
                         </TouchableOpacity>
@@ -310,16 +430,35 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
                   </View>
                 </View>
                 
-                <View className="flex-1 ml-2">
-                  <Text className="text-txt-dark text-center mb-2 font-LeagueSpartan-Bold">AM/PM</Text>
-                  <View className="h-32 bg-bg-light rounded-lg justify-center">
+                <View style={{ flex: 1, marginLeft: 8 }}>
+                  <Text style={{
+                    color: theme.text,
+                    textAlign: "center",
+                    marginBottom: 8,
+                    fontFamily: "LeagueSpartan-Bold"
+                  }}>AM/PM</Text>
+                  <View style={{
+                    height: 128,
+                    backgroundColor: theme.calendarBg,
+                    borderRadius: 8,
+                    justifyContent: "center",
+                    borderWidth: 1,
+                    borderColor: `${theme.text}20`
+                  }}>
                     {periods.map((period) => (
                       <TouchableOpacity
                         key={`period-${period}`}
-                        className={`py-4 ${selectedPeriod === period ? 'bg-bg-orange' : ''}`}
+                        style={{
+                          padding: 16,
+                          backgroundColor: selectedPeriod === period ? theme.buttonBg : 'transparent'
+                        }}
                         onPress={() => setSelectedPeriod(period)}
                       >
-                        <Text className={`text-center text-txt-dark font-LeagueSpartan ${selectedPeriod === period ? 'font-LeagueSpartan-Bold' : ''}`}>
+                        <Text style={{
+                          textAlign: "center",
+                          color: selectedPeriod === period ? theme.calendarBg : theme.text,
+                          fontFamily: selectedPeriod === period ? "LeagueSpartan-Bold" : "LeagueSpartan"
+                        }}>
                           {period}
                         </Text>
                       </TouchableOpacity>
@@ -330,9 +469,18 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
               
               <TouchableOpacity
                 onPress={handleTimeConfirm}
-                className="bg-bg-orange mt-4 p-3 rounded-lg"
+                style={{
+                  backgroundColor: theme.buttonBg,
+                  marginTop: 16,
+                  padding: 12,
+                  borderRadius: 8
+                }}
               >
-                <Text className="text-txt-dark text-center font-LeagueSpartan-Bold">Confirm Time</Text>
+                <Text style={{
+                  color: theme.calendarBg,
+                  textAlign: "center",
+                  fontFamily: "LeagueSpartan-Bold"
+                }}>Confirm Time</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -340,32 +488,57 @@ const MoodSelectionModal: React.FC<MoodSelectionModalProps> = ({
           {/* Mood Selection Title (hide when pickers are visible) */}
           {!showDatePicker && !showTimePicker && (
             <>
-              <Text className="text-txt-light font-LeagueSpartan-Bold mb-5 text-center" style={{ fontSize: width < 350 ? 24 : 30 }}>
+              <Text style={{ 
+                color: theme.text,
+                fontFamily: "LeagueSpartan-Bold",
+                marginBottom: 20,
+                textAlign: "center",
+                fontSize: width < 350 ? 24 : 30
+              }}>
                 How's your mood right now?
               </Text>
 
               {/* Mood Selection Buttons */}
-              <View className="flex-row flex-wrap justify-between w-full mb-6">
-                {Object.keys(moodIcons).map((mood) => (
-                  <TouchableOpacity
-                    key={mood}
-                    className="items-center p-4 rounded-lg"
-                    style={{ width: "20%" }}
-                    onPress={() => onSelectMood(mood)}
-                  >
-                    <Image 
-                      source={moodIcons[mood as keyof typeof moodIcons]}
+              <View style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+                width: "100%",
+                marginBottom: 24
+              }}>
+                {Object.keys(moodIcons).map((mood) => {
+                  const moodColor = getMoodThemeColor(mood);
+                  
+                  return (
+                    <TouchableOpacity
+                      key={mood}
                       style={{
-                        width: width < 350 ? 32 : 40,
-                        height: width < 350 ? 32 : 40,
-                        marginBottom: 8,
+                        alignItems: "center",
+                        padding: 16,
+                        borderRadius: 8,
+                        width: "20%"
                       }}
-                    />
-                    <Text className="text-txt-light text-center" style={{ fontSize: width < 350 ? 12 : 14 }}>
-                      {mood}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      onPress={() => onSelectMood(mood)}
+                    >
+                      <Image 
+                        source={moodIcons[mood]}
+                        style={{
+                          width: width < 350 ? 32 : 40,
+                          height: width < 350 ? 32 : 40,
+                          marginBottom: 8,
+                          tintColor: moodColor
+                        }}
+                      />
+                      <Text style={{
+                        color: theme.text,
+                        textAlign: "center",
+                        fontSize: width < 350 ? 12 : 14
+                      }}>
+                        {mood}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </>
           )}
