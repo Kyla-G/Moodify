@@ -32,15 +32,6 @@ export default function ChatbotPage() {
   const scrollViewRef = useRef<ScrollView>(null);
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
 
-  // Auto scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (scrollViewRef.current) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
-  }, [messages]);
-
   const sendMessage = async () => {
     if (input.trim() === "") return;
 
@@ -140,6 +131,15 @@ export default function ChatbotPage() {
     setRatingModalVisible(false);
     // Additional actions after submission if needed
   };
+
+  // Auto scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
 
   return (
     <SafeAreaView className="flex-1 bg-black">
