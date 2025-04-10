@@ -1,15 +1,29 @@
 import { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image, Modal, TextInput, useWindowDimensions, Alert, KeyboardAvoidingView, Platform} from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Image, useWindowDimensions, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { format, subMonths, addMonths, parseISO, isAfter, isSameDay } from "date-fns";
+import { format, subMonths, addMonths, isSameDay } from "date-fns";
 import { LinearGradient } from "expo-linear-gradient";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { useLocalSearchParams } from "expo-router";
-import XpStreakPopup from '../(tabs)/streak-notif'; // Import the new XP popup component
-import DateTimePickerModal from "react-native-modal-datetime-picker"; // You'll need to install this package
+import XpStreakPopup from '../(tabs)/streak-notif';
+import { useTheme } from "@/app/(root)/properties/themecontext"; // Import the theme context
+import { moodColors } from "@/app/services/type";
+
+// Import specific functions from API to avoid "undefined" errors
+import { 
+  getAllMoodEntries, 
+  subscribeToChanges, 
+  getMoodEntryByDate, 
+  addMoodEntry 
+} from "@/app/services/moodEntriesApi";
+
+import MoodSelectionModal from "./mood-selection-modal";
+import EmotionJournalModal from "./emotion-journal-modal";
+import SummaryModal from "./summary-modal";
+import WelcomeModal from "./welcome-modal";
 
 const moodIcons = {
   rad: icons.MoodRad,
@@ -19,23 +33,19 @@ const moodIcons = {
   awful: icons.MoodAwful,
 };
 
-const moodColors = {
-  rad: "#FF6B35", // orange
-  good: "#31AC54", // green
-  meh: "#828282", // gray
-  bad: "#507EE3", // blue
-  awful: "#C22222", // red
-};
-
-const moodEmotions = {
-  rad: ["energetic", "excited", "confident"],
-  good: ["happy", "calm", "grateful", "hopeful"],
-  meh: ["bored", "nervous", "confused", "anxious"],
-  bad: ["sad", "fearful", "stressed"],
-  awful: ["irritated", "angry"],
+// Map mood types to theme color properties
+const moodToThemeMap = {
+  "rad": "buttonBg",
+  "good": "accent1",
+  "meh": "accent2",
+  "bad": "accent3",
+  "awful": "accent4"
 };
 
 export default function HomeScreen() {
+  // Use the theme context
+  const { theme } = useTheme();
+  
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [moodModalVisible, setMoodModalVisible] = useState(false);
   const [emotionModalVisible, setEmotionModalVisible] = useState(false);
@@ -48,15 +58,13 @@ export default function HomeScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
-  const [entries, setEntries] = useState([
-    { mood: "rad", emotion: "happy", day: "Monday", date: "March 06, 2025", time: "10:30 AM", journal: "Had a great day at work!"},
-    { mood: "awful", emotion: "angry", day: "Tuesday", date: "March 05, 2025", time: "8:15 PM", journal: "Thesis sucks"},
-    { mood: "good", emotion: "happy", day: "Wednesday", date: "March 04, 2025", time: "8:15 PM", journal: "lmao" },
-    { mood: "meh", emotion: "confused", day: "Thursday", date: "March 03, 2025", time: "8:15 PM", journal: "" },
-    { mood: "bad", emotion: "sad", day: "Friday", date: "March 02, 2025", time: "8:15 PM", journal: "" },
-    { mood: "bad", emotion: "sad", day: "Saturday", date: "March 01, 2025", time: "8:15 PM", journal: "" },
-  ]);
-
+  const [entries, setEntries] = useState([]);
+  const [xpHistory, setXpHistory] = useState({
+    lastMoodEntryDate: null,
+    lastChatbotRatingDate: null
+  });
+  const [xpAmount, setXpAmount] = useState(0);
+  const [xpSource, setXpSource] = useState(null);
   const params = useLocalSearchParams();
   const [welcomeModalVisible, setWelcomeModalVisible] = useState(false);
   const nickname = params.nickname || "Friend";
@@ -66,13 +74,37 @@ export default function HomeScreen() {
   const [totalXp, setTotalXp] = useState(0); 
   const [streak, setStreak] = useState(0);
 
+  // Load entries from API
+  useEffect(() => {
+    // Check if API functions are available
+    console.log("API functions available:", {
+      getAllMoodEntries: typeof getAllMoodEntries,
+      subscribeToChanges: typeof subscribeToChanges,
+      getMoodEntryByDate: typeof getMoodEntryByDate,
+      addMoodEntry: typeof addMoodEntry
+    });
+
+    try {
+      // Get initial entries
+      const initialEntries = getAllMoodEntries();
+      console.log("Initial entries:", initialEntries);
+      setEntries(initialEntries);
+      
+      // Subscribe to future changes
+      const unsubscribe = subscribeToChanges(() => {
+        console.log("Mood entries updated");
+        setEntries(getAllMoodEntries());
+      });
+      
+      return unsubscribe; // Cleanup subscription on unmount
+    } catch (error) {
+      console.error("Error loading mood entries:", error);
+    }
+  }, []);
+
   const toggleEntryExpansion = (index) => {
-  setExpandedEntries(prev => ({ ...prev, [index]: !prev[index] }));
-};
-
-
-  const currentDate = format(selectedDate, "MMMM dd, yyyy");
-  const currentTime = format(selectedDate, "h:mm a");
+    setExpandedEntries(prev => ({ ...prev, [index]: !prev[index] }));
+  };
 
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
@@ -83,73 +115,6 @@ export default function HomeScreen() {
   };
   
   const closeMoodModal = () => setMoodModalVisible(false);
-
-  const showDatePicker = () => {
-    setDatePickerVisible(true);
-  };
-
-  const hideDatePicker = () => {
-    setDatePickerVisible(false);
-  };
-
-  const handleDateConfirm = (date) => {
-    // Check if an entry already exists for this date
-    const formattedDate = format(date, "yyyy-MM-dd");
-    const existingEntry = entries.find(entry => {
-      const entryDate = entry.date;
-      return entryDate === formattedDate;
-    });
-    
-    if (existingEntry) {
-      Alert.alert(
-        "Entry Already Exists", 
-        "You already have an entry for this date. Would you like to update it?",
-        [
-          {
-            text: "Cancel",
-            style: "cancel"
-          },
-          {
-            text: "Update",
-            onPress: () => {
-              // Set the time to match the existing entry
-              const newDate = new Date(date);
-              const [hours, minutes] = existingEntry.time.split(':').map(Number);
-              newDate.setHours(hours, minutes);
-              
-              setSelectedDate(newDate);
-              setSelectedMood(existingEntry.mood);
-              setSelectedEmotion(existingEntry.emotion);
-              setJournalEntry(existingEntry.journal || "");
-            }
-          }
-        ]
-      );
-    } else {
-      // Keep the time portion of selectedDate, just update the date portion
-      const newDate = new Date(selectedDate);
-      newDate.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
-      setSelectedDate(newDate);
-    }
-    
-    hideDatePicker();
-  };
-
-  const showTimePicker = () => {
-    setTimePickerVisible(true);
-  };
-
-  const hideTimePicker = () => {
-    setTimePickerVisible(false);
-  };
-
-  const handleTimeConfirm = (time) => {
-    // Keep the date portion of selectedDate, just update the time portion
-    const newDate = new Date(selectedDate);
-    newDate.setHours(time.getHours(), time.getMinutes());
-    setSelectedDate(newDate);
-    hideTimePicker();
-  };
 
   const selectMood = (mood) => {
     setSelectedMood(mood);
@@ -162,23 +127,16 @@ export default function HomeScreen() {
   };
 
   const handleSaveEntry = () => {
-    if (!selectedEmotion) {
-      Alert.alert("Please select an emotion first");
-      return;
-    }
-    
     // Check if there's already an entry for this date
     const entryDate = new Date(
       selectedDate.getFullYear(),
       selectedDate.getMonth(),
       selectedDate.getDate()
     );
+    const formattedDate = format(entryDate, "yyyy-MM-dd");
+    const existingEntry = getMoodEntryByDate(formattedDate);
     
-    const existingEntryIndex = entries.findIndex(entry => 
-      isSameDay(new Date(entry.timestamp), entryDate)
-    );
-    
-    if (existingEntryIndex !== -1) {
+    if (existingEntry) {
       Alert.alert(
         "Mood exists",
         "You already have a mood entry for this date. Would you like to update it?",
@@ -213,43 +171,57 @@ export default function HomeScreen() {
     const formattedDate = format(selectedDate, "MMMM dd, yyyy");
     const dayOfWeek = format(selectedDate, "EEEE");
     const displayTime = format(selectedDate, "h:mm a");
+    const calendarDate = format(selectedDate, "yyyy-MM-dd");
     
     // Create new entry
     const newEntry = {
-      mood: selectedMood,
-      emotion: selectedEmotion,
+      mood: selectedMood || "",
+      emotion: selectedEmotion || "",
       day: dayOfWeek,
       date: formattedDate,
       time: displayTime,
       journal: journalEntry,
-      timestamp: selectedDate.getTime() // Store timestamp for sorting
+      timestamp: selectedDate.getTime(),
+      formattedDate: calendarDate // For calendar lookups
     };
     
-    // Check if we're updating an existing entry
-    const existingEntryIndex = entries.findIndex(entry => 
-      entry.date === formattedDate
-    );
-    
-    if (existingEntryIndex >= 0) {
-      // Update existing entry
-      const updatedEntries = [...entries];
-      updatedEntries[existingEntryIndex] = newEntry;
-      setEntries(updatedEntries);
-    } else {
-      // Add new entry
-      setEntries(prevEntries => [newEntry, ...prevEntries].sort((a, b) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      }));
+    // Save to API - this will handle both new and existing entries
+    try {
+      addMoodEntry(newEntry);
+      console.log("Entry saved:", newEntry);
+    } catch (error) {
+      console.error("Error saving entry:", error);
     }
     
-    // Update XP and streak
-    setTotalXp(prev => prev + 10); 
-    setStreak(prev => prev + 1);
-    
-    // Show XP popup
-    setTimeout(() => {
-      setXpPopupVisible(true);
-    }, 300);
+    // Check if entry is for today
+    const today = new Date();
+    const isPastDay = !isSameDay(selectedDate, today);
+  
+    // Check if already earned XP for mood entry today
+    const todayDateString = format(today, "yyyy-MM-dd");
+    const alreadyEarnedToday = xpHistory.lastMoodEntryDate === todayDateString;
+
+    // Only give XP for current day entries and if not already earned today
+    if (!isPastDay && !alreadyEarnedToday) {
+      // Update XP and streak
+      setTotalXp(prev => prev + 5);
+      setStreak(prev => prev + 1);
+
+      // Set XP popup info
+      setXpAmount(5);
+      setXpSource('mood_entry');
+      
+      // Record that XP was earned today
+      setXpHistory(prev => ({
+        ...prev,
+        lastMoodEntryDate: todayDateString
+      }));
+      
+      // Show XP popup
+      setTimeout(() => {
+        setXpPopupVisible(true);
+      }, 300);
+    }
     
     // Reset states
     setJournalEntry("");
@@ -264,22 +236,39 @@ export default function HomeScreen() {
     // Then redirect
     setSummaryModalVisible(false);
     Alert.alert("Redirecting", "Navigating to chatbot screen");
+    // Implement actual navigation here
+  };
+
+  // Add a new function for chatbot rating
+  const handleChatbotRating = () => {
+    // Check if already earned XP for chatbot rating today
+    const today = new Date();
+    const todayDateString = format(today, "yyyy-MM-dd");
+    const alreadyEarnedToday = xpHistory.lastChatbotRatingDate === todayDateString;
+    
+    if (!alreadyEarnedToday) {
+      // Update XP (no streak update for chatbot rating)
+      setTotalXp(prev => prev + 20);
+      
+      // Set XP popup info
+      setXpAmount(20);
+      setXpSource('chatbot_rating');
+      
+      // Record that XP was earned today
+      setXpHistory(prev => ({
+        ...prev,
+        lastChatbotRatingDate: todayDateString
+      }));
+      
+      // Show XP popup
+      setXpPopupVisible(true);
+    }
   };
 
   const closeXpPopup = () => {
     setXpPopupVisible(false);
   };
-
-  const backgroundHeight = height * 0.86;
-  const backgroundWidth = width;
-  const backgroundBottomOffset = height * -0.06;
   
-  const titleFontSize = width < 350 ? 40 : 55;
-  const moodButtonSize = width < 350 ? 60 : 80;
-  const contentPadding = width < 350 ? 12 : 20;
-  const iconSize = width < 350 ? 22 : 28;
-  const modalPadding = width < 350 ? 12 : 24;
-
   useEffect(() => {
     // Show welcome popup if coming from nickname page
     if (params.showWelcome === "true") {
@@ -287,108 +276,77 @@ export default function HomeScreen() {
        
       const timer = setTimeout(() => {
         setWelcomeModalVisible(false);
-      }, 3000);
+      }, 7000);
       return () => clearTimeout(timer);
     }
   }, [params.showWelcome]);
 
+  // Get mood color from theme
+  const getMoodThemeColor = (mood) => {
+    if (!mood) return theme.calendarBg;
+    
+    // Convert "rad" to "Rad" if needed for mapping
+    const normalizedMood = mood.toLowerCase();
+    const themeProperty = moodToThemeMap[normalizedMood];
+    
+    if (themeProperty && theme[themeProperty]) {
+      return theme[themeProperty];
+    }
+    
+    // Fallback to original moodColors if not found in theme
+    return moodColors[normalizedMood];
+  };
+
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-black">
+    <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: theme.background }}>
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
 
-      {/* Welcome Modal */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={welcomeModalVisible}
-        onRequestClose={() => setWelcomeModalVisible(false)}
-      >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.75)',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-
-          <View
-            style={{ width: width * 0.85 }}
-            className="bg-bg-dark rounded-3xl p-6 items-center"
-          >
-            <Image
-              source={images.moodiwave}
-              style={{
-                width: width * 0.3,
-                height: width * 0.3,
-                resizeMode: "contain"
-              }}
-            />
-
-            <Text
-              className="text-txt-orange font-LeagueSpartan-Bold text-center mb-10"
-              style={{ fontSize: width * 0.1 }}
-            >
-              Hi {nickname}!
-            </Text>
-
-            <Text
-              className="text-txt-light font-LeagueSpartan text-center mb-5"
-              style={{ fontSize: width * 0.045 }}
-            >
-              Welcome to <Text className="text-txt-orange font-LeagueSpartan-Bold">Moodify</Text>! I'm excited to be your companion on this journey to
-              better wellness and self-awareness.
-            </Text>
-
-            <TouchableOpacity
-              onPress={() => setWelcomeModalVisible(false)}
-              style={{
-                paddingVertical: height * 0.015,
-                paddingHorizontal: width * 0.1,
-                borderRadius: 45,
-              }}
-              className="bg-bg-orange justify-center items-center mt-2"
-            >
-              <Text
-                className="text-txt-light font-LeagueSpartan-Bold"
-                style={{ fontSize: width * 0.045 }}
-              >
-                Let's Go!
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
+      {/* Background Image */}
       <Image
         source={images.homepagebg}
         style={{
           position: "absolute",
-          bottom: backgroundBottomOffset - 40,
-          width: backgroundWidth,
-          height: backgroundHeight,
+          bottom: (height * -0.06) - 40,
+          width: width,
+          height: height * 0.86,
           resizeMode: "contain",
         }}
       />
 
-      <View className="relative z-20">
-        <View style={{ paddingHorizontal: contentPadding }} className="flex-row justify-between items-center w-full pt-6 pb-4">
+      {/* Header Navigation */}
+      <View style={{ zIndex: 20 }}>
+        <View style={{ 
+          paddingHorizontal: width < 350 ? 12 : 20, 
+          flexDirection: "row", 
+          justifyContent: "space-between", 
+          alignItems: "center", 
+          width: "100%", 
+          paddingTop: 24, 
+          paddingBottom: 16 
+        }}>
           <TouchableOpacity>
-            <Ionicons name="settings-outline" size={iconSize} color="#EEEED0" />
+            <Ionicons name="settings-outline" size={width < 350 ? 22 : 28} color={theme.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPreviousMonth}>
-            <Ionicons name="chevron-back-outline" size={iconSize} color="#545454" />
+            <Ionicons name="chevron-back-outline" size={width < 350 ? 22 : 28} color={theme.dimmedText} />
           </TouchableOpacity>
-          <Text className="text-txt-light font-LeagueSpartan-Bold text-3xl">
+          <Text style={{ 
+            color: theme.text, 
+            fontFamily: "LeagueSpartan-Bold", 
+            fontSize: 24 
+          }}>
             {format(selectedMonth, "MMMM yyyy")}
           </Text>
           <TouchableOpacity onPress={goToNextMonth}>
-            <Ionicons name="chevron-forward-outline" size={iconSize} color="#545454" />
+            <Ionicons name="chevron-forward-outline" size={width < 350 ? 22 : 28} color={theme.dimmedText} />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Ionicons name="flame-outline" size={iconSize} color="#EEEED0" />
+            <Ionicons name="flame-outline" size={width < 350 ? 22 : 28} color={theme.text} />
           </TouchableOpacity>
         </View>
       </View>
 
+      {/* Gradient Overlay */}
       <View
         pointerEvents="none"
         style={{
@@ -401,7 +359,11 @@ export default function HomeScreen() {
         }}
       >
         <LinearGradient
-          colors={["rgba(0, 0, 0, 0.9)", "rgba(0, 0, 0, 0.5)", "transparent"]}
+          colors={[
+            `${theme.background}E6`, // Add opacity
+            `${theme.background}80`, // More transparent
+            "transparent"
+          ]}
           start={{ x: 0, y: 1 }}
           end={{ x: 0, y: 0 }}
           style={{ flex: 1 }}
@@ -411,47 +373,81 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={{
           flexGrow: 1,
           alignItems: "center",
-          paddingHorizontal: contentPadding,
+          paddingHorizontal: width < 350 ? 12 : 20,
         }}>
         <Text
-          className="text-txt-orange font-LeagueSpartan-Bold mt-16 tracking-[.-3.5]"
           style={{ 
-            fontSize: titleFontSize, 
-            textAlign: "center",
+            color: theme.buttonBg, 
+            fontFamily: "LeagueSpartan-Bold", 
             marginTop: height * 0.05,
+            fontSize: width < 350 ? 40 : 55,
+            textAlign: "center",
+            letterSpacing: -3.5,
           }}>
           How are you feeling?
         </Text>
 
-        <View className="flex-1 justify-center items-center w-full py-10 mb-16">
+        {/* Add Mood Button */}
+        <View style={{ 
+          flex: 1, 
+          justifyContent: "center", 
+          alignItems: "center", 
+          width: "100%", 
+          paddingVertical: 40,
+          marginBottom: 64
+        }}>
           <TouchableOpacity
             onPress={openMoodModal}
             style={{
-              width: moodButtonSize,
-              height: moodButtonSize,
-            }}
-            className="bg-bg-light rounded-full shadow-md flex items-center justify-center">
-            <Text className="text-txt-orange text-8xl">+</Text>
+              width: width < 350 ? 60 : 80,
+              height: width < 350 ? 60 : 80,
+              backgroundColor: theme.calendarBg,
+              borderRadius: 40,
+              alignItems: "center",
+              justifyContent: "center",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5
+            }}>
+            <Text style={{ color: theme.buttonBg, fontSize: 48 }}>+</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Data */}
+        {/* Mood Entries List */}
         <View
-          className="w-full pb-24"
-          style={{ marginTop: height * 0.2 }}
+          style={{ 
+            width: "100%", 
+            paddingBottom: 96,
+            marginTop: height * 0.2 
+          }}
         >
           {entries.map((entry, index) => {
             const moodIcon = moodIcons[entry.mood];
             const hasJournal = entry.journal && entry.journal.trim().length > 0;
             const isExpanded = expandedEntries[index];
+            // Use theme colors for mood
+            const moodColor = getMoodThemeColor(entry.mood);
 
             return (
               <View
                 key={index}
-                className="bg-[#101011] p-4 rounded-[20] mb-4 shadow w-full"
-                style={{ paddingHorizontal: contentPadding }}
+                style={{ 
+                  backgroundColor: theme.calendarBg, 
+                  padding: 16, 
+                  borderRadius: 20, 
+                  marginBottom: 16, 
+                  width: "100%",
+                  paddingHorizontal: width < 350 ? 12 : 20,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.22,
+                  shadowRadius: 2.22,
+                  elevation: 3
+                }}
               >
-                <View className="flex-row items-center">
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <Image
                     source={moodIcon}
                     style={{
@@ -459,33 +455,34 @@ export default function HomeScreen() {
                       height: width < 350 ? 35 : 45,
                       marginRight: width < 350 ? 10 : 15,
                       resizeMode: "contain",
+                      tintColor: moodColor
                     }}
                   />
 
-                  <View className="flex-1">
+                  <View style={{ flex: 1 }}>
                     <Text style={{
                       fontFamily: "LaoSansPro-Regular",
                       fontSize: width < 350 ? 12 : 15,
                       fontWeight: "600",
-                      color: "#EEEED0"
+                      color: theme.text
                     }}>
                       {entry.day}, {entry.date}
                     </Text>
-                    <View className="flex-1 mt-3">
-                      <View className="flex-row items-center justify-between">
-                        <View className="flex-row items-center">
+                    <View style={{ flex: 1, marginTop: 12 }}>
+                      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
                           <Text style={{
                             fontFamily: "LeagueSpartan-Bold",
                             fontSize: width < 350 ? 24 : 30,
                             fontWeight: "600",
-                            color: moodColors[entry.mood],
+                            color: moodColor,
                           }}>
                             {entry.mood}{" "}
                           </Text>
                           <Text style={{
                             fontFamily: "LaoSansPro-Regular", 
                             fontSize: width < 350 ? 11 : 13,
-                            color: "#EEEED0", 
+                            color: theme.text, 
                           }}>
                             {entry.time}
                           </Text>
@@ -493,18 +490,19 @@ export default function HomeScreen() {
 
                         <TouchableOpacity 
                           onPress={() => toggleEntryExpansion(index)}
-                          className="flex-row items-center"
+                          style={{ flexDirection: "row", alignItems: "center" }}
                         >
                           <Text style={{
                             fontFamily: "LaoSansPro-Regular", 
                             fontSize: width < 350 ? 12 : 14,
-                            color: "#545454"}}>
-                              {hasJournal ? "Journal" : "Emotion"}
+                            color: theme.dimmedText
+                          }}>
+                            {hasJournal ? "Journal" : "Emotion"}
                           </Text>
                           <Ionicons 
                             name={isExpanded ? "chevron-up" : "chevron-down"} 
                             size={width < 350 ? 14 : 18} 
-                            color="#545454" 
+                            color={theme.dimmedText} 
                           />
                         </TouchableOpacity>
                       </View>
@@ -513,17 +511,28 @@ export default function HomeScreen() {
                 </View>
 
                 {isExpanded && (
-                  <View className="mt-4 pt-3 border-t border-gray-900">
-                    <Text 
-                      className="text-txt-light font-LeagueSpartan mb-2"
-                      style={{ fontSize: width < 350 ? 16 : 18 }}>
-                      Feeling <Text style={{ color: moodColors[entry.mood] }}>{entry.emotion}</Text>
+                  <View style={{ 
+                    marginTop: 16, 
+                    paddingTop: 12, 
+                    borderTopWidth: 1, 
+                    borderTopColor: `${theme.dimmedText}33` 
+                  }}>
+                    <Text style={{ 
+                      color: theme.text, 
+                      fontFamily: "LeagueSpartan", 
+                      marginBottom: 8,
+                      fontSize: width < 350 ? 16 : 18 
+                    }}>
+                      Feeling <Text style={{ color: moodColor }}>{entry.emotion}</Text>
                     </Text>
                     
                     {hasJournal && (
-                      <Text 
-                        className="text-txt-light font-LeagueSpartan mt-2"
-                        style={{ fontSize: width < 350 ? 16 : 18 }}>
+                      <Text style={{ 
+                        color: theme.text, 
+                        fontFamily: "LeagueSpartan", 
+                        marginTop: 8,
+                        fontSize: width < 350 ? 16 : 18 
+                      }}>
                         {entry.journal}
                       </Text>
                     )}
@@ -535,345 +544,67 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      {/* Mood Selection Modal */}
-      <Modal visible={moodModalVisible} transparent animationType="slide">
-        <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 bg-bg-black">
-          <View 
-            className="flex-1 justify-center items-center relative"
-            style={{ 
-              paddingHorizontal: modalPadding, 
-              justifyContent: 'center',
-              alignItems: 'center'}}
-          >
-            <TouchableOpacity 
-              onPress={closeMoodModal} 
-              style={{ 
-                position: 'absolute',
-                top: height * 0.05,
-                left: width * 0.05,
-                zIndex: 10
-              }}
-            >
-              <Ionicons name="close" size={iconSize} color="#EEEED0" />
-            </TouchableOpacity>
+      {/* Modals - Pass theme to modals */}
+      <WelcomeModal
+        visible={welcomeModalVisible}
+        onClose={() => setWelcomeModalVisible(false)}
+        nickname={nickname.toString()}
+        theme={theme}
+      />
 
-            {/* Date and Time Selection */}
-            <View className="flex-row justify-between w-full mb-20">
-              <TouchableOpacity
-                onPress={showDatePicker}
-                className="bg-bg-medium flex-1 mr-4 rounded-xl p-2 flex-row items-center justify-center"
-              >
-                <Ionicons name="calendar-outline" size={iconSize} color="#272528" style={{ marginRight: 8 }} />
-                <Text className="text-txt-dark font-LeagueSpartan">
-                  {format(selectedDate, "MMMM dd, yyyy")}
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                onPress={showTimePicker}
-                className="bg-bg-medium flex-1 ml-4 rounded-xl p-2 flex-row items-center justify-center"
-              >
-                <Ionicons name="time-outline" size={iconSize} color="#272528" style={{ marginRight: 8 }} />
-                <Text className="text-txt-dark font-LeagueSpartan">
-                  {format(selectedDate, "h:mm a")}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            
-            <Text 
-              className="text-txt-light font-LeagueSpartan-Bold mb-5 text-center"
-              style={{ fontSize: width < 350 ? 24 : 30 }}
-            >
-              How's your mood right now?
-            </Text>
-            
-            <View className="flex-row flex-wrap justify-between w-full mb-6">
-              {Object.keys(moodIcons).map((mood) => (
-                <TouchableOpacity
-                  key={mood}
-                  className="items-center p-4 rounded-lg"
-                  style={{ width: '20%' }}
-                  onPress={() => selectMood(mood)}
-                >
-                  <Image
-                    source={moodIcons[mood]}
-                    style={{ 
-                      width: width < 350 ? 32 : 40, 
-                      height: width < 350 ? 32 : 40, 
-                      marginBottom: 8 
-                    }}
-                  />
-                  <Text 
-                    className="text-txt-light text-center"
-                    style={{ fontSize: width < 350 ? 12 : 14 }}
-                  >
-                    {mood}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-          
-          {/* Date Picker */}
-          <DateTimePickerModal
-            isVisible={isDatePickerVisible}
-            mode="date"
-            onConfirm={handleDateConfirm}
-            onCancel={hideDatePicker}
-            date={selectedDate}
-            maximumDate={new Date()}
-          />
-          
-          {/* Time Picker */}
-          <DateTimePickerModal
-            isVisible={isTimePickerVisible}
-            mode="time"
-            onConfirm={handleTimeConfirm}
-            onCancel={hideTimePicker}
-            date={selectedDate}
-          />
-        </SafeAreaView>
-      </Modal>
+      <MoodSelectionModal
+        visible={moodModalVisible}
+        onClose={closeMoodModal}
+        onSelectMood={selectMood}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        isDatePickerVisible={isDatePickerVisible}
+        setDatePickerVisible={setDatePickerVisible}
+        isTimePickerVisible={isTimePickerVisible}
+        setTimePickerVisible={setTimePickerVisible}
+        theme={theme}
+      />
 
-      {/* Emotion & Journal Modal */}
-      <Modal visible={emotionModalVisible} transparent animationType="slide">
-        <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 bg-bg-black">
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={{ flex: 1 }}
-          >
-            <ScrollView 
-              className="flex-1 bg-bg-black py-10"
-              contentContainerStyle={{ 
-                paddingHorizontal: modalPadding,
-                paddingTop: height * 0.05,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-              keyboardShouldPersistTaps="handled"
-            >
-              <View className="items-center w-full relative">
-                <TouchableOpacity 
-                  onPress={() => {
-                    setEmotionModalVisible(false);
-                    setSelectedEmotion(null);
-                    setJournalEntry("");
-                    setMoodModalVisible(true);
-                  }}
-                  style={{ 
-                    position: 'absolute',
-                    top: height * -0.045,
-                    left: width * -0.016,
-                    zIndex: 10
-                  }}
-                  className="p-2"
-                >
-                  <Ionicons name="arrow-back" size={iconSize} color="#EEEED0" />
-                </TouchableOpacity>
+      <EmotionJournalModal
+        visible={emotionModalVisible}
+        onBack={() => {
+          setEmotionModalVisible(false);
+          setSelectedEmotion(null);
+          setJournalEntry("");
+          setMoodModalVisible(true);
+        }}
+        onContinue={handleSaveEntry}
+        selectedEmotion={selectedEmotion}
+        setSelectedEmotion={setSelectedEmotion}
+        journalEntry={journalEntry}
+        setJournalEntry={setJournalEntry}
+        theme={theme}
+      />
 
-                <Text 
-                  className="text-txt-light font-LeagueSpartan-Bold mt-6 mb-10 text-center"
-                  style={{ fontSize: width < 350 ? 24 : 30 }}
-                >
-                  Which emotion describes you're feeling now?
-                </Text>
-
-                <View className="flex-row flex-wrap justify-between w-full gap-2 mb-8">
-                  {[
-                    { name: "energetic", color: "#FF6B35" },
-                    { name: "excited", color: "#FF6B35" },
-                    { name: "confident", color: "#FF6B35" },
-                    { name: "happy", color: "#31AC54" },
-                    { name: "calm", color: "#31AC54" },
-                    { name: "grateful", color: "#31AC54" },
-                    { name: "hopeful", color: "#31AC54" },
-                    { name: "bored", color: "#828282" },
-                    { name: "nervous", color: "#828282" },
-                    { name: "confused", color: "#828282" },
-                    { name: "anxious", color: "#828282" },
-                    { name: "sad", color: "#507EE3" },
-                    { name: "fearful", color: "#507EE3" },
-                    { name: "stressed", color: "#507EE3" },
-                    { name: "irritated", color: "#C22222" },
-                    { name: "angry", color: "#C22222" },
-                  ].map((emotion) => (
-                    <TouchableOpacity
-                      key={emotion.name}
-                      style={{
-                        backgroundColor: emotion.color,
-                        padding: width < 350 ? 12 : 16,
-                        borderRadius: 16,
-                        width: "48%",
-                        alignItems: "center",
-                        borderWidth: selectedEmotion === emotion.name ? 2 : 0,
-                        borderColor: "#EEEED0",
-                        marginBottom: 8,
-                      }}
-                      onPress={() => selectEmotion(emotion.name)}
-                    >
-                      <Text
-                        style={{
-                          color: "#EEEED0",
-                          fontSize: width < 350 ? 16 : 20,
-                          fontFamily: "LeagueSpartan-Bold",
-                        }}
-                      >
-                        {emotion.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <TextInput
-                  className="bg-[#202020] text-txt-light p-5 rounded-2xl w-full min-h-[180px]"
-                  style={{ 
-                    fontSize: width < 350 ? 16 : 18, 
-                    fontFamily: "LeagueSpartan-Regular"
-                  }}
-                  placeholder="Add notes here..."
-                  placeholderTextColor="#888"
-                  multiline
-                  value={journalEntry}
-                  onChangeText={setJournalEntry}
-                />
-
-                <View className="w-full items-end mt-8">
-                  <TouchableOpacity
-                    onPress={handleSaveEntry}
-                    disabled={!selectedEmotion}
-                    className={`bg-[#EEEED0] p-4 rounded-full ${!selectedEmotion ? "opacity-50" : ""}`}
-                  >
-                    <Ionicons name="arrow-forward" size={iconSize} color="#272528" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-      </Modal>
-
-      {/* Summary Modal */}
-      <Modal
+      <SummaryModal
         visible={summaryModalVisible}
-        animationType="fade"
-        transparent={false}
-        onRequestClose={() => setSummaryModalVisible(false)}
-      >
-        <View
-          className="flex-1 items-center justify-center"
-          style={{
-            backgroundColor: selectedMood ? moodColors[selectedMood] : "#333",
-            paddingVertical: modalPadding,
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        >
-          <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 items-center justify-center">
-            <View 
-              className="items-center justify-center"
-              style={{ padding: modalPadding }}
-            >
-              <Text 
-                className="text-white font-LeagueSpartan text-center mb-2"
-                style={{ fontSize: width < 350 ? 28 : 36 }}
-              >
-                You're feeling
-              </Text>
-
-              <Text 
-                className="text-txt-light font-LeagueSpartan-Bold text-center mb-10"
-                style={{ fontSize: width < 350 ? 20 : 48 }}
-              >
-                {selectedMood} and {selectedEmotion}
-              </Text>
-
-              <View className="flex-row items-center justify-center mb-10">
-                <View className="flex-row items-center mr-4">
-                  <Ionicons name="calendar-outline" size={width < 350 ? 18 : 24} color="white" style={{ marginRight: 8 }} />
-                  <Text 
-                    className="text-white font-LeagueSpartan text-center"
-                    style={{ fontSize: width < 350 ? 16 : 20 }}
-                  >
-                    {format(selectedDate, "MMMM dd, yyyy")}
-                  </Text>
-                </View>
-                
-                <View className="flex-row items-center">
-                  <Ionicons name="time-outline" size={width < 350 ? 18 : 24} color="white" style={{ marginRight: 8 }} />
-                  <Text 
-                    className="text-white font-LeagueSpartan text-center"
-                    style={{ fontSize: width < 350 ? 16 : 20 }}
-                  >
-                    {format(selectedDate, "h:mm a")}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Chatbot Section */}
-            <View style={{ padding: modalPadding, width: '100%', alignItems: 'flex-start' }}>
-              <Text 
-                className="text-white font-LeagueSpartan-Bold mb-6"
-                style={{ fontSize: width < 350 ? 20 : 24 }}
-              >
-                Would you like to talk about it more?
-              </Text>
-                
-              <View className="items-start">
-                <TouchableOpacity
-                  onPress={redirectToChatbot}
-                  className="px-6 py-3 rounded-full items-center mb-2"
-                  style={{
-                    backgroundColor: "#EEEED0"
-                  }}
-                >
-                  <Text
-                    className="font-LeagueSpartan-Bold text-txt-darkblue text-2xl"
-                    style={{ color: selectedMood ? moodColors[selectedMood] : "#333" }}
-                  >
-                    Yes
-                  </Text>
-                </TouchableOpacity>
-                  
-                <TouchableOpacity
-                  onPress={finalSaveEntry}
-                  className="px-6 py-3 rounded-full items-center mb-2"
-                  style={{
-                    backgroundColor: "#EEEED0"
-                  }}
-                >
-                  <Text 
-                    className="font-LeagueSpartan text-2xl"
-                    style={{ color: selectedMood ? moodColors[selectedMood] : "#333" }}
-                  >
-                    No
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <Image
-                    source={images.moodichat}
-                    style={{
-                      width: width * 1,
-                      height: width * 1,
-                      position: 'absolute',
-                      bottom: -130,
-                      left: 80,
-                      resizeMode: 'contain'
-                    }}
-                  />
-          </SafeAreaView>
-        </View>
-      </Modal>
+        onClose={() => setSummaryModalVisible(false)}
+        selectedMood={selectedMood}
+        selectedEmotion={selectedEmotion}
+        selectedDate={selectedDate}
+        onSaveEntry={finalSaveEntry}
+        onChatbot={redirectToChatbot}
+        width={width}
+        height={height}
+        moodColors={moodColors}
+        theme={theme}
+      />
 
       {/* XP Streak Popup */}
       <XpStreakPopup 
         visible={xpPopupVisible}
-        earnedXp={10}
+        onClose={closeXpPopup}
         totalXp={totalXp}
         streak={streak}
-        onClose={closeXpPopup}
+        xpAmount={xpAmount}
+        xpSource={xpSource}
+        isPastDay={selectedDate && !isSameDay(selectedDate, new Date())}
+        theme={theme}
       />
     </SafeAreaView>
   );

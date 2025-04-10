@@ -15,7 +15,8 @@ export default function NicknamePage() {
       // Save nickname and navigate to next screen
       router.push({
         pathname: '/(root)/(tabs)/home-page',
-        params: { nickname: nickname.trim(), showWelcome: true }
+        params: { nickname: nickname.trim(), 
+        showWelcome: "true" }
     });
 }
 };
