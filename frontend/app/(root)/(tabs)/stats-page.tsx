@@ -8,31 +8,15 @@ import { format, subMonths, addMonths, startOfMonth, endOfMonth, eachDayOfInterv
 import { useTheme } from "@/app/(root)/properties/themecontext";
 import { LinearGradient } from "expo-linear-gradient";
 import { moodColors } from "@/app/services/type";
+import { 
+  getAllMoodEntries, 
+  subscribeToChanges, 
+  getMoodEntriesForCalendar 
+} from "@/app/services/moodEntriesApi";
 
 const { width, height } = Dimensions.get("window");
 const screenWidth = width - 40; // Account for padding
 const chartWidth = screenWidth - 16;
-
-// Sample data - in a real app, this would come from your API
-const sampleEntries = [
-  { mood: "rad", emotion: "excited", date: "2025-04-10", journal: "Had a great day today!" },
-  { mood: "bad", emotion: "stressed", date: "2025-04-09", journal: "Work was really tough." },
-  { mood: "rad", emotion: "inspired", date: "2025-04-08", journal: "" },
-  { mood: "bad", emotion: "anxious", date: "2025-04-07", journal: "Worried about the presentation." },
-  { mood: "good", emotion: "content", date: "2025-04-06", journal: "Nice, relaxing weekend." },
-  { mood: "awful", emotion: "depressed", date: "2025-04-05", journal: "Everything went wrong today." },
-  { mood: "good", emotion: "grateful", date: "2025-04-04", journal: "Had lunch with an old friend." },
-  { mood: "meh", emotion: "tired", date: "2025-04-03", journal: "Just an ordinary day." },
-  { mood: "meh", emotion: "bored", date: "2025-04-02", journal: "" },
-  { mood: "good", emotion: "optimistic", date: "2025-04-01", journal: "New month, new goals!" },
-  { mood: "rad", emotion: "joyful", date: "2025-03-31", journal: "Birthday celebration was amazing!" },
-  { mood: "good", emotion: "relaxed", date: "2025-03-30", journal: "" },
-  { mood: "meh", emotion: "unmotivated", date: "2025-03-29", journal: "Lazy Saturday." },
-  { mood: "bad", emotion: "frustrated", date: "2025-03-28", journal: "Traffic was terrible." },
-  { mood: "awful", emotion: "overwhelmed", date: "2025-03-27", journal: "Too many deadlines." },
-  { mood: "good", emotion: "proud", date: "2025-03-26", journal: "Completed my project." },
-  { mood: "rad", emotion: "energetic", date: "2025-03-25", journal: "Great workout today!" },
-];
 
 // Array of daily affirmations
 const affirmations = [
@@ -46,7 +30,7 @@ const affirmations = [
   "I deserve peace and happiness",
 ];
 
-// Map mood types to theme color properties
+// Map mood types to theme color properties - same as in other screens
 const moodToThemeMap = {
   "rad": "buttonBg",
   "good": "accent1",
@@ -64,7 +48,7 @@ const moodScores = {
   "awful": 1
 };
 
-// Define mood names with proper capitalization
+// Define mood names with proper capitalization - same as in other screens
 const moodNames = {
   "rad": "Rad",
   "good": "Good",
@@ -77,7 +61,7 @@ export default function StatsScreen() {
   const { theme } = useTheme();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [todayAffirmation, setTodayAffirmation] = useState("");
-  const [entries, setEntries] = useState(sampleEntries);
+  const [entries, setEntries] = useState([]);
   const [monthlyEntries, setMonthlyEntries] = useState([]);
   const [stats, setStats] = useState({
     moodCounts: {},
@@ -88,6 +72,26 @@ export default function StatsScreen() {
     weeklyTrend: []
   });
 
+  // Load entries from API (just like in HomeScreen)
+  useEffect(() => {
+    try {
+      // Get initial entries
+      const initialEntries = getAllMoodEntries();
+      console.log("Stats page - initial entries:", initialEntries);
+      setEntries(initialEntries);
+      
+      // Subscribe to future changes
+      const unsubscribe = subscribeToChanges(() => {
+        console.log("Mood entries updated in stats screen");
+        setEntries(getAllMoodEntries());
+      });
+      
+      return unsubscribe; // Cleanup subscription on unmount
+    } catch (error) {
+      console.error("Error loading mood entries on stats page:", error);
+    }
+  }, []);
+
   useEffect(() => {
     // Get a random affirmation for the day
     const randomIndex = Math.floor(Math.random() * affirmations.length);
@@ -95,7 +99,7 @@ export default function StatsScreen() {
 
     // Filter entries for the selected month
     filterEntriesByMonth(selectedMonth);
-  }, [selectedMonth]);
+  }, [selectedMonth, entries]);
 
   useEffect(() => {
     // Calculate statistics when entries change
@@ -104,7 +108,7 @@ export default function StatsScreen() {
 
   const filterEntriesByMonth = (date) => {
     const filtered = entries.filter(entry => {
-      const entryDate = parseISO(entry.date);
+      const entryDate = parseISO(entry.formattedDate);
       return isSameMonth(entryDate, date);
     });
     setMonthlyEntries(filtered);
@@ -118,19 +122,28 @@ export default function StatsScreen() {
         streak: calculateStreak(),
         topEmotions: [],
         journalPercentage: 0,
-        weeklyTrend: []
+        weeklyTrend: [
+          { week: "Week 1", score: 0 },
+          { week: "Week 2", score: 0 },
+          { week: "Week 3", score: 0 },
+          { week: "Week 4", score: 0 },
+        ]
       });
       return;
     }
 
-    // Calculate mood counts
+    // Calculate mood counts - ensuring lowercase mood values
     const moodCounts = monthlyEntries.reduce((acc, entry) => {
-      acc[entry.mood] = (acc[entry.mood] || 0) + 1;
+      const normalizedMood = entry.mood.toLowerCase();
+      acc[normalizedMood] = (acc[normalizedMood] || 0) + 1;
       return acc;
     }, {});
 
     // Calculate average mood score
-    const totalScore = monthlyEntries.reduce((sum, entry) => sum + moodScores[entry.mood], 0);
+    const totalScore = monthlyEntries.reduce((sum, entry) => {
+      const normalizedMood = entry.mood.toLowerCase();
+      return sum + moodScores[normalizedMood];
+    }, 0);
     const avgScore = totalScore / monthlyEntries.length;
 
     // Calculate journal completion percentage
@@ -176,7 +189,7 @@ export default function StatsScreen() {
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
 
-  // Get mood color from theme
+  // Get mood color from theme - same as in HomeScreen and CalendarScreen
   const getMoodThemeColor = (mood) => {
     if (!mood) return theme.calendarBg;
     
@@ -200,10 +213,29 @@ export default function StatsScreen() {
     }],
   };
 
+  // Ensure we have valid data for the line chart to avoid the Infinity error
+  const ensureValidChartData = (data) => {
+    // Check if there are any entries
+    if (data.length === 0) {
+      return [
+        { week: "Week 1", score: 0 },
+        { week: "Week 2", score: 0 },
+        { week: "Week 3", score: 0 },
+        { week: "Week 4", score: 0 },
+      ];
+    }
+    
+    // Ensure all values are finite numbers
+    return data.map(item => ({
+      ...item,
+      score: Number.isFinite(item.score) ? item.score : 0
+    }));
+  };
+
   const weeklyTrendData = {
     labels: stats.weeklyTrend.map(item => item.week),
     datasets: [{
-      data: stats.weeklyTrend.map(item => item.score),
+      data: ensureValidChartData(stats.weeklyTrend).map(item => item.score),
       color: (opacity = 1) => theme.buttonBg,
       strokeWidth: 2
     }],
@@ -241,11 +273,15 @@ export default function StatsScreen() {
 
   const isDarkTheme = theme.background === "#000000";
 
+  // Check if we have valid data for the line chart
+  const hasValidWeeklyData = stats.weeklyTrend.length > 0 && 
+    stats.weeklyTrend.every(item => Number.isFinite(item.score));
+
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: theme.background }}>
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
 
-      {/* Background Gradient */}
+      {/* Background Gradient - MODIFIED TO BE LIGHTER */}
       <View
         pointerEvents="none"
         style={{
@@ -259,8 +295,8 @@ export default function StatsScreen() {
       >
         <LinearGradient
           colors={[
-            `${theme.background}E6`, // Add opacity
-            `${theme.background}80`, // More transparent
+            `${theme.background}90`, // Much more transparent (90 instead of E6)
+            `${theme.background}50`, // Increased transparency (50 instead of 80)
             "transparent"
           ]}
           start={{ x: 0, y: 1 }}
@@ -526,28 +562,39 @@ export default function StatsScreen() {
             Weekly Mood Trend
           </Text>
           
-          <View style={{ alignItems: "center", marginBottom: 8 }}>
-            <LineChart
-              data={weeklyTrendData}
-              width={chartWidth}
-              height={220}
-              chartConfig={{
-                ...chartConfig,
-                fillShadowGradientFrom: theme.buttonBg,
-                fillShadowGradientTo: `${theme.buttonBg}00`,
-                strokeWidth: 2,
-              }}
-              bezier
-              style={{ borderRadius: 16 }}
-              withVerticalLines={false}
-              withHorizontalLines={true}
-              withVerticalLabels={true}
-              withHorizontalLabels={true}
-              fromZero={false}
-              yAxisLabel=""
-              yAxisSuffix=""
-            />
-          </View>
+          {hasValidWeeklyData ? (
+            <View style={{ alignItems: "center", marginBottom: 8 }}>
+              <LineChart
+                data={weeklyTrendData}
+                width={chartWidth}
+                height={220}
+                chartConfig={{
+                  ...chartConfig,
+                  fillShadowGradientFrom: theme.buttonBg,
+                  fillShadowGradientTo: `${theme.buttonBg}00`,
+                  strokeWidth: 2,
+                }}
+                bezier
+                style={{ borderRadius: 16 }}
+                withVerticalLines={false}
+                withHorizontalLines={true}
+                withVerticalLabels={true}
+                withHorizontalLabels={true}
+                fromZero={true} // Changed to true to avoid negative values
+                yAxisLabel=""
+                yAxisSuffix=""
+              />
+            </View>
+          ) : (
+            <Text style={{ 
+              color: theme.dimmedText, 
+              textAlign: "center", 
+              fontFamily: "LaoSansPro-Regular",
+              marginVertical: 40
+            }}>
+              Not enough data to display weekly trend
+            </Text>
+          )}
         </View>
 
         {/* Top Emotions */}

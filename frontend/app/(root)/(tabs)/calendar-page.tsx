@@ -47,6 +47,7 @@ export default function CalendarScreen() {
   const [selectedReward, setSelectedReward] = useState(null);
   const [todayAffirmation, setTodayAffirmation] = useState("");
   const [calendarEntries, setCalendarEntries] = useState([]);
+  const [userXP, setUserXP] = useState(85); // Example XP progress 0-100
   
   // Use the theme context with multiple themes
   const { theme, setThemeName, availableThemes } = useTheme();
@@ -56,30 +57,38 @@ export default function CalendarScreen() {
     {
       title: "🌱 Spring Theme",
       themeName: "spring",
-      icon: "https://cdn-icons-png.flaticon.com/128/1688/1688535.png",
+      icon: "leaf-outline",
       description: "Fresh green & yellow tones",
-      color: "#5fa55a"
-    },
-    {
-      title: "❄️ Winter Theme",
-      themeName: "winter",
-      icon: "https://cdn-icons-png.flaticon.com/128/3523/3523063.png",
-      description: "Cool blue & ice tones",
-      color: "#4deeea"
+      color: "#5fa55a",
+      requiredXP: 0, // Starting theme
+      unlocked: true
     },
     {
       title: "☀️ Summer Theme",
       themeName: "summer",
-      icon: "https://cdn-icons-png.flaticon.com/128/1104/1104935.png",
+      icon: "sunny-outline",
       description: "Vibrant pink & purple",
-      color: "#c266a7"
+      color: "#c266a7",
+      requiredXP: 30,
+      unlocked: userXP >= 30
     },
     {
       title: "🍂 Autumn Theme",
       themeName: "autumn",
-      icon: "https://cdn-icons-png.flaticon.com/128/2913/2913136.png",
+      icon: "flame-outline",
       description: "Warm orange & red tones",
-      color: "#FF6B35"
+      color: "#FF6B35",
+      requiredXP: 60,
+      unlocked: userXP >= 60
+    },
+    {
+      title: "❄️ Winter Theme",
+      themeName: "winter",
+      icon: "snow-outline",
+      description: "Cool blue & ice tones",
+      color: "#4deeea",
+      requiredXP: 90,
+      unlocked: userXP >= 90
     },
   ];
 
@@ -160,6 +169,10 @@ export default function CalendarScreen() {
 
   // Handle reward selection and theme change
   const handleRewardSelect = async (palette) => {
+    if (!palette.unlocked) {
+      return; // Don't allow selection of locked themes
+    }
+    
     setSelectedReward(palette.title);
     setThemeName(palette.themeName);
     
@@ -286,6 +299,7 @@ export default function CalendarScreen() {
           flexGrow: 1,
           alignItems: "center",
           paddingHorizontal: 16,
+          paddingBottom: 24,
         }}
       >
         {view === "Calendar" ? (
@@ -367,137 +381,321 @@ export default function CalendarScreen() {
             </View>
           </View>
         ) : (
-          <View style={{ marginTop: 24, width: "100%", paddingHorizontal: 16, alignItems: "center" }}>
-            <Text style={{ color: theme.text, fontSize: 20, fontWeight: "bold", marginBottom: 32 }}>
-              🔥 XP Progress
-            </Text>
-            <Text style={{ color: theme.text, textAlign: "center", marginBottom: 24 }}>
-              Track your streaks and unlock seasonal themes for maintaining consistent moods!
-            </Text>
-
-            {/* Theme title with current theme name */}
-            <Text style={{ color: theme.buttonBg, fontWeight: "bold", fontSize: 16, marginBottom: 16 }}>
-              Current Season: {theme.name}
-            </Text>
-            
-            {/* Themes section header */}
-            <View style={{ 
-              backgroundColor: theme.calendarBg, 
-              paddingVertical: 12, 
-              borderTopLeftRadius: 8, 
-              borderTopRightRadius: 8,
-              width: "100%",
-              alignItems: "center"
+          // Streak Page - Redesigned with focus on XP
+          <View style={{ width: "100%", alignItems: "center" }}>
+            <Text style={{ 
+              color: theme.text, 
+              fontSize: 20, 
+              fontWeight: "bold", 
+              marginBottom: 24,
+              alignSelf: "center"
             }}>
-              <Text style={{ color: theme.text, fontWeight: "bold" }}>
-                Seasonal Themes
-              </Text>
-            </View>
+              Your Mood Theme Journey
+            </Text>
             
-            {/* Horizontal theme tabs */}
+            {/* Enhanced XP Progress Section */}
             <View style={{ 
-              flexDirection: "row", 
-              justifyContent: "space-around", 
-              width: "100%",
+              width: "100%", 
               backgroundColor: theme.calendarBg,
-              borderBottomLeftRadius: 8,
-              borderBottomRightRadius: 8,
-              paddingVertical: 16,
-              paddingHorizontal: 8,
+              borderRadius: 16,
+              padding: 20,
               marginBottom: 24
             }}>
-              {palettes.slice(0, 3).map((palette, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => handleRewardSelect(palette)}
-                  style={{ 
-                    alignItems: "center",
-                    flex: 1
-                  }}
-                >
-                  <View
-                    style={{                                                                                
-                      width: 48,
-                      height: 48,
-                      borderRadius: 24,
-                      backgroundColor: theme.calendarBg,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderWidth: selectedReward === palette.title ? 2 : 0,
-                      borderColor: selectedReward === palette.title ? palette.color : 'transparent'
-                    }}
-                  >
-                    <View style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      backgroundColor: palette.color
-                    }} />
-                  </View>
-                  <Text
-                    style={{
-                      color: theme.text,
-                      fontSize: 12,
-                      fontWeight: "600",
-                      marginTop: 8,
-                      textAlign: "center"
-                    }}
-                  >
-                    {palette.title.split(" ")[0]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Autumn theme option below the horizontal tabs */}
-            <TouchableOpacity
-              onPress={() => handleRewardSelect(palettes[3])}
-              style={{ marginBottom: 16 }}
-            >
+              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+                <Ionicons name="trophy" size={24} color={theme.buttonBg} style={{ marginRight: 8 }} />
+                <Text style={{ color: theme.text, fontSize: 18, fontWeight: "bold" }}>
+                  Mood XP Progress
+                </Text>
+              </View>
+              
+              <Text style={{ 
+                color: theme.dimmedText, 
+                marginBottom: 16,
+                lineHeight: 20
+              }}>
+                Log moods daily to earn XP and unlock new seasonal themes.
+              </Text>
+              
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
+                <Text style={{ color: theme.text, fontWeight: "600" }}>Current XP</Text>
+                <Text style={{ color: theme.buttonBg, fontWeight: "bold" }}>{userXP}/100</Text>
+              </View>
+              
               <View style={{ 
-                flexDirection: "row", 
-                alignItems: "center", 
-                backgroundColor: theme.calendarBg,
-                padding: 12,
-                borderRadius: 8,
-                width: "100%"
+                height: 14, 
+                backgroundColor: `${theme.buttonBg}20`, 
+                borderRadius: 7, 
+                overflow: "hidden",
+                marginBottom: 8
               }}>
                 <View
-                  style={{                                                                                
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: theme.calendarBg,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderWidth: selectedReward === palettes[3].title ? 2 : 0,
-                    borderColor: selectedReward === palettes[3].title ? palettes[3].color : 'transparent',
-                    marginRight: 16
+                  style={{
+                    width: `${userXP}%`,
+                    height: "100%",
+                    backgroundColor: theme.buttonBg,
+                    borderRadius: 7
                   }}
-                >
-                  <View style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 12,
-                    backgroundColor: palettes[3].color
-                  }} />
+                />
+              </View>
+              
+              <Text style={{ 
+                color: theme.accent1,
+                fontSize: 13,
+                fontWeight: "500",
+                textAlign: "right"
+              }}>
+                {100 - userXP} XP needed for next theme
+              </Text>
+            </View>
+
+            {/* Theme Map Title */}
+            <Text style={{ 
+              color: theme.text, 
+              fontSize: 18, 
+              fontWeight: "bold", 
+              marginBottom: 16,
+              alignSelf: "flex-start"
+            }}>
+              Theme Map
+            </Text>
+
+            {/* Theme Map */}
+            <View style={{ 
+              width: "100%", 
+              backgroundColor: theme.calendarBg,
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 16
+            }}>
+              {/* Map Path - Curved Line Connecting All Themes */}
+              <View style={{ 
+                position: "absolute", 
+                left: 45, 
+                top: 80, 
+                width: 2, 
+                height: 220,
+                backgroundColor: `${theme.dimmedText}60`,
+                borderRadius: 4,
+                zIndex: 1
+              }} />
+              
+              {/* First Theme - Spring (Starting Point) */}
+              <TouchableOpacity
+                onPress={() => handleRewardSelect(palettes[0])}
+                style={{ 
+                  flexDirection: "row", 
+                  alignItems: "center", 
+                  marginBottom: 24,
+                  zIndex: 2
+                }}
+              >
+                <View style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  backgroundColor: palettes[0].color,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 16,
+                  borderWidth: selectedReward === palettes[0].title ? 3 : 0,
+                  borderColor: theme.text,
+                  opacity: palettes[0].unlocked ? 1 : 0.5
+                }}>
+                  <Ionicons name={palettes[0].icon} size={28} color="#fff" />
                 </View>
-                <View>
-                  <Text style={{ color: theme.text, fontWeight: "600" }}>
+                
+                <View style={{ flex: 1 }}>
+                  <Text style={{ 
+                    color: theme.text, 
+                    fontWeight: "bold", 
+                    fontSize: 16
+                  }}>
+                    {palettes[0].title}
+                  </Text>
+                  <Text style={{ color: theme.dimmedText, fontSize: 12 }}>
+                    {palettes[0].description}
+                  </Text>
+                </View>
+                
+                <View style={{
+                  backgroundColor: theme.buttonBg,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 12
+                }}>
+                  <Text style={{ color: "#fff", fontWeight: "bold" }}>START</Text>
+                </View>
+              </TouchableOpacity>
+              
+              {/* Second Theme - Summer */}
+              <TouchableOpacity
+                onPress={() => handleRewardSelect(palettes[1])}
+                style={{ 
+                  flexDirection: "row", 
+                  alignItems: "center", 
+                  marginBottom: 24,
+                  zIndex: 2
+                }}
+              >
+                <View style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  backgroundColor: palettes[1].unlocked ? palettes[1].color : `${theme.dimmedText}60`,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 16,
+                  borderWidth: selectedReward === palettes[1].title ? 3 : 0,
+                  borderColor: theme.text,
+                  opacity: palettes[1].unlocked ? 1 : 0.5
+                }}>
+                  <Ionicons name={palettes[1].icon} size={28} color="#fff" />
+                  {!palettes[1].unlocked && (
+                    <Ionicons name="lock-closed" size={16} color="#fff" style={{ position: "absolute", bottom: 0, right: 0 }} />
+                  )}
+                </View>
+                
+                <View style={{ flex: 1 }}>
+                  <Text style={{ 
+                    color: theme.text, 
+                    fontWeight: "bold", 
+                    fontSize: 16
+                  }}>
+                    {palettes[1].title}
+                  </Text>
+                  <Text style={{ color: theme.dimmedText, fontSize: 12 }}>
+                    {palettes[1].description}
+                  </Text>
+                </View>
+                
+                <View style={{
+                  backgroundColor: palettes[1].unlocked ? theme.accent1 : `${theme.dimmedText}40`,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 12
+                }}>
+                  <Text style={{ color: "#fff", fontWeight: "bold" }}>{palettes[1].unlocked ? "UNLOCKED" : `${palettes[1].requiredXP} XP`}</Text>
+                </View>
+              </TouchableOpacity>
+              
+              {/* Third Theme - Autumn */}
+              <TouchableOpacity
+                onPress={() => handleRewardSelect(palettes[2])}
+                style={{ 
+                  flexDirection: "row", 
+                  alignItems: "center", 
+                  marginBottom: 24,
+                  zIndex: 2
+                }}
+              >
+                <View style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  backgroundColor: palettes[2].unlocked ? palettes[2].color : `${theme.dimmedText}60`,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 16,
+                  borderWidth: selectedReward === palettes[2].title ? 3 : 0,
+                  borderColor: theme.text,
+                  opacity: palettes[2].unlocked ? 1 : 0.5
+                }}>
+                  <Ionicons name={palettes[2].icon} size={28} color="#fff" />
+                  {!palettes[2].unlocked && (
+                    <Ionicons name="lock-closed" size={16} color="#fff" style={{ position: "absolute", bottom: 0, right: 0 }} />
+                  )}
+                </View>
+                
+                <View style={{ flex: 1 }}>
+                  <Text style={{ 
+                    color: theme.text, 
+                    fontWeight: "bold", 
+                    fontSize: 16
+                  }}>
+                    {palettes[2].title}
+                  </Text>
+                  <Text style={{ color: theme.dimmedText, fontSize: 12 }}>
+                    {palettes[2].description}
+                  </Text>
+                </View>
+                
+                <View style={{
+                  backgroundColor: palettes[2].unlocked ? theme.buttonBg : `${theme.dimmedText}40`,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 12
+                }}>
+                  <Text style={{ color: "#fff", fontWeight: "bold" }}>{palettes[2].unlocked ? "UNLOCKED" : `${palettes[2].requiredXP} XP`}</Text>
+                </View>
+              </TouchableOpacity>
+              
+              {/* Fourth Theme - Winter */}
+              <TouchableOpacity
+                onPress={() => handleRewardSelect(palettes[3])}
+                style={{ 
+                  flexDirection: "row", 
+                  alignItems: "center",
+                  zIndex: 2
+                }}
+              >
+                <View style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
+                  backgroundColor: palettes[3].unlocked ? palettes[3].color : `${theme.dimmedText}60`,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 16,
+                  borderWidth: selectedReward === palettes[3].title ? 3 : 0,
+                  borderColor: theme.text,
+                  opacity: palettes[3].unlocked ? 1 : 0.5
+                }}>
+                  <Ionicons name={palettes[3].icon} size={28} color="#fff" />
+                  {!palettes[3].unlocked && (
+                    <Ionicons name="lock-closed" size={16} color="#fff" style={{ position: "absolute", bottom: 0, right: 0 }} />
+                  )}
+                </View>
+                
+                <View style={{ flex: 1 }}>
+                  <Text style={{ 
+                    color: theme.text, 
+                    fontWeight: "bold", 
+                    fontSize: 16
+                  }}>
                     {palettes[3].title}
                   </Text>
                   <Text style={{ color: theme.dimmedText, fontSize: 12 }}>
                     {palettes[3].description}
                   </Text>
                 </View>
+                
+                <View style={{
+                  backgroundColor: palettes[3].unlocked ? theme.accent3 : `${theme.dimmedText}40`,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 12
+                }}>
+                  <Text style={{ color: "#fff", fontWeight: "bold" }}>{palettes[3].unlocked ? "UNLOCKED" : `${palettes[3].requiredXP} XP`}</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            
+            {/* Current Theme Info */}
+            <View style={{ 
+              width: "100%", 
+              backgroundColor: theme.calendarBg, 
+              borderRadius: 12, 
+              padding: 16,
+              flexDirection: "row", 
+              alignItems: "center" 
+            }}>
+              <Ionicons name="color-palette-outline" size={24} color={theme.buttonBg} style={{ marginRight: 10 }} />
+              
+              <View>
+                <Text style={{ color: theme.text, fontWeight: "bold" }}>Current Theme</Text>
+                <Text style={{ color: theme.buttonBg, fontWeight: "600" }}>{theme.name}</Text>
               </View>
-            </TouchableOpacity>
-
-            {selectedReward && (
-              <Text style={{ color: theme.buttonBg, marginTop: 16, fontSize: 18, fontWeight: "600" }}>
-                {`Theme Unlocked: ${selectedReward}`}
-              </Text>
-            )}
+            </View>
           </View>
         )}
       </ScrollView>

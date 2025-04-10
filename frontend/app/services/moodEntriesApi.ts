@@ -1,86 +1,104 @@
 import { format } from 'date-fns';
 
-// Initial seed data that will be shown in both Calendar and Home screens
+// Initial seed data with dates before the current date (April 11, 2025)
+// Three entries do not have journal entries
 const initialEntries = [
   {
     mood: "rad",
     emotion: "Excited",
-    day: "Tuesday",
-    date: "April 15, 2025",
+    day: "Thursday",
+    date: "April 10, 2025",
     time: "9:30 AM",
     journal: "Feeling great today! Started a new project.",
-    timestamp: new Date("2025-02-15").getTime(),
-    formattedDate: "2025-04-15" // For calendar screen lookup
+    timestamp: new Date("2025-04-10T09:30:00").getTime(),
+    formattedDate: "2025-04-10" // For calendar screen lookup
   },
   {
     mood: "bad",
     emotion: "Frustrated",
-    day: "Monday",
-    date: "April 14, 2025",
+    day: "Wednesday",
+    date: "April 9, 2025",
     time: "8:45 PM",
-    journal: "Had an argument that ruined Valentine's Day.",
-    timestamp: new Date("2025-02-14").getTime(),
-    formattedDate: "2025-04-14"
+    timestamp: new Date("2025-04-09T20:45:00").getTime(),
+    formattedDate: "2025-04-09"
   },
   {
     mood: "rad",
     emotion: "Energetic",
-    day: "Sunday",
-    date: "April 13, 2025",
+    day: "Tuesday",
+    date: "April 8, 2025",
     time: "10:15 AM",
     journal: "Got a promotion at work! So happy!",
-    timestamp: new Date("2025-02-13").getTime(),
-    formattedDate: "2025-04-13"
+    timestamp: new Date("2025-04-08T10:15:00").getTime(),
+    formattedDate: "2025-04-08"
   },
   {
     mood: "bad",
     emotion: "Anxious",
-    day: "Saturday",
-    date: "April 12, 2025",
+    day: "Monday",
+    date: "April 7, 2025",
     time: "3:20 PM",
-    journal: "Big presentation tomorrow and I don't feel ready.",
-    timestamp: new Date("2025-02-12").getTime(),
-    formattedDate: "2025-04-12"
+    timestamp: new Date("2025-04-07T15:20:00").getTime(),
+    formattedDate: "2025-04-07"
   },
   {
     mood: "good",
     emotion: "Content",
-    day: "Friday",
-    date: "April 11, 2025",
+    day: "Sunday",
+    date: "April 6, 2025",
     time: "7:00 PM",
     journal: "Relaxing evening with a good book.",
-    timestamp: new Date("2025-02-11").getTime(),
-    formattedDate: "2025-04-11"
+    timestamp: new Date("2025-04-06T19:00:00").getTime(),
+    formattedDate: "2025-04-06"
   },
   {
     mood: "awful",
     emotion: "Depressed",
-    day: "Thursday",
-    date: "April 10, 2025",
+    day: "Saturday",
+    date: "April 5, 2025",
     time: "11:45 AM",
     journal: "Got some bad news and everything feels overwhelming.",
-    timestamp: new Date("2025-02-10").getTime(),
-    formattedDate: "2025-04-10"
+    timestamp: new Date("2025-04-05T11:45:00").getTime(),
+    formattedDate: "2025-04-05"
   },
   {
     mood: "good",
     emotion: "Peaceful",
-    day: "Wednesday",
-    date: "April 9, 2025",
+    day: "Friday",
+    date: "April 4, 2025",
     time: "4:30 PM",
     journal: "Spent time in nature and felt very calm.",
-    timestamp: new Date("2025-02-9").getTime(),
-    formattedDate: "2025-04-09"
+    timestamp: new Date("2025-04-04T16:30:00").getTime(),
+    formattedDate: "2025-04-04"
   },
   {
     mood: "meh",
     emotion: "Bored",
-    day: "Tuesday",
-    date: "April 8, 2025",
+    day: "Thursday",
+    date: "April 3, 2025",
     time: "2:15 PM",
-    journal: "Nothing interesting happened today.",
-    timestamp: new Date("2025-02-8").getTime(),
-    formattedDate: "2025-04-08"
+    timestamp: new Date("2025-04-03T14:15:00").getTime(),
+    formattedDate: "2025-04-03"
+  },
+  {
+    mood: "good",
+    emotion: "Hopeful",
+    day: "Wednesday",
+    date: "April 2, 2025",
+    time: "8:30 AM",
+    journal: "Starting the day with a positive mindset.",
+    timestamp: new Date("2025-04-02T08:30:00").getTime(),
+    formattedDate: "2025-04-02"
+  },
+  {
+    mood: "meh",
+    emotion: "Tired",
+    day: "Tuesday",
+    date: "April 1, 2025",
+    time: "9:45 PM",
+    journal: "Long day, feeling exhausted.",
+    timestamp: new Date("2025-04-01T21:45:00").getTime(),
+    formattedDate: "2025-04-01"
   }
 ];
 
