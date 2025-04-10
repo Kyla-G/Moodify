@@ -1,18 +1,31 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect } from "react";
 import HomeScreen from "../(tabs)/home-page";
 import ChatbotStartScreen from "../(tabs)/chatbot-start";
 import ChatbotPageScreen from "../(tabs)/chatbot-page";
 import CalendarScreen from "../(tabs)/calendar-page";
 import StatsScreen from "../(tabs)/stats-page";
+import { useTheme } from "@/app/(root)/properties/themecontext"; // Import the theme context
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+// Storage key for theme persistence (should match with other components)
+const THEME_STORAGE_KEY = "app_selected_theme";
+
 function ChatbotStack() {
+  const { theme } = useTheme();
+  
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        contentStyle: { backgroundColor: theme.background }
+      }}
+    >
       <Stack.Screen name="ChatbotStart" component={ChatbotStartScreen} />
       <Stack.Screen name="ChatbotPage" component={ChatbotPageScreen} />
     </Stack.Navigator>
@@ -20,6 +33,25 @@ function ChatbotStack() {
 }
 
 export default function Layout() {
+  const { theme, setThemeName } = useTheme(); // Use the theme context
+  
+  // Load saved theme on initial mount
+  useEffect(() => {
+    const loadSavedTheme = async () => {
+      try {
+        const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        if (savedTheme) {
+          setThemeName(savedTheme);
+          console.log(`Layout: Applied saved theme: ${savedTheme}`);
+        }
+      } catch (error) {
+        console.error("Layout: Error loading saved theme:", error);
+      }
+    };
+    
+    loadSavedTheme();
+  }, []);
+  
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -32,13 +64,25 @@ export default function Layout() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: "#FF6B35",
-        tabBarInactiveTintColor: "#442920",
+        // Use theme colors for tab bar
+        tabBarActiveTintColor: theme.buttonBg, // Use the theme's button color for active tabs
+        tabBarInactiveTintColor: theme.dimmedText, // Use dimmed text color for inactive tabs
         tabBarStyle: {
-          backgroundColor: "black",
+          backgroundColor: theme.background, // Use theme background color
           borderTopWidth: 0,
+          elevation: 0, // Remove shadow on Android
+          shadowOpacity: 0, // Remove shadow on iOS
         },
+        // Set screen background colors
+        headerStyle: {
+          backgroundColor: theme.background,
+        },
+        headerTintColor: theme.text,
         headerShown: false,
+        // Set content style to use theme background
+        contentStyle: {
+          backgroundColor: theme.background
+        }
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />

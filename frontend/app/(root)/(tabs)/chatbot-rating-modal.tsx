@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Keyboard,TouchableWithoutFeedback } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 interface ChatbotRatingModalProps {
@@ -7,75 +7,86 @@ interface ChatbotRatingModalProps {
 }
 
 const ChatbotRatingModal: React.FC<ChatbotRatingModalProps> = ({ onSubmit }) => {
-  const [rating, setRating] = useState<number>(0);
-  const [feedback, setFeedback] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [rating, setRating] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = () => {
-    if (rating === 0) {
-      setError('Please select a rating before submitting.');
+    if (rating === null) {
+      setError("Please rate before submitting.");
       return;
     }
-    
     onSubmit(rating, feedback);
   };
 
   return (
-    <View className="flex-1 justify-center items-center bg-black/70">
-      <View className="bg-white w-4/5 p-6 rounded-xl">
-        <Text className="text-2xl font-bold text-center text-[#000746] mb-6">
-          Rate Your Conversation
-        </Text>
-        
-        <Text className="text-lg text-[#000746] mb-2">
-          How helpful was Moodi today?
-        </Text>
-        
-        <View className="flex-row justify-between mb-8">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <TouchableOpacity 
-              key={star} 
-              onPress={() => {
-                setRating(star);
-                setError('');
-              }}
-              className="p-2"
-            >
-              <Ionicons 
-                name={rating >= star ? "star" : "star-outline"} 
-                size={40} 
-                color={rating >= star ? "#FFD700" : "#CCCCCC"} 
-              />
-            </TouchableOpacity>
-          ))}
-        </View>
-        
-        <Text className="text-lg text-[#000746] mb-2">
-          Share your feedback (optional):
-        </Text>
-        
-        <TextInput
-          className="border border-gray-300 rounded-lg p-3 mb-4 text-[#000746]"
-          placeholder="What did you like? How can we improve?"
-          placeholderTextColor="#999"
-          multiline
-          numberOfLines={4}
-          value={feedback}
-          onChangeText={setFeedback}
-        />
-        
-        {error ? (
-          <Text className="text-red-500 text-center mb-4">{error}</Text>
-        ) : null}
-        
-        <TouchableOpacity 
-          className="bg-[#FF6B35] py-3 rounded-lg items-center"
-          onPress={handleSubmit}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View className="flex-1 bg-black/50 justify-center px-4">
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center" }}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text className="text-white font-bold text-lg">Submit</Text>
-        </TouchableOpacity>
+          <View className="bg-[#1E1E1E] rounded-2xl px-6 py-8 w-full max-w-[90%]">
+            <Text className="text-txt-orange font-LeagueSpartan-Bold text-3xl font-bold mb-6 text-center">
+              Rate your conversation
+            </Text>
+            <Text className="text-txt-light font-LeagueSpartan text-xl mb-3 text-center">
+              How was your experience with Moodi?
+            </Text>
+
+            {/* Stars */}
+            <View className="flex-row justify-center mb-4 space-x-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => {
+                    setRating(star);
+                    setError("");
+                  }}
+                >
+                  <Ionicons
+                    name={rating !== null && star <= rating ? "star" : "star-outline"}
+                    size={40}
+                    color={rating !== null && star <= rating ? "#FF6B35" : "#555"}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {error ? (
+              <Text className="text-txt-orange font-LeagueSpartan mb-2 text-xl text-center">
+                {error}
+              </Text>
+            ) : null}
+
+            {/* Feedback */}
+            <View className="w-full mb-5">
+              <Text className="text-txt-light font-LeagueSpartan text-lg mb-1">
+                Share your feedback (Optional)
+              </Text>
+              <TextInput
+                className="border border-[#555] rounded-xl px-4 py-2 font-LeagueSpartan text-txt-light text-lg bg-[#2D2D2D] h-24 text-base"
+                multiline
+                numberOfLines={4}
+                value={feedback}
+                onChangeText={setFeedback}
+                placeholder="Tell us about your experience..."
+                placeholderTextColor="#888"
+                textAlignVertical="top"
+              />
+            </View>
+
+            {/* Submit */}
+            <TouchableOpacity
+              className="bg-[#FF6B35] rounded-2xl py-3 w-full items-center"
+              onPress={handleSubmit}
+            >
+              <Text className="text-txt-darkgray font-LeagueSpartan-Bold text-xl">Submit</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 

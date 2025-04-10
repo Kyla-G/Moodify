@@ -27,7 +27,6 @@ export default function StartConversationModal() {
         }}
       />
       
-      Pop up
       <View className="absolute w-90 bg-black p-6 rounded-lg">
         <Text className="text-txt-orange font-LeagueSpartan-Bold text-3xl mb-4 text-left">Start a Conversation</Text>
         <Text className="text-txt-light font-LeagueSpartan text-xl mb-6 text-center">Would you like to talk to Moodi?</Text>
