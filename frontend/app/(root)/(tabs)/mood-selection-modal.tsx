@@ -4,9 +4,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, getDaysInMonth, startOfMonth, getDay, addMonths, subMonths } from "date-fns";
 import icons from "@/constants/icons";
-
+import axios from "@/axiosConfig"
 // Remove the incorrectly placed useState hook
 // const [mood, setMood] = useState<"rad" | "good" | "meh" | "bad" | "awful">("good");
+
+
+
 
 // Hours and minutes for the time picker
 const hours = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -166,6 +169,34 @@ const MoodSelectionModal = ({
     
     return theme.text; // Fallback
   };
+
+  // const [mood, setMood] = useState();
+  // const [emotions, setEmotions] = useState();
+  // const [loggedDate, setLoggedDate] = useState();
+  // const [journal, setJournal] = useState('');
+
+  // const handleContinue = async () => {
+  //   if (!nickname.trim()) return;
+  
+  //   try {
+  //     const response = await axios.post("/users/addUser", {
+  //       nickname: nickname.trim(),
+  //     });
+  
+  //     if (response.data.successful) {
+  //       console.log("✅ User added:", response.data.user);
+  
+  //       router.push({
+  //         pathname: "/(root)/(tabs)/home-page",
+  //         params: { nickname: nickname.trim(), showWelcome: "true" },
+  //       });
+  //     } else {
+  //       console.warn("⚠️ Failed to add user:", response.data.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("❌ Error creating user:", error);
+  //   }
+  // };
 
   return (
     <Modal visible={visible} transparent animationType="slide">
