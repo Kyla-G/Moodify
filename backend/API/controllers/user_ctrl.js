@@ -140,7 +140,7 @@ const checkUserExists = async (req, res, next) => {
             return res.status(404).json({
                 successful: false,
                 exists: false,
-                message: err.message
+                message: "No user exists on this device."
             });
         }
 
@@ -160,6 +160,7 @@ const checkUserExists = async (req, res, next) => {
         });
     }
 };
+
 
 
 
