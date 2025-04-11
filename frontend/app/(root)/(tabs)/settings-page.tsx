@@ -46,10 +46,10 @@ export default function SettingsPage() {
           <Ionicons name="chevron-forward" size={20} color="#545454" />
         </TouchableOpacity>
         
-        <TouchableOpacity className="bg-[#202020] p-4 rounded-lg mb-4 flex-row justify-between items-center">
+        {/* <TouchableOpacity className="bg-[#202020] p-4 rounded-lg mb-4 flex-row justify-between items-center">
           <Text className="text-white text-lg">Passcode</Text>
           <Ionicons name="chevron-forward" size={20} color="#545454" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         
         <TouchableOpacity className="bg-[#202020] p-4 rounded-lg mb-4 flex-row justify-between items-center">
           <Text className="text-white text-lg">Change Nickname</Text>

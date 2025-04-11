@@ -21,14 +21,6 @@ function ChatbotStack() {
   );
 }
 
-function AppStack() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home" component={Layout} />
-      <Stack.Screen name="Settings" component={SettingsPage} />
-    </Stack.Navigator>
-  );
-}
 
 function Layout() {
   const { theme } = useTheme(); // Use the theme context to access current theme
