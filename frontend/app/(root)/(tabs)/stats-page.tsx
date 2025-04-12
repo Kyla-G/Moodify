@@ -4,7 +4,21 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { BarChart, LineChart, PieChart } from "react-native-chart-kit";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { format, subMonths, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, parseISO, isSameMonth } from "date-fns";
+import { 
+  format, 
+  subMonths, 
+  addMonths, 
+  startOfMonth, 
+  endOfMonth, 
+  eachDayOfInterval, 
+  parseISO, 
+  isSameMonth,
+  startOfWeek,
+  endOfWeek,
+  subWeeks,
+  addWeeks,
+  isWithinInterval
+} from "date-fns";
 import { useTheme } from "@/app/(root)/properties/themecontext";
 import { LinearGradient } from "expo-linear-gradient";
 import { moodColors } from "@/app/services/type";
@@ -59,10 +73,11 @@ const moodNames = {
 
 export default function StatsScreen() {
   const { theme } = useTheme();
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState("weekly"); // Add viewMode state - "weekly" or "monthly"
   const [todayAffirmation, setTodayAffirmation] = useState("");
   const [entries, setEntries] = useState([]);
-  const [monthlyEntries, setMonthlyEntries] = useState([]);
+  const [filteredEntries, setFilteredEntries] = useState([]); // Renamed from monthlyEntries to filteredEntries
   const [stats, setStats] = useState({
     moodCounts: {},
     avgScore: 0,
@@ -97,25 +112,52 @@ export default function StatsScreen() {
     const randomIndex = Math.floor(Math.random() * affirmations.length);
     setTodayAffirmation(affirmations[randomIndex]);
 
-    // Filter entries for the selected month
-    filterEntriesByMonth(selectedMonth);
-  }, [selectedMonth, entries]);
+    // Filter entries based on the view mode
+    filterEntriesByPeriod();
+  }, [selectedDate, entries, viewMode]);
 
   useEffect(() => {
-    // Calculate statistics when entries change
+    // Calculate statistics when filtered entries change
     calculateStats();
-  }, [monthlyEntries]);
+  }, [filteredEntries]);
 
-  const filterEntriesByMonth = (date) => {
-    const filtered = entries.filter(entry => {
-      const entryDate = parseISO(entry.formattedDate);
-      return isSameMonth(entryDate, date);
-    });
-    setMonthlyEntries(filtered);
+  // New function to filter entries based on view mode (weekly or monthly)
+  const filterEntriesByPeriod = () => {
+    if (entries.length === 0) {
+      setFilteredEntries([]);
+      return;
+    }
+
+    let filtered = [];
+    
+    if (viewMode === "weekly") {
+      const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 }); // Sunday
+      const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0 }); // Saturday
+      
+      filtered = entries.filter(entry => {
+        // Parse the date from the entry
+        const entryDate = entry.timestamp ? new Date(entry.timestamp) : parseISO(entry.formattedDate);
+        // Check if it falls within the selected week
+        return isWithinInterval(entryDate, { start: weekStart, end: weekEnd });
+      });
+    } else {
+      // Monthly view
+      const monthStart = startOfMonth(selectedDate);
+      const monthEnd = endOfMonth(selectedDate);
+      
+      filtered = entries.filter(entry => {
+        // Parse the date from the entry
+        const entryDate = entry.timestamp ? new Date(entry.timestamp) : parseISO(entry.formattedDate);
+        // Check if it falls within the selected month
+        return isWithinInterval(entryDate, { start: monthStart, end: monthEnd });
+      });
+    }
+    
+    setFilteredEntries(filtered);
   };
 
   const calculateStats = () => {
-    if (monthlyEntries.length === 0) {
+    if (filteredEntries.length === 0) {
       setStats({
         moodCounts: {},
         avgScore: 0,
@@ -133,25 +175,25 @@ export default function StatsScreen() {
     }
 
     // Calculate mood counts - ensuring lowercase mood values
-    const moodCounts = monthlyEntries.reduce((acc, entry) => {
+    const moodCounts = filteredEntries.reduce((acc, entry) => {
       const normalizedMood = entry.mood.toLowerCase();
       acc[normalizedMood] = (acc[normalizedMood] || 0) + 1;
       return acc;
     }, {});
 
     // Calculate average mood score
-    const totalScore = monthlyEntries.reduce((sum, entry) => {
+    const totalScore = filteredEntries.reduce((sum, entry) => {
       const normalizedMood = entry.mood.toLowerCase();
       return sum + moodScores[normalizedMood];
     }, 0);
-    const avgScore = totalScore / monthlyEntries.length;
+    const avgScore = totalScore / filteredEntries.length;
 
     // Calculate journal completion percentage
-    const entriesWithJournal = monthlyEntries.filter(entry => entry.journal && entry.journal.trim().length > 0);
-    const journalPercentage = (entriesWithJournal.length / monthlyEntries.length) * 100;
+    const entriesWithJournal = filteredEntries.filter(entry => entry.journal && entry.journal.trim().length > 0);
+    const journalPercentage = (entriesWithJournal.length / filteredEntries.length) * 100;
 
     // Count emotions and get top ones
-    const emotionCounts = monthlyEntries.reduce((acc, entry) => {
+    const emotionCounts = filteredEntries.reduce((acc, entry) => {
       acc[entry.emotion] = (acc[entry.emotion] || 0) + 1;
       return acc;
     }, {});
@@ -186,8 +228,38 @@ export default function StatsScreen() {
     return 5;
   };
 
-  const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
-  const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
+  // Format date range text for display in header
+  const getDateRangeText = () => {
+    if (viewMode === "weekly") {
+      const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
+      const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0 });
+      return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
+    } else {
+      return format(selectedDate, "MMMM yyyy");
+    }
+  };
+
+  // Navigation functions with support for both weekly and monthly views
+  const goToPrevious = () => {
+    if (viewMode === "weekly") {
+      setSelectedDate(subWeeks(selectedDate, 1));
+    } else {
+      setSelectedDate(subMonths(selectedDate, 1));
+    }
+  };
+  
+  const goToNext = () => {
+    if (viewMode === "weekly") {
+      setSelectedDate(addWeeks(selectedDate, 1));
+    } else {
+      setSelectedDate(addMonths(selectedDate, 1));
+    }
+  };
+
+  // Toggle between weekly and monthly views
+  const toggleViewMode = () => {
+    setViewMode(viewMode === "weekly" ? "monthly" : "weekly");
+  };
 
   // Get mood color from theme - same as in HomeScreen and CalendarScreen
   const getMoodThemeColor = (mood) => {
@@ -305,8 +377,10 @@ export default function StatsScreen() {
         />
       </View>
 
-      <View style={{ width: "100%", paddingHorizontal: 16 }}>
+      {/* Header Navigation with Weekly/Monthly Toggle - COPIED FROM HOME PAGE */}
+      <View style={{ zIndex: 20 }}>
         <View style={{ 
+          paddingHorizontal: width < 350 ? 12 : 20, 
           flexDirection: "row", 
           justifyContent: "space-between", 
           alignItems: "center", 
@@ -317,22 +391,81 @@ export default function StatsScreen() {
           <TouchableOpacity>
             <Ionicons name="settings-outline" size={width < 350 ? 22 : 28} color={theme.text} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={goToPreviousMonth}>
+          <TouchableOpacity onPress={goToPrevious}>
             <Ionicons name="chevron-back-outline" size={width < 350 ? 22 : 28} color={theme.dimmedText} />
           </TouchableOpacity>
           <Text style={{ 
             color: theme.text, 
             fontFamily: "LeagueSpartan-Bold", 
-            fontSize: 24 
+            fontSize: width < 350 ? 18 : 22,
+            flex: 1,
+            textAlign: "center"
           }}>
-            {format(selectedMonth, "MMMM yyyy")}
+            {getDateRangeText()}
           </Text>
-          <TouchableOpacity onPress={goToNextMonth}>
+          <TouchableOpacity onPress={goToNext}>
             <Ionicons name="chevron-forward-outline" size={width < 350 ? 22 : 28} color={theme.dimmedText} />
           </TouchableOpacity>
-          <TouchableOpacity>
-            <Ionicons name="flame-outline" size={width < 350 ? 22 : 28} color={theme.text} />
+          <TouchableOpacity onPress={toggleViewMode} style={{ paddingHorizontal: 5 }}>
+            <Ionicons 
+              name={viewMode === "weekly" ? "calendar-outline" : "calendar-number-outline"} 
+              size={width < 350 ? 22 : 28} 
+              color={theme.text} 
+            />
           </TouchableOpacity>
+        </View>
+        
+        {/* View Mode Indicator - COPIED FROM HOME PAGE */}
+        <View style={{ 
+          alignItems: "center", 
+          paddingBottom: 10 
+        }}>
+          <View style={{ 
+            flexDirection: "row", 
+            backgroundColor: theme.calendarBg, 
+            borderRadius: 16, 
+            padding: 4, 
+          }}>
+            <TouchableOpacity
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 6,
+                borderRadius: 12,
+                backgroundColor: viewMode === "weekly" ? theme.buttonBg : "transparent",
+              }}
+              onPress={() => setViewMode("weekly")}
+            >
+              <Text style={{ 
+                color: viewMode === "weekly" ? 
+                  (theme.background === "#000000" ? "#000000" : "#FFFFFF") : 
+                  theme.text,
+                fontWeight: "600",
+                fontSize: 14
+              }}>
+                Weekly
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 6,
+                borderRadius: 12,
+                backgroundColor: viewMode === "monthly" ? theme.buttonBg : "transparent",
+              }}
+              onPress={() => setViewMode("monthly")}
+            >
+              <Text style={{ 
+                color: viewMode === "monthly" ? 
+                  (theme.background === "#000000" ? "#000000" : "#FFFFFF") : 
+                  theme.text,
+                fontWeight: "600",
+                fontSize: 14
+              }}>
+                Monthly
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Affirmation Banner */}
@@ -342,6 +475,7 @@ export default function StatsScreen() {
           paddingHorizontal: 16,
           borderRadius: 8,
           width: "100%",
+          marginHorizontal: 16,
           marginBottom: 16,
           alignItems: "center",
           flexDirection: "row",
@@ -408,7 +542,7 @@ export default function StatsScreen() {
             marginBottom: 16, 
             fontFamily: "LeagueSpartan-Bold",
           }}>
-            Monthly Summary
+            {viewMode === "weekly" ? "Weekly" : "Monthly"} Summary
           </Text>
           
           <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 16 }}>
@@ -426,7 +560,7 @@ export default function StatsScreen() {
                 Entries
               </Text>
               <Text style={{ color: theme.buttonBg, fontSize: 24, fontWeight: "bold", fontFamily: "LeagueSpartan-Bold" }}>
-                {monthlyEntries.length}
+                {filteredEntries.length}
               </Text>
             </View>
             
@@ -489,7 +623,7 @@ export default function StatsScreen() {
             <>
               {/* Bar chart with percentages */}
               {Object.keys(stats.moodCounts).map((mood) => {
-                const percentage = (stats.moodCounts[mood] / monthlyEntries.length) * 100;
+                const percentage = (stats.moodCounts[mood] / filteredEntries.length) * 100;
                 const displayMood = moodNames[mood] || mood;
                 const moodColor = getMoodThemeColor(mood);
                 
@@ -535,7 +669,7 @@ export default function StatsScreen() {
               textAlign: "center", 
               fontFamily: "LaoSansPro-Regular" 
             }}>
-              No mood entries for this month
+              No mood entries for this {viewMode === "weekly" ? "week" : "month"}
             </Text>
           )}
         </View>
@@ -559,7 +693,7 @@ export default function StatsScreen() {
             marginBottom: 16, 
             fontFamily: "LeagueSpartan-Bold",
           }}>
-            Weekly Mood Trend
+            {viewMode === "weekly" ? "Daily" : "Weekly"} Mood Trend
           </Text>
           
           {hasValidWeeklyData ? (
@@ -592,7 +726,7 @@ export default function StatsScreen() {
               fontFamily: "LaoSansPro-Regular",
               marginVertical: 40
             }}>
-              Not enough data to display weekly trend
+              Not enough data to display {viewMode === "weekly" ? "daily" : "weekly"} trend
             </Text>
           )}
         </View>
@@ -658,7 +792,7 @@ export default function StatsScreen() {
               textAlign: "center", 
               fontFamily: "LaoSansPro-Regular" 
             }}>
-              No emotion data available
+              No emotion data available for this {viewMode === "weekly" ? "week" : "month"}
             </Text>
           )}
         </View>
@@ -715,7 +849,7 @@ export default function StatsScreen() {
                 fontFamily: "LaoSansPro-Regular",
                 flex: 1
               }}>
-                Your average mood has improved by 0.5 points compared to last month
+                Your average mood has improved by 0.5 points compared to last {viewMode === "weekly" ? "week" : "month"}
               </Text>
             </View>
           </View>
