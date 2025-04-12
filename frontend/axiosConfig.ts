@@ -4,7 +4,7 @@ import axios from "axios";
 const BASE_URL = "http://localhost:3000"; 
 
 // "http://localhost:3000"; sa postman ganto
-//lagay mo local ip add mo NYHAHAHA like http://192.162.1.5:3000 sa line 4
+//lagay mo local ip add mo NYHAHAHA like http://192.162.1.5:3000 sa line 4 para matest integ
 
 
 const axiosInstance = axios.create({

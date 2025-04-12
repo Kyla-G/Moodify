@@ -112,7 +112,7 @@ const getAllEntries = async (req, res, next) => {
 
         const formattedEntries = moodEntries.map(entry => ({
             ...entry.toJSON(),
-            logged_date: dayjs(entry.logged_date).format("YYYY-MM-DD HH:mm")
+            logged_date: dayjs(entry.logged_date).format("MM-DD-YYYY HH:mm")
         }));
 
         return res.status(200).json({
