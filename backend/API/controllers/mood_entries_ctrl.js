@@ -3,14 +3,14 @@ const util = require('../../utils');
 const { Op } = require("sequelize");
 const { ALLOWED_EMOTIONS} = require('../../emotion_values');
 const dayjs = require('dayjs');
+const customParseFormat = require('dayjs/plugin/customParseFormat');
+dayjs.extend(customParseFormat);
 
-const formatDateTime = d => d ? dayjs(d).format('MMM D, YYYY hh:mm A') : 'N/A';
 
 
-// Add Mood Only
 const addMoodEntry = async (req, res, next) => {
     try {
-        const { user_ID, mood, emotions, logged_date } = req.body;
+        const { user_ID, mood, emotions, logged_date, journal } = req.body;
 
         // Validate mandatory fields
         if (!util.checkMandatoryFields([user_ID, mood, emotions, logged_date])) {
@@ -20,27 +20,33 @@ const addMoodEntry = async (req, res, next) => {
             });
         }
 
-        // Convert logged_date to a Date object and remove time part
-        const providedDate = new Date(logged_date);
-        providedDate.setHours(0, 0, 0, 0);
-
-        // Get today's date and remove time part
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // Prevent logging a mood for a future date
-        if (providedDate > today) {
+        // Validate and parse date with time using dayjs
+        const providedDate = dayjs(logged_date, 'MM-DD-YYYY HH:mm', true);
+        if (!providedDate.isValid()) {
             return res.status(400).json({
                 successful: false,
-                message: "You cannot log a mood for a future date."
+                message: 'Invalid date format. Use MM-DD-YYYY HH:mm.'
             });
         }
 
-        // Check if a mood entry already exists for the user on the same date
+        const now = dayjs();
+
+        // Prevent logging for today or a future date
+        if (providedDate.isSame(now, 'day') || providedDate.isAfter(now)) {
+            return res.status(400).json({
+                successful: false,
+                message: "You cannot log a mood for today or a future date."
+            });
+        }
+
+        // Check if an entry already exists for this user on the same day
         const existingEntry = await MoodEntry.findOne({
             where: {
                 user_ID,
-                logged_date: providedDate
+                logged_date: {
+                    [Op.gte]: providedDate.startOf('day').toDate(),
+                    [Op.lt]: providedDate.endOf('day').toDate()
+                }
             }
         });
 
@@ -59,35 +65,36 @@ const addMoodEntry = async (req, res, next) => {
             });
         }
 
-        // Create new mood entry
+        // Create new mood entry with the full timestamp
         const newMoodEntry = await MoodEntry.create({
             user_ID,
             mood,
             emotions,
-            logged_date: providedDate // Store the normalized date
+            logged_date: providedDate.toDate(),
+            ...(journal && { journal })
         });
 
         return res.status(201).json({
             successful: true,
             message: "Successfully added new mood.",
-            moodEntry: { 
-                entry_ID: newMoodEntry.entry_ID, 
-                user_ID: newMoodEntry.user_ID, 
-                mood: newMoodEntry.mood, 
-                emotions: newMoodEntry.emotions 
+            moodEntry: {
+                entry_ID: newMoodEntry.entry_ID,
+                user_ID: newMoodEntry.user_ID,
+                mood: newMoodEntry.mood,
+                logged_date: dayjs(newMoodEntry.logged_date).format("YYYY-MM-DD HH:mm"),
+                emotions: newMoodEntry.emotions,
+                ...(journal && { journal })
             }
         });
 
     } catch (err) {
-        console.error("Error in adding a mood:", err);
+        console.error("❌ Error in adding a mood:", err);
         return res.status(500).json({
             successful: false,
             message: err.message || "An unexpected error occurred."
         });
     }
 };
-
-
 
 
 const getAllEntries = async (req, res, next) => {
@@ -104,10 +111,9 @@ const getAllEntries = async (req, res, next) => {
         }
 
         const formattedEntries = moodEntries.map(entry => ({
-            ...entry.toJSON(), 
-            logged_date: formatDateTime(entry.logged_date) 
+            ...entry.toJSON(),
+            logged_date: dayjs(entry.logged_date).format("MM-DD-YYYY HH:mm")
         }));
-
 
         return res.status(200).json({
             successful: true,
@@ -124,11 +130,9 @@ const getAllEntries = async (req, res, next) => {
     }
 };
 
-
-
 const getEntriesByUId = async (req, res, next) => {
     try {
-        const { user_ID } = req.params; // Get user_ID from request parameters
+        const { user_ID } = req.params;
 
         // Fetch mood entries filtered by user_ID
         const moodEntries = await MoodEntry.findAll({
@@ -144,17 +148,18 @@ const getEntriesByUId = async (req, res, next) => {
             });
         }
 
-        // Format logged_date using Day.js before sending the response
-        const formattedEntries = moodEntries.map(entry => ({
-            ...entry.toJSON(), 
-            logged_date: formatDateTime(entry.logged_date) 
-        }));
+        // Format logged_date
+        const data = moodEntries.map(entry => {
+            const entryData = entry.toJSON();
+            entryData.logged_date = dayjs(entryData.logged_date).format("MM-DD-YYYY HH:mm");
+            return entryData;
+        });
 
         return res.status(200).json({
             successful: true,
             message: "Retrieved all mood entries of the user.",
-            count: formattedEntries.length,
-            data: formattedEntries
+            count: data.length,
+            data
         });
 
     } catch (err) {
@@ -164,6 +169,7 @@ const getEntriesByUId = async (req, res, next) => {
         });
     }
 };
+
 
 
 const updateEntryById = async (req, res, next) => {

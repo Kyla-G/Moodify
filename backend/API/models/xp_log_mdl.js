@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         action_ID: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             allowNull: false // Stores either mood_entry_ID or chat_session_ID
         },
         xp_earned: {
