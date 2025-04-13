@@ -1,3 +1,4 @@
+// XpStreakManager.tsx
 import { useState, useEffect } from "react";
 import { format, isSameDay } from "date-fns";
 import XpStreakPopup from '../(tabs)/xp-streak-modal';
@@ -18,14 +19,14 @@ export default function XpStreakManager({
   onMoodEntrySaved, 
   onChatbotRating 
 }: XpStreakManagerProps) {
-  
+  // XP and streak state
   const [xpHistory, setXpHistory] = useState<XpHistoryState>({
     lastMoodEntryDate: null,
     lastChatbotRatingDate: null
   });
   const [xpAmount, setXpAmount] = useState<number>(0);
   const [xpSource, setXpSource] = useState<'mood_entry' | 'chatbot_rating' | null>(null);
-  const [calculatedTotalXp, setCalculatedTotalXp] = useState<number>(0); 
+  const [calculatedTotalXp, setTotalXp] = useState<number>(0); 
   const [streak, setStreak] = useState<number>(0);
   const [xpPopupVisible, setXpPopupVisible] = useState<boolean>(false);
 
@@ -42,7 +43,7 @@ export default function XpStreakManager({
     // Only give XP for current day entries and if not already earned today
     if (!isPastDay && !alreadyEarnedToday) {
       // Update XP and streak
-      setCalculatedTotalXp(prev => prev + 5);
+      setTotalXp(prev => prev + 5);
       setStreak(prev => prev + 1);
 
       // Set XP popup info
@@ -71,7 +72,7 @@ export default function XpStreakManager({
     
     if (!alreadyEarnedToday) {
       // Update XP (no streak update for chatbot rating)
-      setCalculatedTotalXp(prev => prev + 20);
+      setTotalXp(prev => prev + 20);
       
       // Set XP popup info
       setXpAmount(20);
