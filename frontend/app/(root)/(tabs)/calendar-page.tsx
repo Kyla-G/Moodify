@@ -10,6 +10,7 @@ import { useTheme } from "@/app/(root)/properties/themecontext"; // Import the t
 import { getMoodEntriesForCalendar, subscribeToChanges } from "@/app/services/moodEntriesApi";
 import { moodColors } from "@/app/services/type";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Add AsyncStorage import
+import CalendarMoodModal from "./calendar-mood-modal"; // Import the modal component
 
 import MoodRad from "@/assets/icons/MoodRad.png";
 import MoodGood from "@/assets/icons/MoodGood.png";
@@ -23,6 +24,11 @@ const moodIcons = {
   Meh: MoodMeh,
   Bad: MoodBad,
   Awful: MoodAwful,
+  rad: MoodRad,
+  good: MoodGood,
+  meh: MoodMeh,
+  bad: MoodBad,
+  awful: MoodAwful,
 };
 
 // Array of daily affirmations
@@ -48,6 +54,10 @@ export default function CalendarScreen() {
   const [todayAffirmation, setTodayAffirmation] = useState("");
   const [calendarEntries, setCalendarEntries] = useState([]);
   const [userXP, setUserXP] = useState(85); // Example XP progress 0-100
+  
+  // Update state for mood modal - change to selectedDate instead of entry
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [moodModalVisible, setMoodModalVisible] = useState(false);
   
   // Use the theme context with multiple themes
   const { theme, setThemeName, availableThemes } = useTheme();
@@ -166,6 +176,18 @@ export default function CalendarScreen() {
   const moodMap = Object.fromEntries(
     calendarEntries.map((entry) => [entry.date, entry.mood])
   );
+
+  // UPDATED: Handle day selection - now just pass the date to the modal
+  const handleDaySelect = (day) => {
+    const formattedDate = format(day, "yyyy-MM-dd");
+    const mood = moodMap[formattedDate];
+    
+    if (mood) {
+      console.log("Selected date:", formattedDate);
+      setSelectedDate(formattedDate);
+      setMoodModalVisible(true);
+    }
+  };
 
   // Handle reward selection and theme change
   const handleRewardSelect = async (palette) => {
@@ -329,16 +351,24 @@ export default function CalendarScreen() {
                     "Good": "accent1",
                     "Meh": "accent2",
                     "Bad": "accent3",
-                    "Awful": "accent4"
+                    "Awful": "accent4",
+                    "rad": "buttonBg",
+                    "good": "accent1",
+                    "meh": "accent2",
+                    "bad": "accent3",
+                    "awful": "accent4"
                   };
                   
                   // Use the appropriate theme color for the mood
                   const moodColor = mood ? theme[moodToThemeMap[mood]] || moodColors[mood] : null;
                   
                   return (
-                    <View
+                    <TouchableOpacity
                       key={index}
                       style={{ width: "14.28%", alignItems: "center", justifyContent: "center", marginBottom: 8 }}
+                      onPress={() => handleDaySelect(day)}
+                      disabled={!mood || isDimmed}
+                      activeOpacity={mood && !isDimmed ? 0.7 : 1}
                     >
                       <View
                         style={{
@@ -360,7 +390,7 @@ export default function CalendarScreen() {
                               width: 30,
                               height: 30,
                               resizeMode: "contain",
-                              tintColor: mood === "Rad" ? theme.calendarBg : theme.calendarBg
+                              tintColor: theme.calendarBg
                             }}
                           />
                         )}
@@ -374,7 +404,7 @@ export default function CalendarScreen() {
                       >
                         {format(day, "d")}
                       </Text>
-                    </View>
+                    </TouchableOpacity>
                   );
                 }
               )}
@@ -699,6 +729,18 @@ export default function CalendarScreen() {
           </View>
         )}
       </ScrollView>
+      
+      {/* UPDATED: Calendar Mood Modal - Now using selectedDate instead of entry */}
+      <CalendarMoodModal
+        visible={moodModalVisible}
+        onClose={() => {
+          setMoodModalVisible(false);
+          setSelectedDate(null); // Clear selected date when closing
+        }}
+        selectedDate={selectedDate}
+        theme={theme}
+        moodIcons={moodIcons}
+      />
     </SafeAreaView>
   );
 }

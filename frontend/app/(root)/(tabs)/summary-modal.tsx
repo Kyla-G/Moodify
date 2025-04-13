@@ -4,21 +4,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format } from "date-fns";
 import images from "@/constants/images";
+import icons from "@/constants/icons";
 
-interface SummaryModalProps {
-  visible: boolean;
-  onClose: () => void;
-  selectedMood: string | null;
-  selectedEmotion: string | null;
-  selectedDate: Date;
-  onSaveEntry: () => void;
-  onChatbot: () => void;
-  moodColors: Record<string, string>;
-  width: number;
-  height: number;
-}
+// Map mood types to theme color properties
+const moodToThemeMap = {
+  "rad": "buttonBg",
+  "good": "accent1",
+  "meh": "accent2",
+  "bad": "accent3",
+  "awful": "accent4"
+};
 
-const SummaryModal: React.FC<SummaryModalProps> = ({
+const SummaryModal = ({
   visible,
   onClose,
   selectedMood,
@@ -26,10 +23,28 @@ const SummaryModal: React.FC<SummaryModalProps> = ({
   selectedDate,
   onSaveEntry,
   onChatbot,
-  moodColors,
+  theme
 }) => {
   const { width, height } = useWindowDimensions();
   const modalPadding = width < 350 ? 12 : 24;
+  const iconSize = width < 350 ? 18 : 24;
+
+  // Get mood color from theme
+  const getMoodThemeColor = (mood) => {
+    if (!mood) return theme.calendarBg;
+    
+    // Convert "rad" to "Rad" if needed for mapping
+    const normalizedMood = mood.toLowerCase();
+    const themeProperty = moodToThemeMap[normalizedMood];
+    
+    if (themeProperty && theme[themeProperty]) {
+      return theme[themeProperty];
+    }
+    
+    return theme.text; // Fallback
+  };
+
+  const moodColor = getMoodThemeColor(selectedMood);
 
   return (
     <Modal
@@ -39,49 +54,109 @@ const SummaryModal: React.FC<SummaryModalProps> = ({
       onRequestClose={onClose}
     >
       <View
-        className="flex-1 items-center justify-center"
         style={{
-          backgroundColor: selectedMood ? moodColors[selectedMood] : "#333",
+          flex: 1,
+          backgroundColor: moodColor,
           paddingVertical: modalPadding,
           justifyContent: 'center',
           alignItems: 'center'
         }}
       >
-        <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 items-center justify-center">
+        <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          {/* Close Button */}
+          <TouchableOpacity
+            onPress={onClose}
+            style={{
+              position: "absolute",
+              top: height * 0.05,
+              left: width * 0.05,
+              zIndex: 10,
+            }}
+          >
+            <Ionicons name="close" size={iconSize} color={theme.calendarBg} />
+          </TouchableOpacity>
+
           <View
-            className="items-center justify-center"
-            style={{ padding: modalPadding }}
+            style={{ 
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: modalPadding 
+            }}
           >
             <Text
-              className="text-white font-LeagueSpartan text-center mb-2"
-              style={{ fontSize: width < 350 ? 28 : 36 }}
+              style={{ 
+                color: theme.calendarBg,
+                fontFamily: "LeagueSpartan",
+                textAlign: "center",
+                marginBottom: 2,
+                fontSize: width < 350 ? 28 : 36
+              }}
             >
               You're feeling
             </Text>
 
             <Text
-              className="text-txt-light font-LeagueSpartan-Bold text-center mb-10"
-              style={{ fontSize: width < 350 ? 20 : 48 }}
+              style={{ 
+                color: theme.buttonText || theme.calendarBg,
+                fontFamily: "LeagueSpartan-Bold",
+                textAlign: "center",
+                marginBottom: 40,
+                fontSize: width < 350 ? 20 : 48
+              }}
             >
               {selectedMood} and {selectedEmotion}
             </Text>
 
-            <View className="flex-row items-center justify-center mb-10">
-              <View className="flex-row items-center mr-4">
-                <Ionicons name="calendar-outline" size={width < 350 ? 18 : 24} color="white" style={{ marginRight: 8 }} />
+            <View style={{ 
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 40
+            }}>
+              <View style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginRight: 16
+              }}>
+                <Ionicons 
+                  name="calendar-outline" 
+                  size={iconSize} 
+                  color={theme.calendarBg} 
+                  style={{ marginRight: 8 }} 
+                />
                 <Text
-                  className="text-white font-LeagueSpartan text-center"
-                  style={{ fontSize: width < 350 ? 16 : 20 }}
+                  style={{ 
+                    color: theme.calendarBg,
+                    fontFamily: "LeagueSpartan",
+                    textAlign: "center",
+                    fontSize: width < 350 ? 16 : 20
+                  }}
                 >
                   {format(selectedDate, "MMMM dd, yyyy")}
                 </Text>
               </View>
 
-              <View className="flex-row items-center">
-                <Ionicons name="time-outline" size={width < 350 ? 18 : 24} color="white" style={{ marginRight: 8 }} />
+              <View style={{
+                flexDirection: "row",
+                alignItems: "center"
+              }}>
+                <Ionicons 
+                  name="time-outline" 
+                  size={iconSize} 
+                  color={theme.calendarBg} 
+                  style={{ marginRight: 8 }} 
+                />
                 <Text
-                  className="text-white font-LeagueSpartan text-center"
-                  style={{ fontSize: width < 350 ? 16 : 20 }}
+                  style={{ 
+                    color: theme.calendarBg,
+                    fontFamily: "LeagueSpartan",
+                    textAlign: "center",
+                    fontSize: width < 350 ? 16 : 20
+                  }}
                 >
                   {format(selectedDate, "h:mm a")}
                 </Text>
@@ -90,25 +165,42 @@ const SummaryModal: React.FC<SummaryModalProps> = ({
           </View>
 
           {/* Chatbot Section */}
-          <View style={{ padding: modalPadding, width: '100%', alignItems: 'flex-start' }}>
+          <View style={{ 
+            padding: modalPadding, 
+            width: '100%', 
+            alignItems: 'flex-start' 
+          }}>
             <Text
-              className="text-white font-LeagueSpartan-Bold mb-6"
-              style={{ fontSize: width < 350 ? 20 : 24 }}
+              style={{ 
+                color: theme.calendarBg,
+                fontFamily: "LeagueSpartan-Bold",
+                marginBottom: 24,
+                fontSize: width < 350 ? 20 : 24
+              }}
             >
               Would you like to talk about it more?
             </Text>
 
-            <View className="items-start">
+            <View style={{
+              alignItems: "flex-start"
+            }}>
               <TouchableOpacity
                 onPress={onChatbot}
-                className="px-6 py-3 rounded-full items-center mb-2"
                 style={{
-                  backgroundColor: "#EEEED0"
+                  paddingHorizontal: 24,
+                  paddingVertical: 12,
+                  borderRadius: 100,
+                  alignItems: "center",
+                  marginBottom: 8,
+                  backgroundColor: theme.calendarBg
                 }}
               >
                 <Text
-                  className="font-LeagueSpartan-Bold text-txt-darkblue text-2xl"
-                  style={{ color: selectedMood ? moodColors[selectedMood] : "#333" }}
+                  style={{ 
+                    fontFamily: "LeagueSpartan-Bold",
+                    fontSize: 24,
+                    color: moodColor
+                  }}
                 >
                   Yes
                 </Text>
@@ -116,14 +208,21 @@ const SummaryModal: React.FC<SummaryModalProps> = ({
 
               <TouchableOpacity
                 onPress={onSaveEntry}
-                className="px-6 py-3 rounded-full items-center mb-2"
                 style={{
-                  backgroundColor: "#EEEED0"
+                  paddingHorizontal: 24,
+                  paddingVertical: 12,
+                  borderRadius: 100,
+                  alignItems: "center",
+                  marginBottom: 8,
+                  backgroundColor: theme.calendarBg
                 }}
               >
                 <Text
-                  className="font-LeagueSpartan text-2xl"
-                  style={{ color: selectedMood ? moodColors[selectedMood] : "#333" }}
+                  style={{ 
+                    fontFamily: "LeagueSpartan",
+                    fontSize: 24,
+                    color: moodColor
+                  }}
                 >
                   No
                 </Text>
