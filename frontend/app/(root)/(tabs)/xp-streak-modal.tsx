@@ -18,7 +18,7 @@ interface XpStreakPopupModalProps {
 const XpStreakPopup = ({ 
   visible, 
   onClose, 
-  // totalXp, 
+  totalXp, 
   streak, 
   xpAmount, 
   xpSource, 
@@ -39,10 +39,13 @@ const XpStreakPopup = ({
     return null;
   }
   
-  // Calculate XP amount based on source
+  // Calculate XP amount based on source - exactly 5 XP for mood_entry and 20 XP for chatbot_rating
   const displayXpAmount = xpAmount || 
     (xpSource === 'mood_entry' ? 5 : 
-     xpSource === 'chatbot_rating' ? 20 : 10);
+     xpSource === 'chatbot_rating' ? 20 : 0);
+  
+  // Calculate total XP by adding accumulated XP from both sources
+  const calculatedTotalXp = (xpSource === 'mood_entry' ? 5 : 0) + (xpSource === 'chatbot_rating' ? 20 : 0);
   
   // Determine message based on XP source
   const getMessage = () => {
