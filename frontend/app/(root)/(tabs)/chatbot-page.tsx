@@ -25,9 +25,9 @@ interface APIResponse {
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
-    { 
-      text: "Hey there! I'm Moodi, your AI friend! Just checking in—how's your day?", 
-      sender: "bot", 
+    {
+      text: "Hey there! I'm Moodi, your AI friend! Just checking in—how's your day?",
+      sender: "bot",
       role: "assistant",
       timestamp: new Date() // Initialize with current timestamp
     }
@@ -40,6 +40,7 @@ export default function ChatbotPage() {
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
   const [endChatModalVisible, setEndChatModalVisible] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -57,13 +58,13 @@ export default function ChatbotPage() {
     const ampm = hours >= 12 ? 'PM' : 'AM';
     const formattedHours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
     const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-    
+
     const day = timestamp.getDate();
     // Get month as 3-letter abbreviation (Jan, Feb, Mar, etc.)
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const month = monthNames[timestamp.getMonth()];
     const year = timestamp.getFullYear();
-    
+
     return `${formattedHours}:${formattedMinutes} ${ampm} • ${day} ${month} ${year}`;
   };
 
@@ -71,9 +72,9 @@ export default function ChatbotPage() {
     if (input.trim() === "" || chatEnded) return;
 
     // Add user message to chat with current timestamp
-    const userMessage: Message = { 
-      text: input, 
-      sender: "user", 
+    const userMessage: Message = {
+      text: input,
+      sender: "user",
       role: "user",
       timestamp: new Date() // Add current timestamp
     };
@@ -172,7 +173,7 @@ export default function ChatbotPage() {
   const handleConfirmEndChat = () => {
     setEndChatModalVisible(false);
     setChatEnded(true);
-    
+
     // Add farewell message from the bot with current timestamp
     const farewellMessage: Message = {
       text: "Thank you for chatting with me! I'm always here whenever you need someone to talk to. Take care!",
@@ -180,9 +181,9 @@ export default function ChatbotPage() {
       role: "assistant",
       timestamp: new Date() // Add current timestamp
     };
-    
+
     setMessages((prevMessages) => [...prevMessages, farewellMessage]);
-    
+
     // Show rating modal after the farewell message
     setTimeout(() => {
       setRatingModalVisible(true);
@@ -194,6 +195,18 @@ export default function ChatbotPage() {
     setEndChatModalVisible(false);
   };
 
+  // Function to show/hide date picker
+  const toggleDatePicker = () => {
+    setDatePickerVisible(!datePickerVisible);
+  };
+
+  // Function to handle date selection from the dropdown
+  const handleDateSelect = (date: Date) => {
+    setSelectedMonth(date);
+    setDatePickerVisible(false);
+    // Additional logic for jumping to specific date conversations would go here
+  };
+
   // Function to handle rating submission
   const handleRatingSubmit = (rating: number, feedback: string) => {
     // Here you would typically send the rating data to your backend
@@ -202,25 +215,66 @@ export default function ChatbotPage() {
     // Additional actions after submission if needed
   };
 
+  // Simple date picker modal component
+  const DatePickerModal = () => {
+    // Generate some sample dates for the dropdown (past 7 days)
+    const dates = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      return date;
+    });
+
+    return (
+      <Modal
+        visible={datePickerVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setDatePickerVisible(false)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}
+          activeOpacity={1}
+          onPress={() => setDatePickerVisible(false)}
+        >
+          <View className="bg-bg-gray rounded-lg m-8 p-4 mt-20 shadow-lg">
+            <Text className="text-txt-orange text-xl font-LeagueSpartan-Bold mb-4 text-center">Select Date</Text>
+            {dates.map((date, index) => (
+              <TouchableOpacity
+                key={index}
+                className="py-3 border-b border-gray-700"
+                onPress={() => handleDateSelect(date)}
+              >
+                <Text className="text-txt-light text-lg">
+                  {format(date, "EEEE, MMMM d, yyyy")}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-black">
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
 
-      {/* Top Bar with Settings, Pagination, and Streak Button */}
+      {/* Top Bar with History, Pagination, and End Conversation Button */}
       <View className="items-center w-full pt-6 px-4">
         <View className="flex-row justify-between items-center w-full mb-4">
-          <TouchableOpacity>
-            <Ionicons name="settings-outline" size={28} color="white" />
-          </TouchableOpacity>
+          
           <TouchableOpacity onPress={goToPreviousMonth}>
             <Ionicons name="chevron-back-outline" size={28} color="white" />
           </TouchableOpacity>
-          <Text className="text-xl font-semibold text-white">{format(selectedMonth, "MMMM yyyy")}</Text>
+          <Text className="text-xl font-semibold text-txt-orange">{format(selectedMonth, "EEE, MMMM yyyy")}</Text>
           <TouchableOpacity onPress={goToNextMonth}>
             <Ionicons name="chevron-forward-outline" size={28} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity>
-            <Ionicons name="flame-outline" size={28} color="white" />
+          <TouchableOpacity onPress={toggleDatePicker}>
+            <Ionicons name="calendar-outline" size={28} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleEndChat} disabled={chatEnded}>
+          <Text className="text-[#EEEED0] darkgray font-LeagueSpartan-Bold text-xl p-1 bg-[#FF6B35] rounded-full items-center">EndChat</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -233,6 +287,7 @@ export default function ChatbotPage() {
           width: width,
           height: height * 1,
           resizeMode: "contain",
+          zIndex: -1, // Add this line to put the image behind everything
         }}
       />
       <ScrollView
@@ -243,13 +298,13 @@ export default function ChatbotPage() {
           <View key={index}
             className={`mb-2 ${msg.sender === "user" ? "items-end" : "items-start"}`}
           >
-            <View className={`rounded-lg p-3 max-w-[80%] ${msg.sender === "user" ? "bg-bg-gray" : "" }`}
+            <View className={`rounded-lg p-3 max-w-[80%] ${msg.sender === "user" ? "bg-bg-gray" : ""}`}
             >
               <Text className={`text-[20px] font-LeagueSpartan ${msg.sender === "user" ? "text-[#EEEED0]" : "text-[#101011]"}`}
               >
                 {msg.text}
               </Text>
-              
+
               {/* Add timestamp display */}
               <Text className={`text-xs mt-1 ${msg.sender === "user" ? "text-[#AEAEAE]" : "text-[#6E6E6E]"}`}>
                 {formatTimestamp(msg.timestamp)}
@@ -293,24 +348,15 @@ export default function ChatbotPage() {
         </View>
       </KeyboardAvoidingView>
 
-      {/* END button - only show if chat is not ended */}
-      {!chatEnded && (
-        <View className="px-32 mb-4">
-          <TouchableOpacity
-            className="p-2 bg-[#FF6B35] rounded-full items-center"
-            onPress={handleEndChat}
-          >
-            <Text className="text-txt-darkgray font-LeagueSpartan-Bold text-xl">End Conversation</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
       {/* End Chat Confirmation Modal */}
       <EndChatModal
         visible={endChatModalVisible}
         onCancel={handleCancelEndChat}
         onConfirm={handleConfirmEndChat}
       />
+
+      {/* Date Picker Modal */}
+      <DatePickerModal />
 
       {/* Rating Modal */}
       <Modal
