@@ -9,12 +9,14 @@ import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { moodColors } from "@/app/services/type";
+
+import { useNavigation } from '@react-navigation/native';
 // Import specific functions from API to avoid "undefined" errors
-import { 
-  getAllMoodEntries, 
-  subscribeToChanges, 
-  getMoodEntryByDate, 
-  addMoodEntry 
+import {
+  getAllMoodEntries,
+  subscribeToChanges,
+  getMoodEntryByDate,
+  addMoodEntry
 } from "@/app/services/moodEntriesApi";
 
 import XpStreakManager from "./XpStreakManager";
@@ -49,7 +51,7 @@ export default function HomeScreen() {
   const [welcomeModalVisible, setWelcomeModalVisible] = useState(false);
   const nickname = params.nickname || "Friend";
   const router = useRouter();
-  
+
   // XP and streak-related state
   const [moodEntrySaved, setMoodEntrySaved] = useState(false);
   const [chatbotRated, setChatbotRated] = useState(false);
@@ -69,13 +71,13 @@ export default function HomeScreen() {
       const initialEntries = getAllMoodEntries();
       console.log("Initial entries:", initialEntries);
       setEntries(initialEntries);
-      
+
       // Subscribe to future changes
       const unsubscribe = subscribeToChanges(() => {
         console.log("Mood entries updated");
         setEntries(getAllMoodEntries());
       });
-      
+
       return unsubscribe; // Cleanup subscription on unmount
     } catch (error) {
       console.error("Error loading mood entries:", error);
@@ -93,7 +95,7 @@ export default function HomeScreen() {
     setSelectedDate(new Date()); // Reset to current date/time when opening modal
     setMoodModalVisible(true);
   };
-  
+
   const closeMoodModal = () => setMoodModalVisible(false);
 
   const selectMood = (mood) => {
@@ -115,7 +117,7 @@ export default function HomeScreen() {
     );
     const formattedDate = format(entryDate, "yyyy-MM-dd");
     const existingEntry = getMoodEntryByDate(formattedDate);
-    
+
     if (existingEntry) {
       Alert.alert(
         "Mood exists",
@@ -146,13 +148,13 @@ export default function HomeScreen() {
 
   const finalSaveEntry = () => {
     setSummaryModalVisible(false);
-    
+
     // Format date strings
     const formattedDate = format(selectedDate, "MMMM dd, yyyy");
     const dayOfWeek = format(selectedDate, "EEEE");
     const displayTime = format(selectedDate, "h:mm a");
     const calendarDate = format(selectedDate, "yyyy-MM-dd");
-    
+
     // Create new entry
     const newEntry = {
       mood: selectedMood || "",
@@ -164,12 +166,12 @@ export default function HomeScreen() {
       timestamp: selectedDate.getTime(),
       formattedDate: calendarDate // For calendar lookups
     };
-    
+
     // Save to API - this will handle both new and existing entries
     try {
       addMoodEntry(newEntry);
       console.log("Entry saved:", newEntry);
-      
+
       // Trigger XP reward if entry is for today
       if (isSameDay(selectedDate, new Date())) {
         setMoodEntrySaved(prev => !prev); // Toggle to trigger effect in XpStreakManager
@@ -177,7 +179,7 @@ export default function HomeScreen() {
     } catch (error) {
       console.error("Error saving entry:", error);
     }
-    
+
     // Reset states
     setJournalEntry("");
     setSelectedMood(null);
@@ -187,7 +189,7 @@ export default function HomeScreen() {
   const redirectToChatbot = () => {
     // First save the entry
     finalSaveEntry();
-    
+
     // Then redirect
     setSummaryModalVisible(false);
     Alert.alert("Redirecting", "Navigating to chatbot screen");
@@ -205,19 +207,19 @@ export default function HomeScreen() {
       console.error('Error navigating to settings page:', error);
     }
   };
-  
-  
+
+
 
   // Handle chatbot rating
   const handleChatbotRating = () => {
     setChatbotRated(prev => !prev); // Toggle to trigger effect in XpStreakManager
   };
-  
+
   useEffect(() => {
     // Show welcome popup if coming from nickname page
     if (params.showWelcome === "true") {
       setWelcomeModalVisible(true);
-       
+
       const timer = setTimeout(() => {
         setWelcomeModalVisible(false);
       }, 7000);
@@ -247,6 +249,7 @@ export default function HomeScreen() {
           <TouchableOpacity onPress={navigateToSettings}>
             <Ionicons name="settings-outline" size={width < 350 ? 22 : 28} color="#EEEED0" />
           </TouchableOpacity>
+
           <TouchableOpacity onPress={goToPreviousMonth}>
             <Ionicons name="chevron-back-outline" size={width < 350 ? 22 : 28} color="#545454" />
           </TouchableOpacity>
@@ -283,13 +286,13 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView contentContainerStyle={{
-          flexGrow: 1,
-          alignItems: "center",
-          paddingHorizontal: width < 350 ? 12 : 20,
-        }}>
+        flexGrow: 1,
+        alignItems: "center",
+        paddingHorizontal: width < 350 ? 12 : 20,
+      }}>
         <Text
           className="text-txt-orange font-LeagueSpartan-Bold mt-16 tracking-[.-3.5]"
-          style={{ 
+          style={{
             fontSize: width < 350 ? 40 : 55,
             textAlign: "center",
             marginTop: height * 0.05,
@@ -358,28 +361,29 @@ export default function HomeScreen() {
                             {entry.mood}{" "}
                           </Text>
                           <Text style={{
-                            fontFamily: "LaoSansPro-Regular", 
+                            fontFamily: "LaoSansPro-Regular",
                             fontSize: width < 350 ? 11 : 13,
-                            color: "#EEEED0", 
+                            color: "#EEEED0",
                           }}>
                             {entry.time}
                           </Text>
                         </View>
 
-                        <TouchableOpacity 
+                        <TouchableOpacity
                           onPress={() => toggleEntryExpansion(index)}
                           className="flex-row items-center"
                         >
                           <Text style={{
-                            fontFamily: "LaoSansPro-Regular", 
+                            fontFamily: "LaoSansPro-Regular",
                             fontSize: width < 350 ? 12 : 14,
-                            color: "#545454"}}>
-                              {hasJournal ? "Journal" : "Emotion"}
+                            color: "#545454"
+                          }}>
+                            {hasJournal ? "Journal" : "Emotion"}
                           </Text>
-                          <Ionicons 
-                            name={isExpanded ? "chevron-up" : "chevron-down"} 
-                            size={width < 350 ? 14 : 18} 
-                            color="#545454" 
+                          <Ionicons
+                            name={isExpanded ? "chevron-up" : "chevron-down"}
+                            size={width < 350 ? 14 : 18}
+                            color="#545454"
                           />
                         </TouchableOpacity>
                       </View>
@@ -393,9 +397,9 @@ export default function HomeScreen() {
                       style={{ fontSize: width < 350 ? 16 : 18 }}>
                       Feeling <Text style={{ color: moodColors[entry.mood] }}>{entry.emotion}</Text>
                     </Text>
-                    
+
                     {hasJournal && (
-                      <Text 
+                      <Text
                         className="text-txt-light font-LeagueSpartan mt-2"
                         style={{ fontSize: width < 350 ? 16 : 18 }}>
                         {entry.journal}
@@ -457,7 +461,7 @@ export default function HomeScreen() {
       />
 
       {/* XP and Streak Manager */}
-      <XpStreakManager 
+      <XpStreakManager
         selectedDate={selectedDate}
         onMoodEntrySaved={moodEntrySaved}
         onChatbotRating={chatbotRated}
