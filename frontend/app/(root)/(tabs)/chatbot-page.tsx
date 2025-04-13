@@ -275,7 +275,7 @@ export default function ChatbotPage() {
         <View className="px-8 mb-3">
           <View className="bg-bg-gray rounded-full flex-row items-center px-4 py-2 shadow-md">
             <TextInput
-              className="flex-1 text-txt-light font-LeagueSpartan text-base"
+              className="flex-1 text-txt-light text-[19px] font-LeagueSpartan"
               placeholder=" Talk with Moodi..."
               placeholderTextColor="#545454"
               value={input}
