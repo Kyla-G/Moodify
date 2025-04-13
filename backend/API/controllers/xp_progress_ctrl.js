@@ -1,4 +1,6 @@
+const { XPProgress, XPLog } = require('../models/'); // Ensure model name matches exported model
 const { Op } = require("sequelize");
+const util = require('../../utils');
 const dayjs = require("dayjs");
 
 const createXPProgress = async (req, res) => {
@@ -57,6 +59,6 @@ const createXPProgress = async (req, res) => {
     }
 };
 
-module.export = {
+module.exports = {
     createXPProgress
 };
