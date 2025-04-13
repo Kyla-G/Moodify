@@ -5,82 +5,154 @@ const initialEntries = [
   {
     mood: "rad",
     emotion: "Excited",
+<<<<<<< HEAD
     day: "Saturday",
     date: "February 15, 2025",
     time: "9:30 AM",
     journal: "Feeling great today! Started a new project.",
     timestamp: new Date("2025-02-15").getTime(),
     formattedDate: "2025-02-15" // For calendar screen lookup
+=======
+    day: "Tuesday",
+    date: "April 15, 2025",
+    time: "9:30 AM",
+    journal: "Feeling great today! Started a new project.",
+    timestamp: new Date("2025-02-15").getTime(),
+    formattedDate: "2025-04-15" // For calendar screen lookup
+>>>>>>> origin/glean2120674
   },
   {
     mood: "bad",
     emotion: "Frustrated",
+<<<<<<< HEAD
     day: "Friday",
     date: "February 14, 2025",
     time: "8:45 PM",
     journal: "Had an argument that ruined Valentine's Day.",
     timestamp: new Date("2025-02-14").getTime(),
     formattedDate: "2025-02-14"
+=======
+    day: "Monday",
+    date: "April 14, 2025",
+    time: "8:45 PM",
+    journal: "Had an argument that ruined Valentine's Day.",
+    timestamp: new Date("2025-02-14").getTime(),
+    formattedDate: "2025-04-14"
+>>>>>>> origin/glean2120674
   },
   {
     mood: "rad",
     emotion: "Energetic",
+<<<<<<< HEAD
     day: "Thursday",
     date: "February 13, 2025",
     time: "10:15 AM",
     journal: "Got a promotion at work! So happy!",
     timestamp: new Date("2025-02-13").getTime(),
     formattedDate: "2025-02-13"
+=======
+    day: "Sunday",
+    date: "April 13, 2025",
+    time: "10:15 AM",
+    journal: "Got a promotion at work! So happy!",
+    timestamp: new Date("2025-02-13").getTime(),
+    formattedDate: "2025-04-13"
+>>>>>>> origin/glean2120674
   },
   {
     mood: "bad",
     emotion: "Anxious",
+<<<<<<< HEAD
     day: "Wednesday",
     date: "February 12, 2025",
     time: "3:20 PM",
     journal: "Big presentation tomorrow and I don't feel ready.",
     timestamp: new Date("2025-02-12").getTime(),
     formattedDate: "2025-02-12"
+=======
+    day: "Saturday",
+    date: "April 12, 2025",
+    time: "3:20 PM",
+    journal: "Big presentation tomorrow and I don't feel ready.",
+    timestamp: new Date("2025-02-12").getTime(),
+    formattedDate: "2025-04-12"
+>>>>>>> origin/glean2120674
   },
   {
     mood: "good",
     emotion: "Content",
+<<<<<<< HEAD
     day: "Tuesday",
     date: "February 11, 2025",
     time: "7:00 PM",
     journal: "Relaxing evening with a good book.",
     timestamp: new Date("2025-02-11").getTime(),
     formattedDate: "2025-02-11"
+=======
+    day: "Friday",
+    date: "April 11, 2025",
+    time: "7:00 PM",
+    journal: "Relaxing evening with a good book.",
+    timestamp: new Date("2025-02-11").getTime(),
+    formattedDate: "2025-04-11"
+>>>>>>> origin/glean2120674
   },
   {
     mood: "awful",
     emotion: "Depressed",
+<<<<<<< HEAD
     day: "Monday",
     date: "February 10, 2025",
     time: "11:45 AM",
     journal: "Got some bad news and everything feels overwhelming.",
     timestamp: new Date("2025-02-10").getTime(),
     formattedDate: "2025-02-10"
+=======
+    day: "Thursday",
+    date: "April 10, 2025",
+    time: "11:45 AM",
+    journal: "Got some bad news and everything feels overwhelming.",
+    timestamp: new Date("2025-02-10").getTime(),
+    formattedDate: "2025-04-10"
+>>>>>>> origin/glean2120674
   },
   {
     mood: "good",
     emotion: "Peaceful",
+<<<<<<< HEAD
     day: "Sunday",
     date: "February 9, 2025",
     time: "4:30 PM",
     journal: "Spent time in nature and felt very calm.",
     timestamp: new Date("2025-02-9").getTime(),
     formattedDate: "2025-02-09"
+=======
+    day: "Wednesday",
+    date: "April 9, 2025",
+    time: "4:30 PM",
+    journal: "Spent time in nature and felt very calm.",
+    timestamp: new Date("2025-02-9").getTime(),
+    formattedDate: "2025-04-09"
+>>>>>>> origin/glean2120674
   },
   {
     mood: "meh",
     emotion: "Bored",
+<<<<<<< HEAD
     day: "Saturday",
     date: "February 8, 2025",
     time: "2:15 PM",
     journal: "Nothing interesting happened today.",
     timestamp: new Date("2025-02-8").getTime(),
     formattedDate: "2025-02-08"
+=======
+    day: "Tuesday",
+    date: "April 8, 2025",
+    time: "2:15 PM",
+    journal: "Nothing interesting happened today.",
+    timestamp: new Date("2025-02-8").getTime(),
+    formattedDate: "2025-04-08"
+>>>>>>> origin/glean2120674
   }
 ];
 

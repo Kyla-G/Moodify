@@ -4,22 +4,54 @@ import { Text, Image, TouchableOpacity, TextInput, View} from "react-native";
 import { useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import images from "@/constants/images";
+import axios from "@/axiosConfig"; // adjust path if needed
+
+
 
 export default function NicknamePage() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const [nickname, setNickname] = useState("");
 
-  const handleContinue = () => {
-    if (nickname.trim()) {
-      // Save nickname and navigate to next screen
-      router.push({
-        pathname: '/(root)/(tabs)/home-page',
-        params: { nickname: nickname.trim(), 
-        showWelcome: "true" }
+
+
+  
+
+//   const handleContinue = () => {
+//     if (nickname.trim()) {
+//       // Save nickname and navigate to next screen
+//       router.push({
+//         pathname: '/(root)/(tabs)/home-page',
+//         params: { nickname: nickname.trim(), 
+//         showWelcome: "true" }
+//     });
+// }
+// };
+
+
+const handleContinue = async () => {
+  if (!nickname.trim()) return;
+
+  try {
+    const response = await axios.post("/users/addUser", {
+      nickname: nickname.trim(),
     });
-}
+
+    if (response.data.successful) {
+      console.log("✅ User added:", response.data.user);
+
+      router.push({
+        pathname: "/(root)/(tabs)/home-page",
+        params: { nickname: nickname.trim(), showWelcome: "true" },
+      });
+    } else {
+      console.warn("⚠️ Failed to add user:", response.data.message);
+    }
+  } catch (error) {
+    console.error("❌ Error creating user:", error);
+  }
 };
+
 
   return (
     <SafeAreaView className="flex-1 justify-center items-center bg-bg-medium">

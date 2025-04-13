@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { format, subMonths, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subDays, addDays } from "date-fns";
 import { format, subMonths, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subDays, addDays } from "date-fns";
 import { useWindowDimensions } from "react-native";
 import { useTheme } from "@/app/(root)/properties/themecontext"; // Import the theme hook
@@ -24,6 +26,20 @@ const moodIcons = {
   Awful: MoodAwful,
 };
 
+// Array of daily affirmations
+const affirmations = [
+  "Today I choose joy and positivity",
+  "I am worthy of all good things",
+  "Every day is a fresh start",
+  "I am getting stronger each day",
+  "My feelings are valid and important",
+  "Small steps lead to big changes",
+  "I celebrate my progress today",
+  "I deserve peace and happiness",
+];
+
+// Theme storage key for AsyncStorage
+const THEME_STORAGE_KEY = "app_selected_theme";
 // Array of daily affirmations
 const affirmations = [
   "Today I choose joy and positivity",
@@ -106,7 +122,9 @@ export default function CalendarScreen() {
   );
 
   // Create a lookup map for mood entries by date
+  // Create a lookup map for mood entries by date
   const moodMap = Object.fromEntries(
+    calendarEntries.map((entry) => [entry.date, entry.mood])
     calendarEntries.map((entry) => [entry.date, entry.mood])
   );
 
@@ -150,7 +168,9 @@ export default function CalendarScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
       <StatusBar
+        style={theme.background === "#000000" ? "light" : "dark"}
         style={theme.background === "#000000" ? "light" : "dark"}
         hidden={false}
         translucent
@@ -159,12 +179,17 @@ export default function CalendarScreen() {
 
       <View style={{ alignItems: "center", width: "100%", paddingTop: 24, paddingHorizontal: 16 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: 16 }}>
+      <View style={{ alignItems: "center", width: "100%", paddingTop: 24, paddingHorizontal: 16 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: 16 }}>
           <TouchableOpacity>
+            <Ionicons name="settings-outline" size={28} color={theme.text} />
             <Ionicons name="settings-outline" size={28} color={theme.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPreviousMonth}>
             <Ionicons name="chevron-back-outline" size={28} color={theme.text} />
+            <Ionicons name="chevron-back-outline" size={28} color={theme.text} />
           </TouchableOpacity>
+          <Text style={{ color: theme.text, fontWeight: "bold", fontSize: 24 }}>
           <Text style={{ color: theme.text, fontWeight: "bold", fontSize: 24 }}>
             {format(selectedMonth, "MMMM yyyy")}
           </Text>
@@ -173,13 +198,23 @@ export default function CalendarScreen() {
               name="chevron-forward-outline"
               size={28}
               color={theme.dimmedText}
+              color={theme.dimmedText}
             />
           </TouchableOpacity>
           <TouchableOpacity>
             <Ionicons name="flame-outline" size={28} color={theme.text} />
+            <Ionicons name="flame-outline" size={28} color={theme.text} />
           </TouchableOpacity>
         </View>
 
+        <View style={{ 
+          flexDirection: "row", 
+          backgroundColor: theme.calendarBg, 
+          borderRadius: 8, 
+          padding: 4, 
+          width: "80%", 
+          marginBottom: 16 
+        }}>
         <View style={{ 
           flexDirection: "row", 
           backgroundColor: theme.calendarBg, 
@@ -196,9 +231,20 @@ export default function CalendarScreen() {
               borderRadius: 8,
               backgroundColor: view === "Calendar" ? theme.buttonBg : "transparent"
             }}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              paddingVertical: 8,
+              borderRadius: 8,
+              backgroundColor: view === "Calendar" ? theme.buttonBg : "transparent"
+            }}
             onPress={() => setView("Calendar")}
           >
             <Text
+              style={{
+                color: view === "Calendar" ? (theme.background === "#000000" ? "#000000" : "#FFFFFF") : theme.text,
+                fontWeight: "600"
+              }}
               style={{
                 color: view === "Calendar" ? (theme.background === "#000000" ? "#000000" : "#FFFFFF") : theme.text,
                 fontWeight: "600"
@@ -215,9 +261,20 @@ export default function CalendarScreen() {
               borderRadius: 8,
               backgroundColor: view === "Streak" ? theme.buttonBg : "transparent"
             }}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              paddingVertical: 8,
+              borderRadius: 8,
+              backgroundColor: view === "Streak" ? theme.buttonBg : "transparent"
+            }}
             onPress={() => setView("Streak")}
           >
             <Text
+              style={{
+                color: view === "Streak" ? (theme.background === "#000000" ? "#000000" : "#FFFFFF") : theme.text,
+                fontWeight: "600"
+              }}
               style={{
                 color: view === "Streak" ? (theme.background === "#000000" ? "#000000" : "#FFFFFF") : theme.text,
                 fontWeight: "600"
@@ -226,6 +283,34 @@ export default function CalendarScreen() {
               Streak
             </Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Affirmation Banner */}
+        <View style={{
+          backgroundColor: theme.accent2,
+          paddingVertical: 20,
+          paddingHorizontal: 16,
+          borderRadius: 8,
+          width: "100%",
+          marginBottom: 16,
+          alignItems: "center",
+          flexDirection: "row",
+          justifyContent: "center"
+        }}>
+          <Ionicons 
+            name="sunny-outline" 
+            size={20} 
+            color={theme.background === "#000000" ? "#000000" : "#FFFFFF"} 
+            style={{ marginRight: 8 }}
+          />
+          <Text style={{
+            color: theme.background === "#000000" ? "#000000" : "#FFFFFF",
+            fontWeight: "600",
+            textAlign: "center",
+            fontSize: 16
+          }}>
+            {todayAffirmation}
+          </Text>
         </View>
 
         {/* Affirmation Banner */}
@@ -267,9 +352,12 @@ export default function CalendarScreen() {
         {view === "Calendar" ? (
           <View style={{ width: "100%" }}>
             <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 16 }}>
+          <View style={{ width: "100%" }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 16 }}>
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                 <Text
                   key={day}
+                  style={{ color: theme.text, textAlign: "center", flex: 1, fontWeight: "600" }}
                   style={{ color: theme.text, textAlign: "center", flex: 1, fontWeight: "600" }}
                 >
                   {day}
@@ -277,6 +365,7 @@ export default function CalendarScreen() {
               ))}
             </View>
 
+            <View style={{ width: "100%", flexDirection: "row", flexWrap: "wrap" }}>
             <View style={{ width: "100%", flexDirection: "row", flexWrap: "wrap" }}>
               {[...prevMonthDays, ...daysInMonth, ...nextMonthDays].map(
                 (day, index) => {
@@ -292,8 +381,20 @@ export default function CalendarScreen() {
                     <View
                       key={index}
                       style={{ width: "14.28%", alignItems: "center", justifyContent: "center", marginBottom: 8 }}
+                      style={{ width: "14.28%", alignItems: "center", justifyContent: "center", marginBottom: 8 }}
                     >
                       <View
+                        style={{
+                          borderRadius: 8,
+                          width: 48,
+                          height: 48,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: mood ? moodColor : 
+                            (isDimmed ? 
+                              (theme.background === "#000000" ? "#050505" : "#E5E5E5") : 
+                              theme.calendarBg)
+                        }}
                         style={{
                           borderRadius: 8,
                           width: 48,
@@ -324,6 +425,11 @@ export default function CalendarScreen() {
                           marginTop: 4,
                           color: isDimmed ? theme.dimmedText : theme.text
                         }}
+                        style={{
+                          fontSize: 14,
+                          marginTop: 4,
+                          color: isDimmed ? theme.dimmedText : theme.text
+                        }}
                       >
                         {format(day, "d")}
                       </Text>
@@ -336,8 +442,17 @@ export default function CalendarScreen() {
         ) : (
           <View style={{ marginTop: 24, width: "100%", paddingHorizontal: 16, alignItems: "center" }}>
             <Text style={{ color: theme.text, fontSize: 20, fontWeight: "bold", marginBottom: 32 }}>
+          <View style={{ marginTop: 24, width: "100%", paddingHorizontal: 16, alignItems: "center" }}>
+            <Text style={{ color: theme.text, fontSize: 20, fontWeight: "bold", marginBottom: 32 }}>
               🔥 XP Progress
             </Text>
+            <Text style={{ color: theme.text, textAlign: "center", marginBottom: 24 }}>
+              Track your streaks and unlock seasonal themes for maintaining consistent moods!
+            </Text>
+
+            {/* Theme title with current theme name */}
+            <Text style={{ color: theme.buttonBg, fontWeight: "bold", fontSize: 16, marginBottom: 16 }}>
+              Current Season: {theme.name}
             <Text style={{ color: theme.text, textAlign: "center", marginBottom: 24 }}>
               Track your streaks and unlock seasonal themes for maintaining consistent moods!
             </Text>
@@ -374,8 +489,72 @@ export default function CalendarScreen() {
               marginBottom: 24
             }}>
               {palettes.slice(0, 3).map((palette, index) => (
+            
+            {/* Themes section header */}
+            <View style={{ 
+              backgroundColor: theme.calendarBg, 
+              paddingVertical: 12, 
+              borderTopLeftRadius: 8, 
+              borderTopRightRadius: 8,
+              width: "100%",
+              alignItems: "center"
+            }}>
+              <Text style={{ color: theme.text, fontWeight: "bold" }}>
+                Seasonal Themes
+              </Text>
+            </View>
+            
+            {/* Horizontal theme tabs */}
+            <View style={{ 
+              flexDirection: "row", 
+              justifyContent: "space-around", 
+              width: "100%",
+              backgroundColor: theme.calendarBg,
+              borderBottomLeftRadius: 8,
+              borderBottomRightRadius: 8,
+              paddingVertical: 16,
+              paddingHorizontal: 8,
+              marginBottom: 24
+            }}>
+              {palettes.slice(0, 3).map((palette, index) => (
                 <TouchableOpacity
                   key={index}
+                  onPress={() => handleRewardSelect(palette)}
+                  style={{ 
+                    alignItems: "center",
+                    flex: 1
+                  }}
+                >
+                  <View
+                    style={{                                                                                
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      backgroundColor: theme.calendarBg,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderWidth: selectedReward === palette.title ? 2 : 0,
+                      borderColor: selectedReward === palette.title ? palette.color : 'transparent'
+                    }}
+                  >
+                    <View style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: palette.color
+                    }} />
+                  </View>
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontSize: 12,
+                      fontWeight: "600",
+                      marginTop: 8,
+                      textAlign: "center"
+                    }}
+                  >
+                    {palette.title.split(" ")[0]}
+                  </Text>
                   onPress={() => handleRewardSelect(palette)}
                   style={{ 
                     alignItems: "center",
@@ -460,7 +639,54 @@ export default function CalendarScreen() {
               </View>
             </TouchableOpacity>
 
+            {/* Autumn theme option below the horizontal tabs */}
+            <TouchableOpacity
+              onPress={() => handleRewardSelect(palettes[3])}
+              style={{ marginBottom: 16 }}
+            >
+              <View style={{ 
+                flexDirection: "row", 
+                alignItems: "center", 
+                backgroundColor: theme.calendarBg,
+                padding: 12,
+                borderRadius: 8,
+                width: "100%"
+              }}>
+                <View
+                  style={{                                                                                
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: theme.calendarBg,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderWidth: selectedReward === palettes[3].title ? 2 : 0,
+                    borderColor: selectedReward === palettes[3].title ? palettes[3].color : 'transparent',
+                    marginRight: 16
+                  }}
+                >
+                  <View style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    backgroundColor: palettes[3].color
+                  }} />
+                </View>
+                <View>
+                  <Text style={{ color: theme.text, fontWeight: "600" }}>
+                    {palettes[3].title}
+                  </Text>
+                  <Text style={{ color: theme.dimmedText, fontSize: 12 }}>
+                    {palettes[3].description}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+
             {selectedReward && (
+              <Text style={{ color: theme.buttonBg, marginTop: 16, fontSize: 18, fontWeight: "600" }}>
+                {`Theme Unlocked: ${selectedReward}`}
+              </Text>
               <Text style={{ color: theme.buttonBg, marginTop: 16, fontSize: 18, fontWeight: "600" }}>
                 {`Theme Unlocked: ${selectedReward}`}
               </Text>

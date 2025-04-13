@@ -1,90 +1,84 @@
-'use strict';
+"use strict";
 
-const fs = require('fs');
-const path = require('path');
-const basename = path.basename(__filename);
+const fs = require("fs");
+const path = require("path");
+const Sequelize = require("sequelize");
+require("dotenv").config();
 
-const Sequelize = require('sequelize');
-const process = require('process');
+const config = require("../config/config.json");
 
+const sqliteConfig = config["development"];
+const mysqlConfig = config["production"];
 
-const sequelize = new Sequelize(
-  process.env.DB_DATABASE,
-  process.env.DB_USERNAME,
-  process.env.DB_PASSWORD,
+if (!sqliteConfig || !sqliteConfig.dialect) {
+  throw new Error("❌ SQLite config is missing or incorrect.");
+}
+if (!mysqlConfig || !mysqlConfig.dialect) {
+  throw new Error("❌ MySQL config is missing or incorrect.");
+}
+
+// Initialize Sequelize instances
+const sqlite = new Sequelize({
+  dialect: sqliteConfig.dialect,
+  storage: sqliteConfig.storage,
+  logging: console.log
+});
+
+const mysql = new Sequelize(
+  mysqlConfig.database,
+  mysqlConfig.username,
+  mysqlConfig.password,
   {
-    host: process.env.DB_HOST,
-    dialect: process.env.DB_DIALECT,
-    port: process.env.DB_PORT,
+    host: mysqlConfig.host,
+    dialect: mysqlConfig.dialect,
+    port: mysqlConfig.port,
+    logging: console.log
   }
-); 
-
+);
 
 const db = {};
 
-module.exports = db;
+// Load and initialize all models for both SQLite and MySQL
+fs.readdirSync(__dirname)
+  .filter((file) => file.endsWith(".js") && file !== "index.js")
+  .forEach((file) => {
+    const defineModel = require(path.join(__dirname, file));
 
+    const sqliteModel = defineModel(sqlite, Sequelize.DataTypes);
+    const mysqlModel = defineModel(mysql, Sequelize.DataTypes);
 
-require('dotenv').config()
+    db[sqliteModel.name] = sqliteModel; // For SQLite
+    db[`mysql_${mysqlModel.name}`] = mysqlModel; // For MySQL
 
-// wag muna burahin mga naka comment PLEASE
-// const mysql = require('mysql2')
+    
 
-// let sequelize;
-// if (config.use_env_variable) {
-//   sequelize = new Sequelize(process.env[config.use_env_variable], config);
-// } else {
-//   sequelize = new Sequelize(config.database, config.username, config.password, config);
-// }
-
-// const sequelize = new Sequelize(
-//   process.env.DB_DATABASE,
-//   process.env.DB_USERNAME,
-//   process.env.DB_PASSWORD,
-//   {
-//     host: process.env.DB_HOST,
-//     dialect: process.env.DB_DIALECT,
-//     port: process.env.DB_PORT,
-//   }
-// );
-
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (
-      file.indexOf('.') !== 0 &&
-      file !== basename &&
-      file.slice(-3) === '.js' &&
-      file.indexOf('.test.js') === -1
-    );
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
   });
 
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
+// Setup associations for both databases
+Object.entries(db).forEach(([name, model]) => {
+  if (typeof model.associate === "function") {
+    model.associate(db);
   }
 });
 
-
-//ARROW FUNCTION THAT CHECKS IF THE CONNECTION IS SUCCESSFUL OR NOT.
-// const connectDB = () => {
-
-//   const sequelize = new Sequelize(process.env.uri)
-//   sequelize.authenticate()
-//     .then((result) => {
-//       console.log("Successfully connected to db")
-//     })
-//     .catch((err) => {
-//       console.log("Failed connection to db")
-//     })
-// }
-
-
-db.sequelize = sequelize;
+// Attach Sequelize instances
+db.sqlite = sqlite;
+db.mysql = mysql;
 db.Sequelize = Sequelize;
+
+// Default db.sequelize should not be overwritten, so it's better to explicitly call `db.syncAll()` for each instance.
+db.syncAll = async () => {
+  try {
+    // Sync SQLite database
+    await sqlite.sync({ alter: false });
+    console.log("✅ SQLite activated.");
+
+    // Sync MySQL database
+    await mysql.sync({ alter: false });
+    console.log("✅ MySQL activated.");
+  } catch (err) {
+    console.error("❌ Sync Error:", err);
+  }
+};
 
 module.exports = db;
