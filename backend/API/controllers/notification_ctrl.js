@@ -36,7 +36,7 @@ const createNotification = async (req, res, next) => {
 };
 
 // Read all notifications (or per user)
-const getNotifications = async (req, res, next) => {
+const getNotif = async (req, res, next) => {
     try {
         const { user_ID } = req.query;
 
@@ -58,7 +58,7 @@ const getNotifications = async (req, res, next) => {
 };
 
 // Update notification by notif_ID
-const updateNotification = async (req, res, next) => {
+const updateNotif = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { enable_notif, notification_time_1, notification_time_2 } = req.body;
