@@ -27,6 +27,7 @@ const xp_log_rtr = require('./API/routers/xp_log_rtr');
 const xp_info_rtr = require('./API/routers/xp_info_rtr');
 
 
+
 // para lang makita kung anong request sa console
 app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.url}`);

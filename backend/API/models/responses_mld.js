@@ -11,9 +11,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.ENUM('User', 'Moodi'),
             allowNull: false
         },
-        keyword: {
-            type: DataTypes.STRING,
-            allowNull: false
+        message: {
+            type:DataTypes.STRING,
+            allowNull:false
+        
         },
         sentiment_score: {
             type: DataTypes.FLOAT,

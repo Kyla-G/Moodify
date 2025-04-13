@@ -1,5 +1,5 @@
 const express = require('express');
-const XP = require('../controllers/xp_progress_ctrl');
+const XP = require('../controllers/xp_info_ctrl');
 const router = express.Router();
 
 
