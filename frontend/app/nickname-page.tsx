@@ -1,57 +1,61 @@
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { Text, Image, TouchableOpacity, TextInput, View} from "react-native";
+import { Text, Image, TouchableOpacity, TextInput, View, ActivityIndicator, Alert } from "react-native";
 import { useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import images from "@/constants/images";
-import axios from "@/axiosConfig"; // adjust path if needed
-
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
+// Import axios but comment it out until the backend is ready
+// import axios from "@/axiosConfig";
 
 export default function NicknamePage() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const [nickname, setNickname] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
+  const handleContinue = async () => {
+    if (!nickname.trim()) return;
 
+    setIsLoading(true);
 
-  
+    try {
+      // Store the nickname locally so we can proceed without the API
+      await AsyncStorage.setItem("user_nickname", nickname.trim());
+      
+      // Add a small delay to simulate the API call
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-//   const handleContinue = () => {
-//     if (nickname.trim()) {
-//       // Save nickname and navigate to next screen
-//       router.push({
-//         pathname: '/(root)/(tabs)/home-page',
-//         params: { nickname: nickname.trim(), 
-//         showWelcome: "true" }
-//     });
-// }
-// };
+      // COMMENTED OUT: API call that's causing timeouts
+      /* 
+      const response = await axios.post("/users/addUser", {
+        nickname: nickname.trim(),
+      });
 
+      if (response.data.successful) {
+        console.log("✅ User added:", response.data.user);
+        ...
+      }
+      */
+      
+      // Log success to console
+      console.log("✅ User saved locally:", nickname.trim());
 
-const handleContinue = async () => {
-  if (!nickname.trim()) return;
-
-  try {
-    const response = await axios.post("/users/addUser", {
-      nickname: nickname.trim(),
-    });
-
-    if (response.data.successful) {
-      console.log("✅ User added:", response.data.user);
-
+      // Navigate to the home page
       router.push({
         pathname: "/(root)/(tabs)/home-page",
         params: { nickname: nickname.trim(), showWelcome: "true" },
       });
-    } else {
-      console.warn("⚠️ Failed to add user:", response.data.message);
+    } catch (error) {
+      console.error("❌ Error saving nickname:", error);
+      Alert.alert(
+        "Error",
+        "Unable to save your nickname. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error("❌ Error creating user:", error);
-  }
-};
-
+  };
 
   return (
     <SafeAreaView className="flex-1 justify-center items-center bg-bg-medium">
@@ -100,6 +104,7 @@ const handleContinue = async () => {
             value={nickname}
             onChangeText={setNickname}
             maxLength={20}
+            editable={!isLoading}
           />
         </View>
 
@@ -113,23 +118,27 @@ const handleContinue = async () => {
 
       <TouchableOpacity
         onPress={handleContinue}
-        disabled={!nickname.trim()}
+        disabled={!nickname.trim() || isLoading}
         style={{
           position: "absolute",
           bottom: height * 0.08,
           paddingVertical: height * 0.02,
           paddingHorizontal: width * 0.08,
           borderRadius: 45,
-          opacity: nickname.trim() ? 1 : 0.5,
+          opacity: (nickname.trim() && !isLoading) ? 1 : 0.5,
         }}
         className="bg-bg-orange flex-row justify-center items-center"
       >
-        <Text
-          style={{ fontSize: width * 0.05 }}
-          className="text-txt-light font-LeagueSpartan-Bold text-center"
-        >
-          Continue
-        </Text>
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        ) : (
+          <Text
+            style={{ fontSize: width * 0.05 }}
+            className="text-txt-light font-LeagueSpartan-Bold text-center"
+          >
+            Continue
+          </Text>
+        )}
       </TouchableOpacity>
     </SafeAreaView>
   );
