@@ -53,7 +53,7 @@ export default function CalendarScreen() {
   const [selectedReward, setSelectedReward] = useState(null);
   const [todayAffirmation, setTodayAffirmation] = useState("");
   const [calendarEntries, setCalendarEntries] = useState([]);
-  const [userXP, setUserXP] = useState(85); // Example XP progress 0-100
+  const [userXP, setUserXP] = useState(90); // Example XP progress 0-100
   
   // Update state for mood modal - change to selectedDate instead of entry
   const [selectedDate, setSelectedDate] = useState(null);
@@ -62,16 +62,25 @@ export default function CalendarScreen() {
   // Use the theme context with multiple themes
   const { theme, setThemeName, availableThemes } = useTheme();
 
-  // The available theme palettes - seasonal themes
+  // The available theme palettes - Autumn now first (default) theme
   const palettes = [
+    {
+      title: "🍂 Autumn Theme",
+      themeName: "autumn",
+      icon: "flame-outline",
+      description: "Warm orange & red tones",
+      color: "#FF6B35",
+      requiredXP: 0, // Starting theme (was 60)
+      unlocked: true
+    },
     {
       title: "🌱 Spring Theme",
       themeName: "spring",
       icon: "leaf-outline",
       description: "Fresh green & yellow tones",
       color: "#5fa55a",
-      requiredXP: 0, // Starting theme
-      unlocked: true
+      requiredXP: 30, // Was 0
+      unlocked: userXP >= 30
     },
     {
       title: "☀️ Summer Theme",
@@ -79,16 +88,7 @@ export default function CalendarScreen() {
       icon: "sunny-outline",
       description: "Vibrant pink & purple",
       color: "#c266a7",
-      requiredXP: 30,
-      unlocked: userXP >= 30
-    },
-    {
-      title: "🍂 Autumn Theme",
-      themeName: "autumn",
-      icon: "flame-outline",
-      description: "Warm orange & red tones",
-      color: "#FF6B35",
-      requiredXP: 60,
+      requiredXP: 60, // Was 30
       unlocked: userXP >= 60
     },
     {
@@ -97,7 +97,7 @@ export default function CalendarScreen() {
       icon: "snow-outline",
       description: "Cool blue & ice tones",
       color: "#4deeea",
-      requiredXP: 90,
+      requiredXP: 90, // Stays the same
       unlocked: userXP >= 90
     },
   ];
@@ -509,7 +509,7 @@ export default function CalendarScreen() {
                 zIndex: 1
               }} />
               
-              {/* First Theme - Spring (Starting Point) */}
+              {/* First Theme - Autumn (Starting Point) */}
               <TouchableOpacity
                 onPress={() => handleRewardSelect(palettes[0])}
                 style={{ 
@@ -553,11 +553,11 @@ export default function CalendarScreen() {
                   paddingVertical: 4,
                   borderRadius: 12
                 }}>
-                  <Text style={{ color: "#fff", fontWeight: "bold" }}>START</Text>
+                  <Text style={{ color: "#fff", fontWeight: "bold" }}>DEFAULT</Text>
                 </View>
               </TouchableOpacity>
               
-              {/* Second Theme - Summer */}
+              {/* Second Theme - Spring */}
               <TouchableOpacity
                 onPress={() => handleRewardSelect(palettes[1])}
                 style={{ 
@@ -608,7 +608,7 @@ export default function CalendarScreen() {
                 </View>
               </TouchableOpacity>
               
-              {/* Third Theme - Autumn */}
+              {/* Third Theme - Summer */}
               <TouchableOpacity
                 onPress={() => handleRewardSelect(palettes[2])}
                 style={{ 
@@ -730,7 +730,7 @@ export default function CalendarScreen() {
         )}
       </ScrollView>
       
-      {/* UPDATED: Calendar Mood Modal - Now using selectedDate instead of entry */}
+      {/* Calendar Mood Modal */}
       <CalendarMoodModal
         visible={moodModalVisible}
         onClose={() => {
