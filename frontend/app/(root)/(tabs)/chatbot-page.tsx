@@ -15,6 +15,7 @@ interface Message {
   role?: 'system' | 'user' | 'assistant';
   text: string;
   sender: 'user' | 'bot';
+  timestamp: Date; // Add timestamp property
 }
 
 interface APIResponse {
@@ -24,7 +25,12 @@ interface APIResponse {
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
-    { text: "Hey there! I'm Moodi, your AI friend! Just checking in—how's your day?", sender: "bot", role: "assistant" }
+    { 
+      text: "Hey there! I'm Moodi, your AI friend! Just checking in—how's your day?", 
+      sender: "bot", 
+      role: "assistant",
+      timestamp: new Date() // Initialize with current timestamp
+    }
   ]);
   const [input, setInput] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
@@ -44,11 +50,33 @@ export default function ChatbotPage() {
     }
   }, [messages]);
 
+  // Format timestamp to show time (AM/PM) and date (day, month in 3 letters)
+  const formatTimestamp = (timestamp: Date): string => {
+    const hours = timestamp.getHours();
+    const minutes = timestamp.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+    
+    const day = timestamp.getDate();
+    // Get month as 3-letter abbreviation (Jan, Feb, Mar, etc.)
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = monthNames[timestamp.getMonth()];
+    const year = timestamp.getFullYear();
+    
+    return `${formattedHours}:${formattedMinutes} ${ampm} • ${day} ${month} ${year}`;
+  };
+
   const sendMessage = async () => {
     if (input.trim() === "" || chatEnded) return;
 
-    // Add user message to chat
-    const userMessage: Message = { text: input, sender: "user", role: "user" };
+    // Add user message to chat with current timestamp
+    const userMessage: Message = { 
+      text: input, 
+      sender: "user", 
+      role: "user",
+      timestamp: new Date() // Add current timestamp
+    };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setIsLoading(true);
@@ -95,15 +123,17 @@ export default function ChatbotPage() {
         const errorMessage: Message = {
           text: 'Sorry, there was an error processing your message.',
           sender: "bot",
-          role: "assistant"
+          role: "assistant",
+          timestamp: new Date() // Add current timestamp
         };
         setMessages((prevMessages) => [...prevMessages, errorMessage]);
       } else if (data.choices && data.choices[0] && data.choices[0].message) {
-        // Add bot response to chat
+        // Add bot response to chat with current timestamp
         const botMessage: Message = {
           text: data.choices[0].message.content || 'No response received.',
           sender: "bot",
-          role: "assistant"
+          role: "assistant",
+          timestamp: new Date() // Add current timestamp
         };
         setMessages((prevMessages) => [...prevMessages, botMessage]);
       } else {
@@ -111,7 +141,8 @@ export default function ChatbotPage() {
         const unexpectedMessage: Message = {
           text: 'Unexpected response from the AI.',
           sender: "bot",
-          role: "assistant"
+          role: "assistant",
+          timestamp: new Date() // Add current timestamp
         };
         setMessages((prevMessages) => [...prevMessages, unexpectedMessage]);
       }
@@ -121,7 +152,8 @@ export default function ChatbotPage() {
       const errorMessage: Message = {
         text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         sender: "bot",
-        role: "assistant"
+        role: "assistant",
+        timestamp: new Date() // Add current timestamp
       };
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
     }
@@ -141,11 +173,12 @@ export default function ChatbotPage() {
     setEndChatModalVisible(false);
     setChatEnded(true);
     
-    // Add farewell message from the bot
+    // Add farewell message from the bot with current timestamp
     const farewellMessage: Message = {
       text: "Thank you for chatting with me! I'm always here whenever you need someone to talk to. Take care!",
       sender: "bot",
-      role: "assistant"
+      role: "assistant",
+      timestamp: new Date() // Add current timestamp
     };
     
     setMessages((prevMessages) => [...prevMessages, farewellMessage]);
@@ -215,6 +248,11 @@ export default function ChatbotPage() {
               <Text className={`text-[20px] font-LeagueSpartan ${msg.sender === "user" ? "text-[#EEEED0]" : "text-[#101011]"}`}
               >
                 {msg.text}
+              </Text>
+              
+              {/* Add timestamp display */}
+              <Text className={`text-xs mt-1 ${msg.sender === "user" ? "text-[#AEAEAE]" : "text-[#6E6E6E]"}`}>
+                {formatTimestamp(msg.timestamp)}
               </Text>
             </View>
           </View>
