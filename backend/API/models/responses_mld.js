@@ -15,6 +15,18 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        sentiment_score: {
+            type: DataTypes.FLOAT,
+            allowNull: false
+        },
+        emotion_category: {
+            type: DataTypes.ENUM('joy', 'sadness', 'fear', 'anger'),
+            allowNull: false
+        },
+        intensity_score: {
+            type: DataTypes.FLOAT,
+            allowNull: false
+        },
         timestamp: {
             type: DataTypes.DATE,
             allowNull: false

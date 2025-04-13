@@ -1,109 +1,50 @@
-const sqlite3 = require('sqlite3').verbose();
+
+const {User } = require('../models'); // Adjust path to your models directory
 const util = require('../../utils');
-const { nanoid } = require('nanoid');
-const { User } = require("../models"); // Adjust the path based on your project structure
+const { Op } = require("sequelize");
 
 
-
-const db = new sqlite3.Database ('Moodify.db');
-
-const addUser = async (req, res) => {
+const addUser = async (req, res, next) => {
     try {
-        const { nickname } = req.body;
+        const { nickname, createdAt, updatedAt } = req.body;
+        
 
         // Validate mandatory fields
-        if (!nickname) {
+        if (!util.checkMandatoryFields([nickname,])) {
             return res.status(400).json({
                 successful: false,
                 message: "A mandatory field is missing."
             });
         }
 
-        const userId = nanoid(8); // Generate unique user_ID
-        const createdAt = new Date().toISOString(); // Get current timestamp
-        const updatedAt = createdAt; // Set updatedAt to same value as createdAt
+        // add validation for nickname format
 
-        // Insert user into SQLite
-        db.run(
-            `INSERT INTO Users (user_ID, nickname, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
-            [userId, nickname, createdAt, updatedAt],
-            function (err) {
-                if (err) {
-                    console.error("❌ Error adding user:", err.message);
-                    return res.status(500).json({
-                        successful: false,
-                        message: "Database error: " + err.message
-                    });
-                }
+        // Create new user with a hashed password
+        const newUser = await User.create(
+            {
+                nickname,
+                createdAt, 
+                updatedAt
+            });
+            
+        
 
-                // Return successful response
-                return res.status(201).json({
-                    successful: true,
-                    message: "Successfully added new user.",
-                    user: { user_ID: userId, nickname }
-                });
-            }
-        );
+
+        return res.status(201).json({
+            successful: true,
+            message: "Successfully added new user.",
+            user: { user_ID: newUser.id, nickname: newUser.nickname } // Returning basic details
+        });
+
     } catch (err) {
-        console.error("❌ Error in adding a user:", err);
+        console.error("Error in adding a user:", err);
+
         return res.status(500).json({
             successful: false,
             message: err.message || "An unexpected error occurred."
-        });
+        });sssssss
     }
 };
-
-const setPasscode = async (req, res, next) => {
-    try {
-        const { passcode } = req.body;
-
-        // Check if the user exists
-        const user = await User.findByPk(req.params.id);
-        if (!user) {
-            return res.status(404).json({
-                successful: false,
-                message: "User not found."
-            });
-        }
-
-        // Validate mandatory fields
-        if (!util.checkMandatoryFields([passcode])) {
-            return res.status(400).json({
-                successful: false,
-                message: "A mandatory field is missing."
-            });
-        }
-
-        // Check if passcode is exactly 4 digits (including leading zeros)
-        const passcodeStr = passcode.toString();
-        const isValid = /^\d{4}$/.test(passcodeStr);
-        if (!isValid) {
-            return res.status(400).json({
-                successful: false,
-                message: "Passcode must be exactly 4 digits"
-            });
-        }
-
-        // Update user passcode
-        await user.update({
-            passcode: parseInt(passcodeStr)
-        });
-
-        return res.status(200).json({
-            successful: true,
-            message: "User passcode updated successfully.",
-            data: "Updated Passcode: " + passcodeStr
-        });
-
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({
-            successful: false,
-            message: err
-        });
-    }
-};
-
 
 
 const getUserById = async (req, res, next) => {
@@ -132,47 +73,17 @@ const getUserById = async (req, res, next) => {
     }
 };
 
-const checkUserExists = async (req, res, next) => {
-    try {
-        const users = await User.findOne();
-
-        if (!users) {
-            return res.status(404).json({
-                successful: false,
-                exists: false,
-                message: "No user exists on this device."
-            });
-        }
-
-        return res.status(200).json({
-            successful: true,
-            exists: true,
-            message: "A user already exists on this device.",
-            data: users
-        });
-
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({
-            successful: false,
-            message: "Failed to check user existence.",
-            error: err.message
-        });
-    }
-};
-
-
-
 
 
 const getAllUsers = async (req, res, next) => {
-    // console.log(db.User + "boink"); // Should not be undefined
 
-    
+    // console.log("=== getAllUsers method called ===");
+    // console.log("DB object keys:", Object.keys(db));
+    // console.log("DB User model:", db.User);
 
+  
     try {
         const users = await User.findAll();
-
 
         if (!users || users.length === 0) {
             return res.status(200).json({
@@ -267,23 +178,10 @@ const deleteUser = async (req, res) => {
     }
 };
 
-
-
 module.exports = {
     addUser,
-    setPasscode,
     getUserById,
-    checkUserExists,
     getAllUsers,
     updateUserById,
     deleteUser
 }
-
-
-
-
-
-
-
-
-

@@ -8,8 +8,8 @@ module.exports = (sequelize, DataTypes) => {
         },
         xp_feature: {
             type: DataTypes.ENUM(
-                'palette set',
-                'emoji set ',
+                'palette 1', 'palette 2', 'palette 3', 
+                'emoji set 1', 'emoji set 2', 'emoji set 3', 
                 'moodi accessories'
             ),
             allowNull: false
