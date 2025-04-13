@@ -23,7 +23,8 @@ const chat_session_rtr = require('./API/routers/chat_session_rtr');
 const responses_rtr = require('./API/routers/responses_rtr');
 const feedback_rtr = require('./API/routers/feedback_rtr');
 const xp_progress_rtr = require('./API/routers/xp_progress_rtr');
-const xp_rtr = require('./API/routers/xp_rtr');
+const xp_log_rtr = require('./API/routers/xp_log_rtr');
+const xp_info_rtr = require('./API/routers/xp_info_rtr');
 
 
 // para lang makita kung anong request sa console
@@ -102,7 +103,8 @@ app.use('/chats', chat_session_rtr);
 app.use('/responses', responses_rtr);
 app.use('/feedback', feedback_rtr);
 app.use('/XPprogress', xp_progress_rtr);
-app.use('/XP', xp_rtr);
+app.use('/Log', xp_log_rtr);
+app.use('/XP', xp_info_rtr);
   
 
 
