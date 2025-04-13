@@ -24,6 +24,7 @@ import MoodSelectionModal from "./mood-selection-modal";
 import EmotionJournalModal from "./emotion-journal-modal";
 import SummaryModal from "./summary-modal";
 import WelcomeModal from "./welcome-modal";
+import SettingsModal from "./settings-modal"; // Import the settings modal
 
 const moodIcons = {
   rad: icons.MoodRad,
@@ -71,6 +72,9 @@ export default function HomeScreen() {
   const params = useLocalSearchParams();
   const [welcomeModalVisible, setWelcomeModalVisible] = useState(false);
   const nickname = params.nickname || "Friend";
+  
+  // Settings modal state
+  const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   
   // XP popup state
   const [xpPopupVisible, setXpPopupVisible] = useState(false);
@@ -182,6 +186,16 @@ export default function HomeScreen() {
   };
   
   const closeMoodModal = () => setMoodModalVisible(false);
+
+  // Open settings modal
+  const openSettingsModal = () => {
+    setSettingsModalVisible(true);
+  };
+
+  // Close settings modal
+  const closeSettingsModal = () => {
+    setSettingsModalVisible(false);
+  };
 
   const selectMood = (mood) => {
     setSelectedMood(mood);
@@ -391,7 +405,8 @@ export default function HomeScreen() {
           paddingTop: 24, 
           paddingBottom: 16 
         }}>
-          <TouchableOpacity>
+          {/* Updated: Added onPress to open settings modal */}
+          <TouchableOpacity onPress={openSettingsModal}>
             <Ionicons name="settings-outline" size={width < 350 ? 22 : 28} color={theme.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPrevious}>
@@ -759,6 +774,13 @@ export default function HomeScreen() {
         height={height}
         moodColors={moodColors}
         theme={theme}
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        visible={settingsModalVisible}
+        onClose={closeSettingsModal}
+        nickname={nickname.toString()}
       />
 
       {/* XP Streak Popup */}
