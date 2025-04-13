@@ -72,7 +72,7 @@ module.exports = (sequelize, DataTypes) => {
         User.hasMany(models.XPLog, {
             foreignKey: "user_ID",
             as: "xpLog",
-            onDelete: "SET NULL",
+            onDelete: "CASCADE",
             onUpdate: "CASCADE",
         });
 

@@ -14,6 +14,11 @@ module.exports = (sequelize, DataTypes) => {
         gained_xp_date: {
             type: DataTypes.DATE,
             allowNull: false
+        },
+
+        streak:{
+            type:DataTypes.INTEGER,
+            allowNull:true
         }
     }, {
         timelapse:false,

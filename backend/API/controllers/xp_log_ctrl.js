@@ -5,11 +5,13 @@ const dayjs = require('dayjs');
 
 const formatDateTime = d => d ? dayjs(d).format('MMM D, YYYY hh:mm A') : 'N/A';
 
+const { nanoid } = require('nanoid');
+
 const createXPLog = async (req, res, next) => {
     try {
-        const { user_ID, action_type, action_ID } = req.body;
+        const { user_ID, action_type, action_ID_mood } = req.body;
 
-        if (!util.checkMandatoryFields([user_ID, action_type, action_ID])) {
+        if (!util.checkMandatoryFields([user_ID, action_type, action_ID_mood])) {
             return res.status(400).json({
                 successful: false,
                 message: "A mandatory field is missing."
@@ -20,20 +22,20 @@ const createXPLog = async (req, res, next) => {
         let actionDate;
 
         if (action_type === "mood_entry") {
-            const moodEntry = await MoodEntry.findByPk(action_ID);
+            const moodEntry = await MoodEntry.findByPk(action_ID_mood);
             if (!moodEntry || moodEntry.user_ID !== user_ID) {
                 return res.status(400).json({ successful: false, message: "Invalid mood entry ID." });
             }
             xp_earned = 5;
             actionDate = moodEntry.logged_date;
-        } else if (action_type === "chat_session") {
-            const chatSession = await ChatSession.findByPk(action_ID);
-            if (!chatSession || chatSession.user_ID !== user_ID) {
-                return res.status(400).json({ successful: false, message: "Invalid chat session ID." });
-            }
-            xp_earned = 20;
-            actionDate = chatSession.createdAt;
-        } else {
+        // } else if (action_type === "chat_session") {
+        //     const chatSession = await ChatSession.findByPk(action_ID);
+        //     if (!chatSession || chatSession.user_ID !== user_ID) {
+        //         return res.status(400).json({ successful: false, message: "Invalid chat session ID." });
+        //     }
+        //     xp_earned = 20;
+        //     actionDate = chatSession.createdAt;
+        // } else {
             return res.status(400).json({ successful: false, message: "Invalid action type. Must be 'mood_entry' or 'chat_session'." });
         }
 
@@ -62,7 +64,7 @@ const createXPLog = async (req, res, next) => {
             xp_log_ID: nanoid(10),
             user_ID,
             action_type,
-            action_ID,
+            action_ID_mood,
             xp_earned
         });
 
@@ -83,10 +85,43 @@ const createXPLog = async (req, res, next) => {
 
 
 
+const getXPLogsByUser = async (req, res) => {
+    try {
+        const { user_ID } = req.params;
 
+        const xpLogs = await XPLog.findAll({
+            where: { user_ID },
+            order: [['log_date', 'DESC']]
+        });
+
+        if (!xpLogs || xpLogs.length === 0) {
+            return res.status(200).json({
+                successful: true,
+                message: "No XP logs found for this user.",
+                count: 0,
+                data: []
+            });
+        }
+
+        return res.status(200).json({
+            successful: true,
+            message: "XP logs retrieved successfully.",
+            count: xpLogs.length,
+            data: xpLogs
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            successful: false,
+            message: err.message
+        });
+    }
+};
 
 
 module.exports = {
-    createXPLog
+    createXPLog,
+    getXPLogsByUser
 
 }

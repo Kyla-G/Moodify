@@ -1,21 +1,21 @@
-const { XPProgress, XPLog } = require('../models/'); // Ensure model name matches exported model
+const {User, XPProgress, XPLog } = require('../models/'); // Ensure model name matches exported model
 const { Op } = require("sequelize");
 const util = require('../../utils');
 const dayjs = require("dayjs");
 
 const createXPProgress = async (req, res) => {
     try {
-        const { user_ID, date } = req.body;
+        const { user_ID, gained_xp_date } = req.body;
 
-        if (!user_ID || !date) {
+        if (!user_ID || !gained_xp_date) {
             return res.status(400).json({
                 successful: false,
                 message: "user_ID and date are required."
             });
         }
 
-        const startOfDay = dayjs(date).startOf("day").toDate();
-        const endOfDay = dayjs(date).endOf("day").toDate();
+        const startOfDay = dayjs(gained_xp_date).startOf("day").toDate();
+        const endOfDay = dayjs(gained_xp_date).endOf("day").toDate();
 
         // Fetch XP logs for the given user on the specified day
         const xpLogs = await XPLog.findAll({
@@ -59,6 +59,42 @@ const createXPProgress = async (req, res) => {
     }
 };
 
+const getProgress = async (req, res) => {
+    try {
+        const { user_ID } = req.params;
+
+        const progressLogs = await XPProgress.findAll({
+            where: { user_ID },
+            order: [['gained_xp_date', 'DESC']]
+        });
+
+        if (!progressLogs || progressLogs.length === 0) {
+            return res.status(200).json({
+                successful: true,
+                message: "No XP progress found for this user.",
+                count: 0,
+                data: []
+            });
+        }
+
+        return res.status(200).json({
+            successful: true,
+            message: "Retrieved XP progress successfully.",
+            count: progressLogs.length,
+            data: progressLogs
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            successful: false,
+            message: err.message
+        });
+    }
+};
+
 module.exports = {
-    createXPProgress
+    createXPProgress,
+    // updateXPProgress,
+    getProgress
 };

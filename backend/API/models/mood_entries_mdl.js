@@ -68,7 +68,14 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: "user_ID",
             as: "user",
         });
-    };
+    }
+    //     MoodEntry.hasMany(models.XPLog), {
+    //         foreignKey: "action_ID_mood",
+    //         as: "xpLogs",
+    //         onDelete: "CASCADE",
+    //         onUpdate: "CASCADE",
+    //     }
+    // };
 
     return MoodEntry;
 };
