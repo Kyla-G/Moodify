@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
-import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { format, subMonths, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subDays, addDays } from "date-fns";
 import { format, subMonths, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, getDay, subDays, addDays } from "date-fns";
 import { useWindowDimensions } from "react-native";
 import { useTheme } from "@/app/(root)/properties/themecontext"; // Import the theme hook
@@ -25,18 +23,6 @@ const moodIcons = {
   Bad: MoodBad,
   Awful: MoodAwful,
 };
-
-// Array of daily affirmations
-const affirmations = [
-  "Today I choose joy and positivity",
-  "I am worthy of all good things",
-  "Every day is a fresh start",
-  "I am getting stronger each day",
-  "My feelings are valid and important",
-  "Small steps lead to big changes",
-  "I celebrate my progress today",
-  "I deserve peace and happiness",
-];
 
 // Theme storage key for AsyncStorage
 const THEME_STORAGE_KEY = "app_selected_theme";
@@ -122,9 +108,7 @@ export default function CalendarScreen() {
   );
 
   // Create a lookup map for mood entries by date
-  // Create a lookup map for mood entries by date
   const moodMap = Object.fromEntries(
-    calendarEntries.map((entry) => [entry.date, entry.mood])
     calendarEntries.map((entry) => [entry.date, entry.mood])
   );
 
@@ -168,7 +152,6 @@ export default function CalendarScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
       <StatusBar
         style={theme.background === "#000000" ? "light" : "dark"}
         style={theme.background === "#000000" ? "light" : "dark"}
@@ -179,17 +162,12 @@ export default function CalendarScreen() {
 
       <View style={{ alignItems: "center", width: "100%", paddingTop: 24, paddingHorizontal: 16 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: 16 }}>
-      <View style={{ alignItems: "center", width: "100%", paddingTop: 24, paddingHorizontal: 16 }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", width: "100%", marginBottom: 16 }}>
           <TouchableOpacity>
-            <Ionicons name="settings-outline" size={28} color={theme.text} />
             <Ionicons name="settings-outline" size={28} color={theme.text} />
           </TouchableOpacity>
           <TouchableOpacity onPress={goToPreviousMonth}>
             <Ionicons name="chevron-back-outline" size={28} color={theme.text} />
-            <Ionicons name="chevron-back-outline" size={28} color={theme.text} />
           </TouchableOpacity>
-          <Text style={{ color: theme.text, fontWeight: "bold", fontSize: 24 }}>
           <Text style={{ color: theme.text, fontWeight: "bold", fontSize: 24 }}>
             {format(selectedMonth, "MMMM yyyy")}
           </Text>
@@ -202,7 +180,6 @@ export default function CalendarScreen() {
             />
           </TouchableOpacity>
           <TouchableOpacity>
-            <Ionicons name="flame-outline" size={28} color={theme.text} />
             <Ionicons name="flame-outline" size={28} color={theme.text} />
           </TouchableOpacity>
         </View>
@@ -488,34 +465,7 @@ export default function CalendarScreen() {
               paddingHorizontal: 8,
               marginBottom: 24
             }}>
-              {palettes.slice(0, 3).map((palette, index) => (
-            
-            {/* Themes section header */}
-            <View style={{ 
-              backgroundColor: theme.calendarBg, 
-              paddingVertical: 12, 
-              borderTopLeftRadius: 8, 
-              borderTopRightRadius: 8,
-              width: "100%",
-              alignItems: "center"
-            }}>
-              <Text style={{ color: theme.text, fontWeight: "bold" }}>
-                Seasonal Themes
-              </Text>
-            </View>
-            
-            {/* Horizontal theme tabs */}
-            <View style={{ 
-              flexDirection: "row", 
-              justifyContent: "space-around", 
-              width: "100%",
-              backgroundColor: theme.calendarBg,
-              borderBottomLeftRadius: 8,
-              borderBottomRightRadius: 8,
-              paddingVertical: 16,
-              paddingHorizontal: 8,
-              marginBottom: 24
-            }}>
+
               {palettes.slice(0, 3).map((palette, index) => (
                 <TouchableOpacity
                   key={index}

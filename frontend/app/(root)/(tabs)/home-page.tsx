@@ -8,7 +8,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import icons from "@/constants/icons";
 import images from "@/constants/images";
 import { useLocalSearchParams } from "expo-router";
-import XpStreakPopup from '../(tabs)/streak-notif';
+// import XpStreakPopup from '../(tabs)/streak-notif';
 import { useTheme } from "@/app/(root)/properties/themecontext"; // Import the theme context
 import { moodColors } from "@/app/services/type";
 
