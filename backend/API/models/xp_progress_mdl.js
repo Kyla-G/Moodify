@@ -7,11 +7,11 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             allowNull: true
         },
-        gained_xp: {
+        current_xp: {
             type: DataTypes.INTEGER,
             allowNull: false
         },
-        gained_xp_date: {
+        last_date_updated: {
             type: DataTypes.DATE,
             allowNull: false
         },

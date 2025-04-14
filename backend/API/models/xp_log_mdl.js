@@ -2,6 +2,8 @@ const dayjs = require('dayjs');
 const { nanoid } = require('nanoid')
 
 module.exports = (sequelize, DataTypes) => {
+    if (sequelize.getDialect() === 'mysql') return null;
+
     const XPLog = sequelize.define('XPLog', {
         xp_log_ID: {
             type: DataTypes.STRING,
@@ -50,8 +52,8 @@ module.exports = (sequelize, DataTypes) => {
         },
         log_date: {
             type: DataTypes.DATE,
-            allowNull: false,
-            defaultValue: DataTypes.NOW
+            allowNull: true,
+            
         },
 
         streak:{
@@ -82,6 +84,7 @@ module.exports = (sequelize, DataTypes) => {
             onDelete: 'CASCADE'
         });
     }
+
 
     return XPLog;
 };

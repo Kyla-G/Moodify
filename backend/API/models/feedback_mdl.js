@@ -11,11 +11,21 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.ENUM('1', '2', '3', '4', '5'),  // Restricts values to 1-5
             allowNull: false
         },
+
+        feedback_text:{
+            type:DataTypes.STRING,
+            allowNull:false
+
+        },
         
         feedback_time: {
             type: DataTypes.DATE,
             allowNull: false
-        }
+        },
+
+
+
+        
     },{
         timelapse:false,
          hooks: {

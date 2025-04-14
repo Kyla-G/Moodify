@@ -8,7 +8,6 @@ const customParseFormat = require('dayjs/plugin/customParseFormat');
 dayjs.extend(customParseFormat);
 
 
-
 const addMoodEntry = async (req, res, next) => {
     try {
         const { user_ID, mood, emotions, logged_date, journal } = req.body;
@@ -72,22 +71,22 @@ const addMoodEntry = async (req, res, next) => {
             mood,
             emotions,
             logged_date: providedDate.toDate(),
-            ...(journal && { journal })
+            journal
         });
 
-        await LogXP.createXPLog({ user_ID, action_type: 'mood_entry', action_ID: newMoodEntry.entry_ID, log_date: providedDate });
-
+        // Call XP log creation (XP Controller will handle streaks)
+        // await LogXP.createXPLog({ user_ID, action_type: 'mood_entry', action_ID_mood: newMoodEntry.entry_ID, log_date: providedDate });
 
         return res.status(201).json({
             successful: true,
-            message: "Successfully added new mood.",
+            message: "Successfully added new mood and triggered XP log.",
             moodEntry: {
                 entry_ID: newMoodEntry.entry_ID,
                 user_ID: newMoodEntry.user_ID,
                 mood: newMoodEntry.mood,
-                logged_date: dayjs(newMoodEntry.logged_date).format("YYYY-MM-DD HH:mm"),
+                logged_date: dayjs(newMoodEntry.logged_date).format("MM-DD-YYYY HH:mm"),
                 emotions: newMoodEntry.emotions,
-                ...(journal && { journal })
+                journal: newMoodEntry.journal
             }
         });
 
@@ -99,6 +98,7 @@ const addMoodEntry = async (req, res, next) => {
         });
     }
 };
+
 
 
 

@@ -25,6 +25,7 @@ const feedback_rtr = require('./API/routers/feedback_rtr');
 const xp_progress_rtr = require('./API/routers/xp_progress_rtr');
 const xp_log_rtr = require('./API/routers/xp_log_rtr');
 const xp_info_rtr = require('./API/routers/xp_info_rtr');
+// const notif_rtr = require('./API/routers/notification_rtr');
 
 
 
@@ -103,10 +104,10 @@ app.use('/entries', mood_entries_rtr);
 app.use('/chats', chat_session_rtr);
 app.use('/responses', responses_rtr);
 app.use('/feedback', feedback_rtr);
-app.use('/XPProgress', xp_progress_rtr);
-app.use('/Log', xp_log_rtr);
-app.use('/XP', xp_info_rtr);
-  
+app.use('/xpProgress', xp_progress_rtr);
+app.use('/xpLog', xp_log_rtr);
+app.use('/xpInfo', xp_info_rtr);
+// app.use('notif', notif_rtr);
 
 
 //ERROR MIDDLEWARES
