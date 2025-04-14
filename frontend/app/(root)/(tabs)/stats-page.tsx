@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image, Dimensions } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { BarChart, LineChart, PieChart } from "react-native-chart-kit";
@@ -10,9 +10,6 @@ import {
   addMonths, 
   startOfMonth, 
   endOfMonth, 
-  eachDayOfInterval, 
-  parseISO, 
-  isSameMonth,
   startOfWeek,
   endOfWeek,
   subWeeks,
@@ -22,11 +19,7 @@ import {
 import { useTheme } from "@/app/(root)/properties/themecontext";
 import { LinearGradient } from "expo-linear-gradient";
 import { moodColors } from "@/app/services/type";
-import { 
-  getAllMoodEntries, 
-  subscribeToChanges, 
-  getMoodEntriesForCalendar 
-} from "@/app/services/moodEntriesApi";
+import axios from "@/axiosConfig"; // Import axios for API calls
 
 const { width, height } = Dimensions.get("window");
 const screenWidth = width - 40; // Account for padding
@@ -44,7 +37,7 @@ const affirmations = [
   "I deserve peace and happiness",
 ];
 
-// Map mood types to theme color properties - same as in other screens
+// Map mood types to theme color properties
 const moodToThemeMap = {
   "rad": "buttonBg",
   "good": "accent1",
@@ -62,7 +55,7 @@ const moodScores = {
   "awful": 1
 };
 
-// Define mood names with proper capitalization - same as in other screens
+// Define mood names with proper capitalization
 const moodNames = {
   "rad": "Rad",
   "good": "Good",
@@ -74,10 +67,10 @@ const moodNames = {
 export default function StatsScreen() {
   const { theme } = useTheme();
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState("weekly"); // Add viewMode state - "weekly" or "monthly"
+  const [viewMode, setViewMode] = useState("weekly"); // "weekly" or "monthly"
   const [todayAffirmation, setTodayAffirmation] = useState("");
   const [entries, setEntries] = useState([]);
-  const [filteredEntries, setFilteredEntries] = useState([]); // Renamed from monthlyEntries to filteredEntries
+  const [filteredEntries, setFilteredEntries] = useState([]);
   const [stats, setStats] = useState({
     moodCounts: {},
     avgScore: 0,
@@ -86,26 +79,49 @@ export default function StatsScreen() {
     journalPercentage: 0,
     weeklyTrend: []
   });
+  const [loading, setLoading] = useState(true);
 
-  // Load entries from API (just like in HomeScreen)
   useEffect(() => {
-    try {
-      // Get initial entries
-      const initialEntries = getAllMoodEntries();
-      console.log("Stats page - initial entries:", initialEntries);
-      setEntries(initialEntries);
-      
-      // Subscribe to future changes
-      const unsubscribe = subscribeToChanges(() => {
-        console.log("Mood entries updated in stats screen");
-        setEntries(getAllMoodEntries());
-      });
-      
-      return unsubscribe; // Cleanup subscription on unmount
-    } catch (error) {
-      console.error("Error loading mood entries on stats page:", error);
-    }
+    const fetchMoodEntries = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://192.168.1.11:3000/entries/getAllEntries');
+        if (response.data.successful) {
+          console.log("Successfully loaded mood entries:", response.data.formattedEntries.length);
+  
+          const transformedEntries = response.data.formattedEntries.map(entry => {
+            const emotionsArray = typeof entry.emotions === 'string'
+              ? entry.emotions.split(',')
+              : [];
+  
+            return {
+              id: entry.entry_ID,
+              mood: entry.mood.toLowerCase(),
+              timestamp: new Date(entry.logged_date).getTime(),
+              formattedDate: entry.logged_date,
+              emotion: emotionsArray[0] || 'unknown',
+              emotions: emotionsArray,
+              journal: entry.journal || ''
+            };
+          });
+  
+          setEntries(transformedEntries); // ✅ CRUCIAL: Save to state!
+  
+        } else {
+          console.warn("Failed to load mood entries:", response.data.message);
+          setEntries([]);
+        }
+      } catch (error) {
+        console.error("Error loading mood entries:", error);
+        setEntries([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchMoodEntries();
   }, []);
+  
 
   useEffect(() => {
     // Get a random affirmation for the day
@@ -121,7 +137,7 @@ export default function StatsScreen() {
     calculateStats();
   }, [filteredEntries]);
 
-  // New function to filter entries based on view mode (weekly or monthly)
+  // Function to filter entries based on view mode (weekly or monthly)
   const filterEntriesByPeriod = () => {
     if (entries.length === 0) {
       setFilteredEntries([]);
@@ -136,7 +152,7 @@ export default function StatsScreen() {
       
       filtered = entries.filter(entry => {
         // Parse the date from the entry
-        const entryDate = entry.timestamp ? new Date(entry.timestamp) : parseISO(entry.formattedDate);
+        const entryDate = entry.timestamp ? new Date(entry.timestamp) : new Date(entry.formattedDate);
         // Check if it falls within the selected week
         return isWithinInterval(entryDate, { start: weekStart, end: weekEnd });
       });
@@ -147,7 +163,7 @@ export default function StatsScreen() {
       
       filtered = entries.filter(entry => {
         // Parse the date from the entry
-        const entryDate = entry.timestamp ? new Date(entry.timestamp) : parseISO(entry.formattedDate);
+        const entryDate = entry.timestamp ? new Date(entry.timestamp) : new Date(entry.formattedDate);
         // Check if it falls within the selected month
         return isWithinInterval(entryDate, { start: monthStart, end: monthEnd });
       });
@@ -164,12 +180,7 @@ export default function StatsScreen() {
         streak: calculateStreak(),
         topEmotions: [],
         journalPercentage: 0,
-        weeklyTrend: [
-          { week: "Week 1", score: 0 },
-          { week: "Week 2", score: 0 },
-          { week: "Week 3", score: 0 },
-          { week: "Week 4", score: 0 },
-        ]
+        weeklyTrend: generateEmptyTrend()
       });
       return;
     }
@@ -194,7 +205,11 @@ export default function StatsScreen() {
 
     // Count emotions and get top ones
     const emotionCounts = filteredEntries.reduce((acc, entry) => {
-      acc[entry.emotion] = (acc[entry.emotion] || 0) + 1;
+      if (entry.emotions && entry.emotions.length > 0) {
+        entry.emotions.forEach(emotion => {
+          acc[emotion] = (acc[emotion] || 0) + 1;
+        });
+      }
       return acc;
     }, {});
     
@@ -203,14 +218,8 @@ export default function StatsScreen() {
       .slice(0, 3)
       .map(([emotion, count]) => ({ emotion, count }));
 
-    // Calculate weekly trend (simplified)
-    // In a real app, you would group by week and calculate averages
-    const weeklyTrend = [
-      { week: "Week 1", score: 3.2 },
-      { week: "Week 2", score: 3.8 },
-      { week: "Week 3", score: 4.1 },
-      { week: "Week 4", score: 3.5 },
-    ];
+    // Generate trend data based on the actual entries
+    const weeklyTrend = generateTrendData();
 
     setStats({
       moodCounts,
@@ -222,10 +231,66 @@ export default function StatsScreen() {
     });
   };
 
+  const generateEmptyTrend = () => {
+    if (viewMode === "weekly") {
+      return Array(7).fill(0).map((_, index) => ({
+        day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index],
+        score: 0
+      }));
+    } else {
+      return Array(4).fill(0).map((_, index) => ({
+        week: `Week ${index + 1}`,
+        score: 0
+      }));
+    }
+  };
+
+  const generateTrendData = () => {
+    if (filteredEntries.length === 0) return generateEmptyTrend();
+
+    if (viewMode === "weekly") {
+      // Create data for each day of the week
+      const dayScores = Array(7).fill(0).map(() => ({ count: 0, total: 0 }));
+      
+      filteredEntries.forEach(entry => {
+        const date = new Date(entry.timestamp);
+        const dayIndex = date.getDay(); // 0 for Sunday, 6 for Saturday
+        const moodScore = moodScores[entry.mood.toLowerCase()];
+        
+        dayScores[dayIndex].count += 1;
+        dayScores[dayIndex].total += moodScore;
+      });
+      
+      return dayScores.map((data, index) => ({
+        day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index],
+        score: data.count > 0 ? data.total / data.count : 0
+      }));
+    } else {
+      // Monthly view - group by weeks
+      const monthStart = startOfMonth(selectedDate);
+      const weekData = Array(4).fill(0).map(() => ({ count: 0, total: 0 }));
+      
+      filteredEntries.forEach(entry => {
+        const entryDate = new Date(entry.timestamp);
+        const weekIndex = Math.floor((entryDate - monthStart) / (7 * 24 * 60 * 60 * 1000));
+        const safeIndex = Math.min(weekIndex, 3); // Ensure we don't exceed array bounds
+        const moodScore = moodScores[entry.mood.toLowerCase()];
+        
+        weekData[safeIndex].count += 1;
+        weekData[safeIndex].total += moodScore;
+      });
+      
+      return weekData.map((data, index) => ({
+        week: `Week ${index + 1}`,
+        score: data.count > 0 ? data.total / data.count : 0
+      }));
+    }
+  };
+
   const calculateStreak = () => {
-    // In a real app, you would check consecutive days with entries
-    // This is a simplified example
-    return 5;
+    // This would require checking consecutive days with entries
+    // Simplified version for the example
+    return entries.length > 0 ? Math.min(entries.length, 5) : 0;
   };
 
   // Format date range text for display in header
@@ -261,7 +326,7 @@ export default function StatsScreen() {
     setViewMode(viewMode === "weekly" ? "monthly" : "weekly");
   };
 
-  // Get mood color from theme - same as in HomeScreen and CalendarScreen
+  // Get mood color from theme
   const getMoodThemeColor = (mood) => {
     if (!mood) return theme.calendarBg;
     
@@ -277,51 +342,16 @@ export default function StatsScreen() {
     return moodColors[normalizedMood];
   };
 
-  // Prepare data for charts
-  const moodDistributionData = {
-    labels: Object.keys(stats.moodCounts).map(mood => moodNames[mood] || mood),
+  // Chart data preparation
+  const trendData = {
+    labels: stats.weeklyTrend.map(item => viewMode === "weekly" ? item.day : item.week),
     datasets: [{
-      data: Object.values(stats.moodCounts),
-    }],
-  };
-
-  // Ensure we have valid data for the line chart to avoid the Infinity error
-  const ensureValidChartData = (data) => {
-    // Check if there are any entries
-    if (data.length === 0) {
-      return [
-        { week: "Week 1", score: 0 },
-        { week: "Week 2", score: 0 },
-        { week: "Week 3", score: 0 },
-        { week: "Week 4", score: 0 },
-      ];
-    }
-    
-    // Ensure all values are finite numbers
-    return data.map(item => ({
-      ...item,
-      score: Number.isFinite(item.score) ? item.score : 0
-    }));
-  };
-
-  const weeklyTrendData = {
-    labels: stats.weeklyTrend.map(item => item.week),
-    datasets: [{
-      data: ensureValidChartData(stats.weeklyTrend).map(item => item.score),
+      data: stats.weeklyTrend.map(item => Number.isFinite(item.score) ? item.score : 0),
       color: (opacity = 1) => theme.buttonBg,
       strokeWidth: 2
     }],
   };
   
-  // Prepare data for pie chart
-  const pieChartData = Object.keys(stats.moodCounts).map(mood => ({
-    name: moodNames[mood] || mood,
-    population: stats.moodCounts[mood],
-    color: getMoodThemeColor(mood),
-    legendFontColor: theme.text,
-    legendFontSize: 12
-  }));
-
   const chartConfig = {
     backgroundColor: theme.calendarBg,
     backgroundGradientFrom: theme.calendarBg,
@@ -343,17 +373,16 @@ export default function StatsScreen() {
     }
   };
 
-  const isDarkTheme = theme.background === "#000000";
-
-  // Check if we have valid data for the line chart
-  const hasValidWeeklyData = stats.weeklyTrend.length > 0 && 
+  const hasValidTrendData = stats.weeklyTrend.length > 0 && 
     stats.weeklyTrend.every(item => Number.isFinite(item.score));
+
+   
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: theme.background }}>
       <StatusBar style="light" hidden={false} translucent backgroundColor="transparent" />
 
-      {/* Background Gradient - MODIFIED TO BE LIGHTER */}
+      {/* Background Gradient */}
       <View
         pointerEvents="none"
         style={{
@@ -367,8 +396,8 @@ export default function StatsScreen() {
       >
         <LinearGradient
           colors={[
-            `${theme.background}90`, // Much more transparent (90 instead of E6)
-            `${theme.background}50`, // Increased transparency (50 instead of 80)
+            `${theme.background}90`,
+            `${theme.background}50`,
             "transparent"
           ]}
           start={{ x: 0, y: 1 }}
@@ -377,7 +406,7 @@ export default function StatsScreen() {
         />
       </View>
 
-      {/* Header Navigation with Weekly/Monthly Toggle - COPIED FROM HOME PAGE */}
+      {/* Header Navigation with Weekly/Monthly Toggle */}
       <View style={{ zIndex: 20 }}>
         <View style={{ 
           paddingHorizontal: width < 350 ? 12 : 20, 
@@ -415,7 +444,7 @@ export default function StatsScreen() {
           </TouchableOpacity>
         </View>
         
-        {/* View Mode Indicator - COPIED FROM HOME PAGE */}
+        {/* View Mode Indicator */}
         <View style={{ 
           alignItems: "center", 
           paddingBottom: 10 
@@ -516,345 +545,369 @@ export default function StatsScreen() {
         </Text>
       </View>
 
-      <ScrollView 
-        contentContainerStyle={{ 
-          paddingBottom: 32, 
-          paddingHorizontal: 16 
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Monthly Mood Summary */}
-        <View style={{ 
-          width: "100%", 
-          backgroundColor: theme.calendarBg, 
-          padding: 20, 
-          marginBottom: 16, 
-          borderRadius: 20,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.22,
-          shadowRadius: 2.22,
-          elevation: 3
-        }}>
-          <Text style={{ 
-            color: theme.text, 
-            fontSize: 20, 
-            marginBottom: 16, 
-            fontFamily: "LeagueSpartan-Bold",
-          }}>
-            {viewMode === "weekly" ? "Weekly" : "Monthly"} Summary
-          </Text>
-          
-          <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 16 }}>
-            <View style={{ alignItems: "center" }}>
-              <Text style={{ color: theme.dimmedText, fontSize: 14, marginBottom: 4, fontFamily: "LaoSansPro-Regular" }}>
-                Avg. Mood
-              </Text>
-              <Text style={{ color: theme.buttonBg, fontSize: 24, fontWeight: "bold", fontFamily: "LeagueSpartan-Bold" }}>
-                {stats.avgScore.toFixed(1)}
-              </Text>
-            </View>
-            
-            <View style={{ alignItems: "center" }}>
-              <Text style={{ color: theme.dimmedText, fontSize: 14, marginBottom: 4, fontFamily: "LaoSansPro-Regular" }}>
-                Entries
-              </Text>
-              <Text style={{ color: theme.buttonBg, fontSize: 24, fontWeight: "bold", fontFamily: "LeagueSpartan-Bold" }}>
-                {filteredEntries.length}
-              </Text>
-            </View>
-            
-            <View style={{ alignItems: "center" }}>
-              <Text style={{ color: theme.dimmedText, fontSize: 14, marginBottom: 4, fontFamily: "LaoSansPro-Regular" }}>
-                Journal %
-              </Text>
-              <Text style={{ color: theme.buttonBg, fontSize: 24, fontWeight: "bold", fontFamily: "LeagueSpartan-Bold" }}>
-                {stats.journalPercentage.toFixed(0)}%
-              </Text>
-            </View>
-          </View>
-          
-          {/* Streak Badge */}
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <Text style={{ color: theme.text, fontSize: 18 }}>Loading your mood data...</Text>
+        </View>
+      ) : (
+        <ScrollView 
+          contentContainerStyle={{ 
+            paddingBottom: 32, 
+            paddingHorizontal: 16 
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Monthly Mood Summary */}
           <View style={{ 
-            alignItems: "center", 
-            marginTop: 8, 
-            marginBottom: 8, 
-            backgroundColor: `${theme.buttonBg}20`,
-            borderRadius: 16,
-            padding: 12
+            width: "100%", 
+            backgroundColor: theme.calendarBg, 
+            padding: 20, 
+            marginBottom: 16, 
+            borderRadius: 20,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.22,
+            shadowRadius: 2.22,
+            elevation: 3
           }}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons name="flame" size={24} color={theme.buttonBg} style={{ marginRight: 8 }} />
-              <Text style={{ 
-                color: theme.buttonBg, 
-                fontSize: 18, 
-                fontWeight: "bold",
-                fontFamily: "LeagueSpartan-Bold"
-              }}>
-                {stats.streak} day streak
-              </Text>
+            <Text style={{ 
+              color: theme.text, 
+              fontSize: 20, 
+              marginBottom: 16, 
+              fontFamily: "LeagueSpartan-Bold",
+            }}>
+              {viewMode === "weekly" ? "Weekly" : "Monthly"} Summary
+            </Text>
+            
+            <View style={{ flexDirection: "row", justifyContent: "space-around", marginBottom: 16 }}>
+              <View style={{ alignItems: "center" }}>
+                <Text style={{ color: theme.dimmedText, fontSize: 14, marginBottom: 4, fontFamily: "LaoSansPro-Regular" }}>
+                  Avg. Mood
+                </Text>
+                <Text style={{ color: theme.buttonBg, fontSize: 24, fontWeight: "bold", fontFamily: "LeagueSpartan-Bold" }}>
+                  {stats.avgScore.toFixed(1)}
+                </Text>
+              </View>
+              
+              <View style={{ alignItems: "center" }}>
+                <Text style={{ color: theme.dimmedText, fontSize: 14, marginBottom: 4, fontFamily: "LaoSansPro-Regular" }}>
+                  Entries
+                </Text>
+                <Text style={{ color: theme.buttonBg, fontSize: 24, fontWeight: "bold", fontFamily: "LeagueSpartan-Bold" }}>
+                  {filteredEntries.length}
+                </Text>
+              </View>
+              
+              <View style={{ alignItems: "center" }}>
+                <Text style={{ color: theme.dimmedText, fontSize: 14, marginBottom: 4, fontFamily: "LaoSansPro-Regular" }}>
+                  Journal %
+                </Text>
+                <Text style={{ color: theme.buttonBg, fontSize: 24, fontWeight: "bold", fontFamily: "LeagueSpartan-Bold" }}>
+                  {stats.journalPercentage.toFixed(0)}%
+                </Text>
+              </View>
+            </View>
+            
+            {/* Streak Badge */}
+            <View style={{ 
+              alignItems: "center", 
+              marginTop: 8, 
+              marginBottom: 8, 
+              backgroundColor: `${theme.buttonBg}20`,
+              borderRadius: 16,
+              padding: 12
+            }}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons name="flame" size={24} color={theme.buttonBg} style={{ marginRight: 8 }} />
+                <Text style={{ 
+                  color: theme.buttonBg, 
+                  fontSize: 18, 
+                  fontWeight: "bold",
+                  fontFamily: "LeagueSpartan-Bold"
+                }}>
+                  {stats.streak} day streak
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
 
-        {/* Mood Distribution Chart */}
-        <View style={{ 
-          width: "100%", 
-          backgroundColor: theme.calendarBg, 
-          padding: 20, 
-          marginBottom: 16, 
-          borderRadius: 20,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.22,
-          shadowRadius: 2.22,
-          elevation: 3
-        }}>
-          <Text style={{ 
-            color: theme.text, 
-            fontSize: 20, 
+          {/* Mood Distribution Chart */}
+          <View style={{ 
+            width: "100%", 
+            backgroundColor: theme.calendarBg, 
+            padding: 20, 
             marginBottom: 16, 
-            fontFamily: "LeagueSpartan-Bold",
+            borderRadius: 20,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.22,
+            shadowRadius: 2.22,
+            elevation: 3
           }}>
-            Mood Distribution
-          </Text>
-          
-          {Object.keys(stats.moodCounts).length > 0 ? (
-            <>
-              {/* Bar chart with percentages */}
-              {Object.keys(stats.moodCounts).map((mood) => {
-                const percentage = (stats.moodCounts[mood] / filteredEntries.length) * 100;
-                const displayMood = moodNames[mood] || mood;
-                const moodColor = getMoodThemeColor(mood);
-                
-                return (
-                  <View key={mood} style={{ marginBottom: 12 }}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
-                      <Text style={{ 
-                        color: moodColor, 
-                        fontFamily: "LeagueSpartan-Bold",
-                        fontSize: 16
-                      }}>
-                        {displayMood}
-                      </Text>
-                      <Text style={{ 
-                        color: theme.text, 
-                        fontFamily: "LaoSansPro-Regular" 
-                      }}>
-                        {stats.moodCounts[mood]} ({percentage.toFixed(0)}%)
-                      </Text>
-                    </View>
-                    <View style={{ 
-                      height: 12, 
-                      backgroundColor: `${theme.text}20`, 
-                      borderRadius: 6, 
-                      overflow: "hidden" 
-                    }}>
-                      <View
-                        style={{
-                          height: "100%",
-                          width: `${percentage}%`,
-                          backgroundColor: moodColor,
-                          borderRadius: 6,
-                        }}
-                      />
-                    </View>
-                  </View>
-                );
-              })}
-            </>
-          ) : (
             <Text style={{ 
-              color: theme.dimmedText, 
-              textAlign: "center", 
-              fontFamily: "LaoSansPro-Regular" 
+              color: theme.text, 
+              fontSize: 20, 
+              marginBottom: 16, 
+              fontFamily: "LeagueSpartan-Bold",
             }}>
-              No mood entries for this {viewMode === "weekly" ? "week" : "month"}
+              Mood Distribution
             </Text>
-          )}
-        </View>
+            
+            {Object.keys(stats.moodCounts).length > 0 ? (
+              <>
+                {/* Bar chart with percentages */}
+                {Object.keys(stats.moodCounts).map((mood) => {
+                  const percentage = (stats.moodCounts[mood] / filteredEntries.length) * 100;
+                  const displayMood = moodNames[mood] || mood;
+                  const moodColor = getMoodThemeColor(mood);
+                  
+                  return (
+                    <View key={mood} style={{ marginBottom: 12 }}>
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
+                        <Text style={{ 
+                          color: moodColor, 
+                          fontFamily: "LeagueSpartan-Bold",
+                          fontSize: 16
+                        }}>
+                          {displayMood}
+                        </Text>
+                        <Text style={{ 
+                          color: theme.text, 
+                          fontFamily: "LaoSansPro-Regular" 
+                        }}>
+                          {stats.moodCounts[mood]} ({percentage.toFixed(0)}%)
+                        </Text>
+                      </View>
+                      <View style={{ 
+                        height: 12, 
+                        backgroundColor: `${theme.text}20`, 
+                        borderRadius: 6, 
+                        overflow: "hidden" 
+                      }}>
+                        <View
+                          style={{
+                            height: "100%",
+                            width: `${percentage}%`,
+                            backgroundColor: moodColor,
+                            borderRadius: 6,
+                          }}
+                        />
+                      </View>
+                    </View>
+                  );
+                })}
+              </>
+            ) : (
+              <Text style={{ 
+                color: theme.dimmedText, 
+                textAlign: "center", 
+                fontFamily: "LaoSansPro-Regular",
+                marginVertical: 20
+              }}>
+                No mood entries for this {viewMode === "weekly" ? "week" : "month"}
+              </Text>
+            )}
+          </View>
 
-        {/* Weekly Trend Chart */}
-        <View style={{ 
-          width: "100%", 
-          backgroundColor: theme.calendarBg, 
-          padding: 20, 
-          marginBottom: 16, 
-          borderRadius: 20,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.22,
-          shadowRadius: 2.22,
-          elevation: 3
-        }}>
-          <Text style={{ 
-            color: theme.text, 
-            fontSize: 20, 
+          {/* Trend Chart */}
+          <View style={{ 
+            width: "100%", 
+            backgroundColor: theme.calendarBg, 
+            padding: 20, 
             marginBottom: 16, 
-            fontFamily: "LeagueSpartan-Bold",
+            borderRadius: 20,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.22,
+            shadowRadius: 2.22,
+            elevation: 3
           }}>
-            {viewMode === "weekly" ? "Daily" : "Weekly"} Mood Trend
-          </Text>
-          
-          {hasValidWeeklyData ? (
-            <View style={{ alignItems: "center", marginBottom: 8 }}>
-              <LineChart
-                data={weeklyTrendData}
-                width={chartWidth}
-                height={220}
-                chartConfig={{
-                  ...chartConfig,
-                  fillShadowGradientFrom: theme.buttonBg,
-                  fillShadowGradientTo: `${theme.buttonBg}00`,
-                  strokeWidth: 2,
-                }}
-                bezier
-                style={{ borderRadius: 16 }}
-                withVerticalLines={false}
-                withHorizontalLines={true}
-                withVerticalLabels={true}
-                withHorizontalLabels={true}
-                fromZero={true} // Changed to true to avoid negative values
-                yAxisLabel=""
-                yAxisSuffix=""
-              />
-            </View>
-          ) : (
             <Text style={{ 
-              color: theme.dimmedText, 
-              textAlign: "center", 
-              fontFamily: "LaoSansPro-Regular",
-              marginVertical: 40
+              color: theme.text, 
+              fontSize: 20, 
+              marginBottom: 16, 
+              fontFamily: "LeagueSpartan-Bold",
             }}>
-              Not enough data to display {viewMode === "weekly" ? "daily" : "weekly"} trend
+              {viewMode === "weekly" ? "Daily" : "Weekly"} Mood Trend
             </Text>
-          )}
-        </View>
-
-        {/* Top Emotions */}
-        <View style={{ 
-          width: "100%", 
-          backgroundColor: theme.calendarBg, 
-          padding: 20, 
-          marginBottom: 16, 
-          borderRadius: 20,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.22,
-          shadowRadius: 2.22,
-          elevation: 3
-        }}>
-          <Text style={{ 
-            color: theme.text, 
-            fontSize: 20, 
-            marginBottom: 16, 
-            fontFamily: "LeagueSpartan-Bold",
-          }}>
-            Top Emotions
-          </Text>
-          
-          {stats.topEmotions.length > 0 ? (
-            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-              {stats.topEmotions.map((item, index) => (
-                <View 
-                  key={index} 
-                  style={{ 
-                    backgroundColor: `${theme.buttonBg}20`, 
-                    paddingHorizontal: 12, 
-                    paddingVertical: 8, 
-                    borderRadius: 16, 
-                    marginRight: 8,
-                    marginBottom: 8,
-                    flexDirection: "row",
-                    alignItems: "center"
+            
+            {hasValidTrendData && filteredEntries.length > 0 ? (
+              <View style={{ alignItems: "center", marginBottom: 8 }}>
+                <LineChart
+                  data={trendData}
+                  width={chartWidth}
+                  height={220}
+                  chartConfig={{
+                    ...chartConfig,
+                    fillShadowGradientFrom: theme.buttonBg,
+                    fillShadowGradientTo: `${theme.buttonBg}00`,
+                    strokeWidth: 2,
                   }}
-                >
-                  <Text style={{ 
-                    color: theme.buttonBg, 
-                    fontFamily: "LeagueSpartan-Bold",
-                    fontSize: 15
-                  }}>
-                    {item.count}×
-                  </Text>
-                  <Text style={{ 
-                    color: theme.text, 
-                    fontFamily: "LaoSansPro-Regular",
-                    marginLeft: 4
-                  }}>
-                    {item.emotion}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <Text style={{ 
-              color: theme.dimmedText, 
-              textAlign: "center", 
-              fontFamily: "LaoSansPro-Regular" 
-            }}>
-              No emotion data available for this {viewMode === "weekly" ? "week" : "month"}
-            </Text>
-          )}
-        </View>
+                  bezier
+                  style={{ borderRadius: 16 }}
+                  withVerticalLines={false}
+                  withHorizontalLines={true}
+                  withVerticalLabels={true}
+                  withHorizontalLabels={true}
+                  fromZero={true}
+                  yAxisLabel=""
+                  yAxisSuffix=""
+                />
+              </View>
+            ) : (
+              <Text style={{ 
+                color: theme.dimmedText, 
+                textAlign: "center", 
+                fontFamily: "LaoSansPro-Regular",
+                marginVertical: 40
+              }}>
+                Not enough data to display {viewMode === "weekly" ? "daily" : "weekly"} trend
+              </Text>
+            )}
+          </View>
 
-        {/* Insights */}
-        <View style={{ 
-          width: "100%", 
-          backgroundColor: theme.calendarBg, 
-          padding: 20, 
-          marginBottom: 16, 
-          borderRadius: 20,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.22,
-          shadowRadius: 2.22,
-          elevation: 3
-        }}>
-          <Text style={{ 
-            color: theme.text, 
-            fontSize: 20, 
+          {/* Top Emotions */}
+          <View style={{ 
+            width: "100%", 
+            backgroundColor: theme.calendarBg, 
+            padding: 20, 
             marginBottom: 16, 
-            fontFamily: "LeagueSpartan-Bold",
+            borderRadius: 20,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.22,
+            shadowRadius: 2.22,
+            elevation: 3
           }}>
-            Mood Insights
-          </Text>
-          
-          <View style={{ 
-            backgroundColor: `${theme.buttonBg}15`, 
-            padding: 16, 
-            borderRadius: 12, 
-            marginBottom: 12
-          }}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons name="sunny" size={18} color={theme.buttonBg} style={{ marginRight: 8 }} />
+            <Text style={{ 
+              color: theme.text, 
+              fontSize: 20, 
+              marginBottom: 16, 
+              fontFamily: "LeagueSpartan-Bold",
+            }}>
+              Top Emotions
+            </Text>
+            
+            {stats.topEmotions.length > 0 ? (
+              <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                {stats.topEmotions.map((item, index) => (
+                  <View 
+                    key={index} 
+                    style={{ 
+                      backgroundColor: `${theme.buttonBg}20`, 
+                      paddingHorizontal: 12, 
+                      paddingVertical: 8, 
+                      borderRadius: 16, 
+                      marginRight: 8,
+                      marginBottom: 8,
+                      flexDirection: "row",
+                      alignItems: "center"
+                    }}>
+                    <Text style={{ 
+                      color: theme.buttonBg, 
+                      fontFamily: "LeagueSpartan-Bold",
+                      fontSize: 15
+                    }}>
+                      {item.count}×
+                    </Text>
+                    <Text style={{ 
+                      color: theme.text, 
+                      fontFamily: "LaoSansPro-Regular",
+                      marginLeft: 4
+                    }}>
+                      {item.emotion}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
               <Text style={{ 
-                color: theme.text, 
+                color: theme.dimmedText, 
+                textAlign: "center", 
                 fontFamily: "LaoSansPro-Regular",
-                flex: 1
+                marginVertical: 20
               }}>
-                Your mood seems to be highest on the weekends
+                No emotion data available for this {viewMode === "weekly" ? "week" : "month"}
               </Text>
-            </View>
+            )}
           </View>
-          
+
+          {/* Insights */}
           <View style={{ 
-            backgroundColor: `${theme.accent1}15`, 
-            padding: 16, 
-            borderRadius: 12 
+            width: "100%", 
+            backgroundColor: theme.calendarBg, 
+            padding: 20, 
+            marginBottom: 16, 
+            borderRadius: 20,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.22,
+            shadowRadius: 2.22,
+            elevation: 3
           }}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons name="trending-up" size={18} color={theme.accent1} style={{ marginRight: 8 }} />
+            <Text style={{ 
+              color: theme.text, 
+              fontSize: 20, 
+              marginBottom: 16, 
+              fontFamily: "LeagueSpartan-Bold",
+            }}>
+              Mood Insights
+            </Text>
+            
+            {filteredEntries.length > 0 ? (
+              <>
+                <View style={{ 
+                  backgroundColor: `${theme.buttonBg}15`, 
+                  padding: 16, 
+                  borderRadius: 12, 
+                  marginBottom: 12
+                }}>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Ionicons name="sunny" size={18} color={theme.buttonBg} style={{ marginRight: 8 }} />
+                    <Text style={{ 
+                      color: theme.text, 
+                      fontFamily: "LaoSansPro-Regular",
+                      flex: 1
+                    }}>
+                      {stats.avgScore > 3 
+                        ? "Your overall mood has been positive!" 
+                        : "You've been experiencing some challenges lately."}
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={{ 
+                  backgroundColor: `${theme.accent1}15`, 
+                  padding: 16, 
+                  borderRadius: 12 
+                }}>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Ionicons name="trending-up" size={18} color={theme.accent1} style={{ marginRight: 8 }} />
+                    <Text style={{ 
+                      color: theme.text, 
+                      fontFamily: "LaoSansPro-Regular",
+                      flex: 1
+                    }}>
+                      {filteredEntries.length > 1 
+                        ? `You've tracked ${filteredEntries.length} moods this ${viewMode === "weekly" ? "week" : "month"}.`
+                        : `Keep tracking to see more insights!`}
+                    </Text>
+                  </View>
+                </View>
+              </>
+            ) : (
               <Text style={{ 
-                color: theme.text, 
+                color: theme.dimmedText, 
+                textAlign: "center", 
                 fontFamily: "LaoSansPro-Regular",
-                flex: 1
+                marginVertical: 20
               }}>
-                Your average mood has improved by 0.5 points compared to last {viewMode === "weekly" ? "week" : "month"}
+                No insights available yet for this {viewMode === "weekly" ? "week" : "month"}
               </Text>
-            </View>
+            )}
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
