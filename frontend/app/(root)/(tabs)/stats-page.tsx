@@ -138,39 +138,45 @@ export default function StatsScreen() {
   }, [filteredEntries]);
 
   // Function to filter entries based on view mode (weekly or monthly)
-  const filterEntriesByPeriod = () => {
-    if (entries.length === 0) {
-      setFilteredEntries([]);
-      return;
-    }
+const filterEntriesByPeriod = () => {
+  // Temporarily show all entries instead of filtering
+  console.log("Total entries available:", entries.length);
+  setFilteredEntries(entries);
+  
+  /* Original filtering code (commented out for now)
+  if (entries.length === 0) {
+    setFilteredEntries([]);
+    return;
+  }
 
-    let filtered = [];
+  let filtered = [];
+  
+  if (viewMode === "weekly") {
+    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 }); // Sunday
+    const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0 }); // Saturday
     
-    if (viewMode === "weekly") {
-      const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 }); // Sunday
-      const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0 }); // Saturday
-      
-      filtered = entries.filter(entry => {
-        // Parse the date from the entry
-        const entryDate = entry.timestamp ? new Date(entry.timestamp) : new Date(entry.formattedDate);
-        // Check if it falls within the selected week
-        return isWithinInterval(entryDate, { start: weekStart, end: weekEnd });
-      });
-    } else {
-      // Monthly view
-      const monthStart = startOfMonth(selectedDate);
-      const monthEnd = endOfMonth(selectedDate);
-      
-      filtered = entries.filter(entry => {
-        // Parse the date from the entry
-        const entryDate = entry.timestamp ? new Date(entry.timestamp) : new Date(entry.formattedDate);
-        // Check if it falls within the selected month
-        return isWithinInterval(entryDate, { start: monthStart, end: monthEnd });
-      });
-    }
+    filtered = entries.filter(entry => {
+      // Parse the date from the entry
+      const entryDate = entry.timestamp ? new Date(entry.timestamp) : new Date(entry.formattedDate);
+      // Check if it falls within the selected week
+      return isWithinInterval(entryDate, { start: weekStart, end: weekEnd });
+    });
+  } else {
+    // Monthly view
+    const monthStart = startOfMonth(selectedDate);
+    const monthEnd = endOfMonth(selectedDate);
     
-    setFilteredEntries(filtered);
-  };
+    filtered = entries.filter(entry => {
+      // Parse the date from the entry
+      const entryDate = entry.timestamp ? new Date(entry.timestamp) : new Date(entry.formattedDate);
+      // Check if it falls within the selected month
+      return isWithinInterval(entryDate, { start: monthStart, end: monthEnd });
+    });
+  }
+  
+  setFilteredEntries(filtered);
+  */
+};
 
   const calculateStats = () => {
     if (filteredEntries.length === 0) {
@@ -247,18 +253,30 @@ export default function StatsScreen() {
 
   const generateTrendData = () => {
     if (filteredEntries.length === 0) return generateEmptyTrend();
-
+  
     if (viewMode === "weekly") {
-      // Create data for each day of the week
+      // Create data for each day of the week with safe defaults
       const dayScores = Array(7).fill(0).map(() => ({ count: 0, total: 0 }));
       
+      // Safely process each entry
       filteredEntries.forEach(entry => {
-        const date = new Date(entry.timestamp);
-        const dayIndex = date.getDay(); // 0 for Sunday, 6 for Saturday
-        const moodScore = moodScores[entry.mood.toLowerCase()];
+        if (!entry || !entry.timestamp) return; // Skip invalid entries
         
-        dayScores[dayIndex].count += 1;
-        dayScores[dayIndex].total += moodScore;
+        try {
+          const date = new Date(entry.timestamp);
+          if (isNaN(date.getTime())) return; // Skip invalid dates
+          
+          const dayIndex = date.getDay(); // 0 for Sunday, 6 for Saturday
+          if (dayIndex < 0 || dayIndex > 6) return; // Skip invalid day indices
+          
+          const moodKey = entry.mood ? entry.mood.toLowerCase() : '';
+          const moodScore = moodScores[moodKey] || 0;
+          
+          dayScores[dayIndex].count += 1;
+          dayScores[dayIndex].total += moodScore;
+        } catch (e) {
+          console.error("Error processing entry for trend data:", e);
+        }
       });
       
       return dayScores.map((data, index) => ({
@@ -270,14 +288,28 @@ export default function StatsScreen() {
       const monthStart = startOfMonth(selectedDate);
       const weekData = Array(4).fill(0).map(() => ({ count: 0, total: 0 }));
       
+      // Safely process each entry
       filteredEntries.forEach(entry => {
-        const entryDate = new Date(entry.timestamp);
-        const weekIndex = Math.floor((entryDate - monthStart) / (7 * 24 * 60 * 60 * 1000));
-        const safeIndex = Math.min(weekIndex, 3); // Ensure we don't exceed array bounds
-        const moodScore = moodScores[entry.mood.toLowerCase()];
+        if (!entry || !entry.timestamp) return; // Skip invalid entries
         
-        weekData[safeIndex].count += 1;
-        weekData[safeIndex].total += moodScore;
+        try {
+          const entryDate = new Date(entry.timestamp);
+          if (isNaN(entryDate.getTime())) return; // Skip invalid dates
+          
+          const weeksDiff = (entryDate - monthStart) / (7 * 24 * 60 * 60 * 1000);
+          if (isNaN(weeksDiff)) return; // Skip if calculation is invalid
+          
+          const weekIndex = Math.floor(weeksDiff);
+          const safeIndex = Math.min(Math.max(weekIndex, 0), 3); // Ensure index is between 0-3
+          
+          const moodKey = entry.mood ? entry.mood.toLowerCase() : '';
+          const moodScore = moodScores[moodKey] || 0;
+          
+          weekData[safeIndex].count += 1;
+          weekData[safeIndex].total += moodScore;
+        } catch (e) {
+          console.error("Error processing entry for trend data:", e);
+        }
       });
       
       return weekData.map((data, index) => ({
@@ -286,7 +318,7 @@ export default function StatsScreen() {
       }));
     }
   };
-
+  
   const calculateStreak = () => {
     // This would require checking consecutive days with entries
     // Simplified version for the example
