@@ -9,11 +9,11 @@ module.exports = (sequelize, DataTypes) => {
         },
         current_xp: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: true
         },
         last_date_updated: {
             type: DataTypes.DATE,
-            allowNull: false
+            allowNull: true
         },
 
         streak:{

@@ -5,7 +5,7 @@ const { User, XPInfo, XPProgress, Notification } = require("../models"); // Adju
 
 
 
-const db = new sqlite3.Database ('Moodify.db');
+const db = new sqlite3.Database ('/tmp/Moodify.db');
 
 const addUser = async (req, res) => {
     try {
