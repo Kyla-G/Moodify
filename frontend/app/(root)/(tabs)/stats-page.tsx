@@ -85,7 +85,7 @@ export default function StatsScreen() {
     const fetchMoodEntries = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://192.168.1.11:3000/entries/getAllEntries');
+        const response = await axios.get('http://192.168.100.22:3000/entries/getAllEntries');
         if (response.data.successful) {
           console.log("Successfully loaded mood entries:", response.data.formattedEntries.length);
   
