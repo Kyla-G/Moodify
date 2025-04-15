@@ -5,7 +5,8 @@ const router = express.Router();
 
 
 router.post('/addXPProgress', XPProgress.createXPProgress)
-
+router.get('/getXPProgress/:user_ID', XPProgress.getProgress)
+// router.put('/updateProgress'), XPProgress.
 
 
 

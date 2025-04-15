@@ -1,7 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const util = require('../../utils');
 const { nanoid } = require('nanoid');
-const { User } = require("../models"); // Adjust the path based on your project structure
+const { User, XPInfo, XPProgress, Notification } = require("../models"); // Adjust the path based on your project structure
 
 
 
@@ -11,7 +11,6 @@ const addUser = async (req, res) => {
     try {
         const { nickname } = req.body;
 
-        // Validate mandatory fields
         if (!nickname) {
             return res.status(400).json({
                 successful: false,
@@ -19,15 +18,14 @@ const addUser = async (req, res) => {
             });
         }
 
-        const userId = nanoid(8); // Generate unique user_ID
-        const createdAt = new Date().toISOString(); // Get current timestamp
-        const updatedAt = createdAt; // Set updatedAt to same value as createdAt
+        const userId = nanoid(8);
+        const createdAt = new Date().toISOString();
+        const updatedAt = createdAt;
 
-        // Insert user into SQLite
         db.run(
             `INSERT INTO Users (user_ID, nickname, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
             [userId, nickname, createdAt, updatedAt],
-            function (err) {
+            async function (err) {
                 if (err) {
                     console.error("❌ Error adding user:", err.message);
                     return res.status(500).json({
@@ -36,10 +34,45 @@ const addUser = async (req, res) => {
                     });
                 }
 
-                // Return successful response
+                // Create XPInfo entries using Sequelize
+                const xpDefaults = [
+                    { xp_feature: 'theme 1', xp_value_feature: 25 },
+                    { xp_feature: 'theme 2', xp_value_feature: 50 },
+                    { xp_feature: 'theme 3', xp_value_feature: 75 }
+                ];
+
+                try {
+                    await Promise.all(
+                        xpDefaults.map(xp =>
+                            XPInfo.create({
+                                user_ID: userId,
+                                xp_feature: xp.xp_feature,
+                                xp_value_feature: xp.xp_value_feature,
+                                is_unlocked: false
+                            })
+                        )
+                    );
+
+                    // Now create XPProgress entry with initial values
+                    await XPProgress.create({
+                        user_ID: userId,
+                        gained_xp: 0,
+                        gained_xp_date: createdAt,
+                        streak: 0
+                    });
+
+                } catch (xpErr) {
+                    console.error("❌ Error initializing XPInfo/XPProgress:", xpErr.message);
+                    return res.status(500).json({
+                        successful: false,
+                        message: "User created but XP initialization failed.",
+                        error: xpErr.message
+                    });
+                }
+
                 return res.status(201).json({
                     successful: true,
-                    message: "Successfully added new user.",
+                    message: "Successfully added new user and initialized XP info + XP progress.",
                     user: { user_ID: userId, nickname }
                 });
             }
@@ -52,6 +85,7 @@ const addUser = async (req, res) => {
         });
     }
 };
+
 
 const setPasscode = async (req, res, next) => {
     try {

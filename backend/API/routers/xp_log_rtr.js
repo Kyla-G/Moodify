@@ -6,6 +6,7 @@ const router = express.Router();
 
 
 router.post('/addXPLog', xp_log_ctrl.createXPLog)
+router.get('/getLogs/:user_ID', xp_log_ctrl.getXPLogsByUser)
 
 
 

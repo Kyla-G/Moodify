@@ -2,6 +2,8 @@ const { nanoid } = require('nanoid');
 
 
 module.exports = (sequelize, DataTypes) => {
+   
+
     const ChatSession = sequelize.define('ChatSession', {
         chat_session_ID: {
             type: DataTypes.STRING,

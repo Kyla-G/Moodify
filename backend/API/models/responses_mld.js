@@ -1,6 +1,8 @@
 const { nanoid } = require('nanoid');
 
 module.exports = (sequelize, DataTypes) => {
+    if (sequelize.getDialect() === 'mysql') return null;
+
     const Response = sequelize.define('Response', {
         responses_ID: {
             type: DataTypes.STRING,

@@ -99,7 +99,7 @@ export default function OnBoarding3() {
                                 3. Data Collection
                             </Text>
                             <Text className="text-txt-darkblue font-LeagueSpartan mb-4" style={{ fontSize: width * 0.04 }}>
-                                Moodify stores only <Text className="text-txt-darkblue font-LeagueSpartan-Bold">mood and emotion</Text> entries. Journal entries and chatbot conversations remain private and accessible only to you.
+                                Moodify stores only <Text className="text-txt-darkblue font-LeagueSpartan-Bold">Chatbot Ratings and XP Progress</Text>. Mood Entries, Journal entries, and chatbot conversations remain private and accessible only to you.
                             </Text>
                             
                             <Text className="text-txt-darkblue font-LeagueSpartan-Bold mb-2" style={{ fontSize: width * 0.05 }}>

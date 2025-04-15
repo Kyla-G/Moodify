@@ -1,52 +1,42 @@
-const { XPProgress, XPLog } = require('../models/'); // Ensure model name matches exported model
+const { User, XPProgress, XPLog } = require('../models/'); // Ensure model name matches exported model
 const { Op } = require("sequelize");
 const util = require('../../utils');
 const dayjs = require("dayjs");
 
 const createXPProgress = async (req, res) => {
     try {
-        const { user_ID, date } = req.body;
+        const { user_ID } = req.body;
 
-        if (!user_ID || !date) {
+        if (!user_ID) {
             return res.status(400).json({
                 successful: false,
-                message: "user_ID and date are required."
+                message: "user_ID is required."
             });
         }
 
-        const startOfDay = dayjs(date).startOf("day").toDate();
-        const endOfDay = dayjs(date).endOf("day").toDate();
+        // Fetch the user to get the createdAt timestamp
+        const user = await User.findByPk(user_ID);
 
-        // Fetch XP logs for the given user on the specified day
-        const xpLogs = await XPLog.findAll({
-            where: {
-                user_ID,
-                createdAt: {
-                    [Op.between]: [startOfDay, endOfDay]
-                }
-            }
-        });
-
-        if (!xpLogs || xpLogs.length === 0) {
+        if (!user) {
             return res.status(404).json({
                 successful: false,
-                message: "No XP logs found for the user on this date."
+                message: "User not found."
             });
         }
 
-        // Calculate total XP earned
-        const totalXP = xpLogs.reduce((acc, log) => acc + log.xp_earned, 0);
+        const gained_xp_date = user.createdAt;
 
-        // Create the XPProgress entry
+        // Create the XPProgress entry with preset values
         const newXPProgress = await XPProgress.create({
             user_ID,
-            gained_xp: totalXP,
-            gained_xp_date: startOfDay
+            gained_xp: 0,
+            gained_xp_date,
+            streak: 0
         });
 
         return res.status(201).json({
             successful: true,
-            message: "XP Progress created successfully.",
+            message: "XP Progress initialized successfully.",
             data: newXPProgress
         });
 
@@ -59,6 +49,42 @@ const createXPProgress = async (req, res) => {
     }
 };
 
+const getProgress = async (req, res) => {
+    try {
+        const { user_ID } = req.params;
+
+        const progressLogs = await XPProgress.findAll({
+            where: { user_ID },
+            order: [['gained_xp_date', 'DESC']]
+        });
+
+        if (!progressLogs || progressLogs.length === 0) {
+            return res.status(200).json({
+                successful: true,
+                message: "No XP progress found for this user.",
+                count: 0,
+                data: []
+            });
+        }
+
+        return res.status(200).json({
+            successful: true,
+            message: "Retrieved XP progress successfully.",
+            count: progressLogs.length,
+            data: progressLogs
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            successful: false,
+            message: err.message
+        });
+    }
+};
+
 module.exports = {
-    createXPProgress
+    createXPProgress,
+    // updateXPProgress,
+    getProgress
 };

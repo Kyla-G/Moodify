@@ -45,13 +45,14 @@ fs.readdirSync(__dirname)
     const defineModel = require(path.join(__dirname, file));
 
     const sqliteModel = defineModel(sqlite, Sequelize.DataTypes);
+    if (sqliteModel) {
+      db[sqliteModel.name] = sqliteModel; // For SQLite
+    }
+
     const mysqlModel = defineModel(mysql, Sequelize.DataTypes);
-
-    db[sqliteModel.name] = sqliteModel; // For SQLite
-    db[`mysql_${mysqlModel.name}`] = mysqlModel; // For MySQL
-
-    
-
+    if (mysqlModel) {
+      db[`mysql_${mysqlModel.name}`] = mysqlModel; // For MySQL
+    }
   });
 
 // Setup associations for both databases

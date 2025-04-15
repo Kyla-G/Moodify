@@ -1,11 +1,11 @@
 const { MoodEntry } = require('../models/'); // Ensure model name matches exported model
+const LogXP = require('../controllers/xp_log_ctrl');
 const util = require('../../utils');
 const { Op } = require("sequelize");
 const { ALLOWED_EMOTIONS} = require('../../emotion_values');
 const dayjs = require('dayjs');
 const customParseFormat = require('dayjs/plugin/customParseFormat');
 dayjs.extend(customParseFormat);
-
 
 
 const addMoodEntry = async (req, res, next) => {
@@ -31,11 +31,11 @@ const addMoodEntry = async (req, res, next) => {
 
         const now = dayjs();
 
-        // Prevent logging for today or a future date
-        if (providedDate.isSame(now, 'day') || providedDate.isAfter(now)) {
+        // ❌ Disallow logging for future dates only
+        if (providedDate.isAfter(now)) {
             return res.status(400).json({
                 successful: false,
-                message: "You cannot log a mood for today or a future date."
+                message: "You cannot log a mood for a future date."
             });
         }
 
@@ -65,25 +65,28 @@ const addMoodEntry = async (req, res, next) => {
             });
         }
 
-        // Create new mood entry with the full timestamp
+        // Create new mood entry
         const newMoodEntry = await MoodEntry.create({
             user_ID,
             mood,
             emotions,
             logged_date: providedDate.toDate(),
-            ...(journal && { journal })
+            journal
         });
+
+        // Call XP log creation (XP Controller will handle streaks)
+        // await LogXP.createXPLog({ user_ID, action_type: 'mood_entry', action_ID_mood: newMoodEntry.entry_ID, log_date: providedDate });
 
         return res.status(201).json({
             successful: true,
-            message: "Successfully added new mood.",
+            message: "Successfully added new mood and triggered XP log.",
             moodEntry: {
                 entry_ID: newMoodEntry.entry_ID,
                 user_ID: newMoodEntry.user_ID,
                 mood: newMoodEntry.mood,
-                logged_date: dayjs(newMoodEntry.logged_date).format("YYYY-MM-DD HH:mm"),
+                logged_date: dayjs(newMoodEntry.logged_date).format("MM-DD-YYYY HH:mm"),
                 emotions: newMoodEntry.emotions,
-                ...(journal && { journal })
+                journal: newMoodEntry.journal
             }
         });
 
@@ -95,6 +98,8 @@ const addMoodEntry = async (req, res, next) => {
         });
     }
 };
+
+
 
 
 const getAllEntries = async (req, res, next) => {

@@ -72,11 +72,11 @@ module.exports = (sequelize, DataTypes) => {
         User.hasMany(models.XPLog, {
             foreignKey: "user_ID",
             as: "xpLog",
-            onDelete: "SET NULL",
+            onDelete: "CASCADE",
             onUpdate: "CASCADE",
         });
 
-        User.hasMany(models.XPInfo, {
+        User.hasOne(models.XPInfo, {
             foreignKey: "user_ID",
             as: "xpTbl",
             onDelete: "SET NULL",
@@ -96,6 +96,13 @@ module.exports = (sequelize, DataTypes) => {
             onDelete: "SET NULL",
             onUpdate: "CASCADE",
         });
+
+    //     User.hasOne(models.Notifications, {
+    //         foreignKey: "user_ID",
+    //         as: "chatSession",
+    //         onDelete: "SET NULL",
+    //         onUpdate: "CASCADE",
+    //     });
     };
 
     return User;
