@@ -12,7 +12,8 @@
       "password": "AVNS_CGE48_NOLlXTssSrSnl",
       "host": "moodify-moodify.g.aivencloud.com",
       "database": "defaultdb",
-      "port": 23433
+      "port": 23433,
+      "timezone": "+08:00"
 
       
     }

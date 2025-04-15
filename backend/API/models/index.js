@@ -32,7 +32,8 @@ const mysql = new Sequelize(
     host: mysqlConfig.host,
     dialect: mysqlConfig.dialect,
     port: mysqlConfig.port,
-    logging: console.log
+    logging: console.log,
+    timezone:mysqlConfig.timezone
   }
 );
 
