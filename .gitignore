@@ -9,6 +9,8 @@ expo-env.d.ts
 
 
 #environment variables
-.env
+backend/.env
+
+backend/Moodify.db
 
 
