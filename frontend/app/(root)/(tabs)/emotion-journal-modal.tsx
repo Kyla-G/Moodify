@@ -3,19 +3,6 @@ import { View, Text, TouchableOpacity, Modal, TextInput, ScrollView, useWindowDi
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-interface Theme {
-  background: string;
-  text: string;
-  buttonBg: string;
-  calendarBg: string;
-  dimmedText: string;
-  accent1: string;
-  accent2: string;
-  accent3: string;
-  accent4: string;
-  // Add other theme properties as needed
-}
-
 interface EmotionJournalModalProps {
   visible: boolean;
   onBack: () => void;
@@ -24,28 +11,7 @@ interface EmotionJournalModalProps {
   journalEntry: string;
   setJournalEntry: React.Dispatch<React.SetStateAction<string>>;
   onContinue: () => void;
-  theme: Theme; // Add theme prop
 }
-
-// Map emotion names to theme color properties
-const emotionToThemeMap: Record<string, keyof Theme> = {
-  "energetic": "buttonBg",
-  "excited": "buttonBg",
-  "confident": "buttonBg",
-  "happy": "accent1",
-  "calm": "accent1",
-  "grateful": "accent1",
-  "hopeful": "accent1",
-  "bored": "accent2",
-  "nervous": "accent2",
-  "confused": "accent2",
-  "anxious": "accent2",
-  "sad": "accent3",
-  "fearful": "accent3",
-  "stressed": "accent3",
-  "irritated": "accent4",
-  "angry": "accent4",
-};
 
 const EmotionJournalModal: React.FC<EmotionJournalModalProps> = ({
   visible,
@@ -55,60 +21,39 @@ const EmotionJournalModal: React.FC<EmotionJournalModalProps> = ({
   journalEntry,
   setJournalEntry,
   onContinue,
-  theme, // Receive theme prop
 }) => {
   const { width, height } = useWindowDimensions();
   const modalPadding = width < 350 ? 12 : 24;
   const iconSize = width < 350 ? 22 : 28;
 
-  // Base emotions with default colors
-  const baseEmotions = [
-    { name: "energetic", defaultColor: "#FF6B35" },
-    { name: "excited", defaultColor: "#FF6B35" },
-    { name: "confident", defaultColor: "#FF6B35" },
-    { name: "happy", defaultColor: "#31AC54" },
-    { name: "calm", defaultColor: "#31AC54" },
-    { name: "grateful", defaultColor: "#31AC54" },
-    { name: "hopeful", defaultColor: "#31AC54" },
-    { name: "bored", defaultColor: "#828282" },
-    { name: "nervous", defaultColor: "#828282" },
-    { name: "confused", defaultColor: "#828282" },
-    { name: "anxious", defaultColor: "#828282" },
-    { name: "sad", defaultColor: "#507EE3" },
-    { name: "fearful", defaultColor: "#507EE3" },
-    { name: "stressed", defaultColor: "#507EE3" },
-    { name: "irritated", defaultColor: "#C22222" },
-    { name: "angry", defaultColor: "#C22222" },
+  const emotions = [
+    { name: "energetic", color: "#FF6B35" },
+    { name: "excited", color: "#FF6B35" },
+    { name: "confident", color: "#FF6B35" },
+    { name: "happy", color: "#31AC54" },
+    { name: "calm", color: "#31AC54" },
+    { name: "grateful", color: "#31AC54" },
+    { name: "hopeful", color: "#31AC54" },
+    { name: "bored", color: "#828282" },
+    { name: "nervous", color: "#828282" },
+    { name: "confused", color: "#828282" },
+    { name: "anxious", color: "#828282" },
+    { name: "sad", color: "#507EE3" },
+    { name: "fearful", color: "#507EE3" },
+    { name: "stressed", color: "#507EE3" },
+    { name: "irritated", color: "#C22222" },
+    { name: "angry", color: "#C22222" },
   ];
-
-  // Get emotion color from theme
-  const getEmotionThemeColor = (emotion: string): string => {
-    const themeProperty = emotionToThemeMap[emotion];
-    
-    if (themeProperty && theme[themeProperty]) {
-      return theme[themeProperty];
-    }
-    
-    // Fallback to default color if not found in theme
-    const baseEmotion = baseEmotions.find(e => e.name === emotion);
-    return baseEmotion ? baseEmotion.defaultColor : "#828282";
-  };
-
-  // Map emotions with theme colors
-  const emotions = baseEmotions.map(emotion => ({
-    ...emotion,
-    color: getEmotionThemeColor(emotion.name)
-  }));
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={{ flex: 1, backgroundColor: theme.background }}>
+      <SafeAreaView edges={['top', 'left', 'right', 'bottom']} className="flex-1 bg-bg-black">
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 }}
         >
           <ScrollView
-            style={{ flex: 1, backgroundColor: theme.background, paddingTop: 40 }}
+            className="flex-1 bg-bg-black py-10"
             contentContainerStyle={{
               paddingHorizontal: modalPadding,
               paddingTop: height * 0.05,
@@ -117,41 +62,28 @@ const EmotionJournalModal: React.FC<EmotionJournalModalProps> = ({
             }}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={{ alignItems: 'center', width: '100%', position: 'relative' }}>
+            <View className="items-center w-full relative">
               <TouchableOpacity
                 onPress={onBack}
                 style={{
                   position: 'absolute',
                   top: height * -0.045,
                   left: width * -0.016,
-                  zIndex: 10,
-                  padding: 8
+                  zIndex: 10
                 }}
+                className="p-2"
               >
-                <Ionicons name="arrow-back" size={iconSize} color={theme.text} />
+                <Ionicons name="arrow-back" size={iconSize} color="#EEEED0" />
               </TouchableOpacity>
 
               <Text
-                style={{ 
-                  color: theme.text, 
-                  fontFamily: "LeagueSpartan-Bold", 
-                  marginTop: 24, 
-                  marginBottom: 40, 
-                  textAlign: 'center',
-                  fontSize: width < 350 ? 24 : 30 
-                }}
+                className="text-txt-light font-LeagueSpartan-Bold mt-6 mb-10 text-center"
+                style={{ fontSize: width < 350 ? 24 : 30 }}
               >
                 Which emotion describes you're feeling now?
               </Text>
 
-              <View style={{ 
-                flexDirection: 'row', 
-                flexWrap: 'wrap', 
-                justifyContent: 'space-between', 
-                width: '100%', 
-                gap: 8, 
-                marginBottom: 32 
-              }}>
+              <View className="flex-row flex-wrap justify-between w-full gap-2 mb-8">
                 {emotions.map((emotion) => (
                   <TouchableOpacity
                     key={emotion.name}
@@ -162,14 +94,14 @@ const EmotionJournalModal: React.FC<EmotionJournalModalProps> = ({
                       width: "48%",
                       alignItems: "center",
                       borderWidth: selectedEmotion === emotion.name ? 2 : 0,
-                      borderColor: theme.text,
+                      borderColor: "#EEEED0",
                       marginBottom: 8,
                     }}
                     onPress={() => setSelectedEmotion(emotion.name)}
                   >
                     <Text
                       style={{
-                        color: theme.text,
+                        color: "#EEEED0",
                         fontSize: width < 350 ? 16 : 20,
                         fontFamily: "LeagueSpartan-Bold",
                       }}
@@ -181,35 +113,25 @@ const EmotionJournalModal: React.FC<EmotionJournalModalProps> = ({
               </View>
 
               <TextInput
+                className="bg-[#202020] text-txt-light p-5 rounded-2xl w-full min-h-[180px]"
                 style={{
-                  backgroundColor: theme.calendarBg,
-                  color: theme.text,
-                  padding: 20,
-                  borderRadius: 16,
-                  width: '100%',
-                  minHeight: 180,
                   fontSize: width < 350 ? 16 : 18,
                   fontFamily: "LeagueSpartan-Regular"
                 }}
                 placeholder="Add notes here..."
-                placeholderTextColor={theme.dimmedText}
+                placeholderTextColor="#888"
                 multiline
                 value={journalEntry}
                 onChangeText={setJournalEntry}
               />
 
-              <View style={{ width: '100%', alignItems: 'flex-end', marginTop: 32 }}>
+              <View className="w-full items-end mt-8">
                 <TouchableOpacity
                   onPress={onContinue}
                   disabled={!selectedEmotion}
-                  style={{
-                    backgroundColor: theme.buttonBg,
-                    padding: 16,
-                    borderRadius: 40,
-                    opacity: !selectedEmotion ? 0.5 : 1
-                  }}
+                  className={`bg-[#EEEED0] p-4 rounded-full ${!selectedEmotion ? "opacity-50" : ""}`}
                 >
-                  <Ionicons name="arrow-forward" size={iconSize} color={theme.background} />
+                  <Ionicons name="arrow-forward" size={iconSize} color="#272528" />
                 </TouchableOpacity>
               </View>
             </View>
