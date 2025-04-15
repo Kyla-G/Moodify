@@ -1,35 +1,23 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-<<<<<<< HEAD
 import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Dimensions, Image, KeyboardAvoidingView, Platform, Modal } from "react-native";
-=======
-import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Dimensions, Image, Keyboard, KeyboardAvoidingView, Platform, Modal } from "react-native";
->>>>>>> glean2120674
 import { StatusBar } from "expo-status-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format, subMonths, addMonths } from "date-fns";
 import images from "@/constants/images";
 import { useWindowDimensions } from "react-native";
 import ChatbotRatingModal from "./chatbot-rating-modal"; // Import the rating modal component
-<<<<<<< HEAD
 import EndChatModal from "./end-chat-modal"; // Import the end chat confirmation modal
 import XpStreakManager from "./XpStreakManager"; // Adjust path if needed
 import CalendarPicker from 'react-native-calendar-picker'; // For calendar functionality
 
 const { height, width } = Dimensions.get("window");
-=======
-
-const { height, width} = Dimensions.get("window");
->>>>>>> glean2120674
 
 // Define the structure of the API response
 interface Message {
   role?: 'system' | 'user' | 'assistant';
   text: string;
   sender: 'user' | 'bot';
-<<<<<<< HEAD
   timestamp: Date; // Add timestamp property
-=======
->>>>>>> glean2120674
 }
 
 interface APIResponse {
@@ -38,7 +26,6 @@ interface APIResponse {
 }
 
 export default function ChatbotPage() {
-<<<<<<< HEAD
   const [chatbotRated, setChatbotRated] = useState<boolean>(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -47,10 +34,6 @@ export default function ChatbotPage() {
       role: "assistant",
       timestamp: new Date() // Initialize with current timestamp
     }
-=======
-  const [messages, setMessages] = useState<Message[]>([
-    { text: "Hey there! I'm Moodi, your AI friend! Just checking in—how's your day?", sender: "bot", role: "assistant" }
->>>>>>> glean2120674
   ]);
   const [input, setInput] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(new Date());
@@ -58,12 +41,9 @@ export default function ChatbotPage() {
   const { width, height } = useWindowDimensions();
   const scrollViewRef = useRef<ScrollView>(null);
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
-<<<<<<< HEAD
   const [endChatModalVisible, setEndChatModalVisible] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
   const [datePickerVisible, setDatePickerVisible] = useState(false);
-=======
->>>>>>> glean2120674
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -74,7 +54,6 @@ export default function ChatbotPage() {
     }
   }, [messages]);
 
-<<<<<<< HEAD
   // Reset chatbotRated state when starting a new chat session
 useEffect(() => {
   if (!chatEnded) {
@@ -109,13 +88,6 @@ useEffect(() => {
       role: "user",
       timestamp: new Date() // Add current timestamp
     };
-=======
-  const sendMessage = async () => {
-    if (input.trim() === "") return;
-
-    // Add user message to chat
-    const userMessage: Message = { text: input, sender: "user", role: "user" };
->>>>>>> glean2120674
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setIsLoading(true);
@@ -159,7 +131,6 @@ useEffect(() => {
 
       if (data.error) {
         // Handle API error
-<<<<<<< HEAD
         const errorMessage: Message = {
           text: 'Sorry, there was an error processing your message.',
           sender: "bot",
@@ -174,54 +145,26 @@ useEffect(() => {
           sender: "bot",
           role: "assistant",
           timestamp: new Date() // Add current timestamp
-=======
-        const errorMessage: Message = { 
-          text: 'Sorry, there was an error processing your message.', 
-          sender: "bot",
-          role: "assistant"
-        };
-        setMessages((prevMessages) => [...prevMessages, errorMessage]);
-      } else if (data.choices && data.choices[0] && data.choices[0].message) {
-        // Add bot response to chat
-        const botMessage: Message = { 
-          text: data.choices[0].message.content || 'No response received.', 
-          sender: "bot",
-          role: "assistant"
->>>>>>> glean2120674
         };
         setMessages((prevMessages) => [...prevMessages, botMessage]);
       } else {
         // Handle unexpected response format
-<<<<<<< HEAD
         const unexpectedMessage: Message = {
           text: 'Unexpected response from the AI.',
           sender: "bot",
           role: "assistant",
           timestamp: new Date() // Add current timestamp
-=======
-        const unexpectedMessage: Message = { 
-          text: 'Unexpected response from the AI.', 
-          sender: "bot",
-          role: "assistant"
->>>>>>> glean2120674
         };
         setMessages((prevMessages) => [...prevMessages, unexpectedMessage]);
       }
     } catch (error) {
       setIsLoading(false);
       // Handle network or other errors
-<<<<<<< HEAD
       const errorMessage: Message = {
         text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         sender: "bot",
         role: "assistant",
         timestamp: new Date() // Add current timestamp
-=======
-      const errorMessage: Message = { 
-        text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 
-        sender: "bot",
-        role: "assistant"
->>>>>>> glean2120674
       };
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
     }
@@ -230,19 +173,6 @@ useEffect(() => {
   // Functions to change month
   const goToPreviousMonth = () => setSelectedMonth(subMonths(selectedMonth, 1));
   const goToNextMonth = () => setSelectedMonth(addMonths(selectedMonth, 1));
-  
-  // Function to handle END button press
-  const handleEndChat = () => {
-    setRatingModalVisible(true);
-  };
-
-  // Function to handle rating submission
-  const handleRatingSubmit = (rating: number, feedback: string) => {
-    // Here you would typically send the rating data to your backend
-    console.log("Rating submitted:", rating, feedback);
-    setRatingModalVisible(false);
-    // Additional actions after submission if needed
-  };
 
   // Function to handle END button press
   const handleEndChat = () => {
@@ -502,7 +432,6 @@ const handleRatingSubmit = (rating: number, feedback: string) => {
           width: width,
           height: height * 1,
           resizeMode: "contain",
-<<<<<<< HEAD
           zIndex: -1, // Add this line to put the image behind everything
         }}
       />
@@ -574,73 +503,11 @@ const handleRatingSubmit = (rating: number, feedback: string) => {
       {/* Date Picker Modal */}
       <DatePickerModal />
 
-=======
-        }}
-      />
-
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      >
-        <ScrollView 
-          ref={scrollViewRef}
-          className="flex-1 px-8 py-6 mt-60"
-          contentContainerStyle={{ paddingBottom: 20 }}
-        >
-          {messages.map((msg, index) => (
-            <View key={index} className={`mb-2 ${msg.sender === "user" ? "items-end" : "items-start"}`}>
-              <View className={`rounded-lg p-3 max-w-[80%] ${msg.sender === "user" ? "bg-bg-medium" : ""}`}>
-                <Text className="text-[#000746] text-[20px]">{msg.text}</Text>
-              </View>
-            </View>
-          ))}
-          
-          {/* Loading indicator */}
-          {isLoading && (
-            <View className="items-start mb-2">
-              <View className="rounded-lg p-3 bg-bg-medium">
-                <Text className="text-txt-darkblue">Typing...</Text>
-              </View>
-            </View>
-          )}
-        </ScrollView>
-
-        <View className="px-4 mb-4">
-          <View className="flex-row items-center p-4 bg-bg-orange rounded-full">
-            <TextInput
-              className="flex-1 bg-bg-medium text-white p-3 rounded-full"
-              placeholder="Talk with Moodi..."
-              placeholderTextColor="#777"
-              value={input}
-              onChangeText={setInput}
-            />
-            <TouchableOpacity 
-              className="ml-2 p-3 bg-[#FF6B35] rounded-lg" 
-              onPress={sendMessage}
-              disabled={isLoading}
-            >
-              <Ionicons name="send" size={20} color="white" />
-            </TouchableOpacity>
-          </View>
-          
-          {/* END button */}
-          <TouchableOpacity 
-            className="mt-3 p-3 bg-[#FF3535] rounded-lg items-center"
-            onPress={handleEndChat}
-          >
-            <Text className="text-white font-bold text-lg">END</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-
->>>>>>> glean2120674
       {/* Rating Modal */}
       <Modal
         visible={ratingModalVisible}
         transparent={true}
         animationType="slide"
-<<<<<<< HEAD
         onRequestClose={() => {/* Prevent closing by back button */ }}
       >
         <ChatbotRatingModal
@@ -653,15 +520,6 @@ const handleRatingSubmit = (rating: number, feedback: string) => {
   onMoodEntrySaved={false}
   onChatbotRating={chatbotRated}
 />
-=======
-        onRequestClose={() => {/* Prevent closing by back button */}}
-      >
-        <ChatbotRatingModal 
-          onSubmit={handleRatingSubmit} 
-          // Modal can only be closed via the submit function
-        />
-      </Modal>
->>>>>>> glean2120674
     </SafeAreaView>
   );
 }

@@ -9,10 +9,7 @@ import { useTheme } from "@/app/(root)/properties/themecontext"; // Import the t
 // Import specific functions from API to avoid "undefined" errors
 import { getMoodEntriesForCalendar, subscribeToChanges } from "@/app/services/moodEntriesApi";
 import { moodColors } from "@/app/services/type";
-<<<<<<< HEAD
-=======
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Add AsyncStorage import
->>>>>>> glean2120674
 
 import MoodRad from "@/assets/icons/MoodRad.png";
 import MoodGood from "@/assets/icons/MoodGood.png";
@@ -28,6 +25,8 @@ const moodIcons = {
   Awful: MoodAwful,
 };
 
+// Theme storage key for AsyncStorage
+const THEME_STORAGE_KEY = "app_selected_theme";
 // Array of daily affirmations
 const affirmations = [
   "Today I choose joy and positivity",
@@ -40,9 +39,6 @@ const affirmations = [
   "I deserve peace and happiness",
 ];
 
-// Theme storage key for AsyncStorage
-const THEME_STORAGE_KEY = "app_selected_theme";
-
 export default function CalendarScreen() {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const { width, height } = useWindowDimensions();
@@ -54,7 +50,6 @@ export default function CalendarScreen() {
   // Use the theme context with multiple themes
   const { theme, setThemeName, availableThemes } = useTheme();
 
-<<<<<<< HEAD
   // Theme-based mood colors (override with theme colors if needed)
   const themeMoodColors = {
     Rad: theme.buttonBg,    // Using buttonBg for Rad
@@ -63,60 +58,6 @@ export default function CalendarScreen() {
     Bad: theme.accent3,     // Using accent3 for Bad
     Awful: theme.accent4,   // Using accent4 for Awful
   };
-=======
-  // The available theme palettes - seasonal themes
-  const palettes = [
-    {
-      title: "🌱 Spring Theme",
-      themeName: "spring",
-      icon: "https://cdn-icons-png.flaticon.com/128/1688/1688535.png",
-      description: "Fresh green & yellow tones",
-      color: "#5fa55a"
-    },
-    {
-      title: "❄️ Winter Theme",
-      themeName: "winter",
-      icon: "https://cdn-icons-png.flaticon.com/128/3523/3523063.png",
-      description: "Cool blue & ice tones",
-      color: "#4deeea"
-    },
-    {
-      title: "☀️ Summer Theme",
-      themeName: "summer",
-      icon: "https://cdn-icons-png.flaticon.com/128/1104/1104935.png",
-      description: "Vibrant pink & purple",
-      color: "#c266a7"
-    },
-    {
-      title: "🍂 Autumn Theme",
-      themeName: "autumn",
-      icon: "https://cdn-icons-png.flaticon.com/128/2913/2913136.png",
-      description: "Warm orange & red tones",
-      color: "#FF6B35"
-    },
-  ];
-
-  // Load saved theme from AsyncStorage on component mount
-  useEffect(() => {
-    const loadSavedTheme = async () => {
-      try {
-        const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-        if (savedTheme) {
-          setThemeName(savedTheme);
-          // Set the selected reward based on the saved theme
-          const matchingPalette = palettes.find(p => p.themeName.toLowerCase() === savedTheme.toLowerCase());
-          if (matchingPalette) {
-            setSelectedReward(matchingPalette.title);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading saved theme:", error);
-      }
-    };
-    
-    loadSavedTheme();
-  }, []);
->>>>>>> glean2120674
 
   useEffect(() => {
     // Get a random affirmation for the day
@@ -172,7 +113,6 @@ export default function CalendarScreen() {
     calendarEntries.map((entry) => [entry.date, entry.mood])
   );
 
-<<<<<<< HEAD
   // The available theme palettes - seasonal themes
   const palettes = [
     {
@@ -209,20 +149,6 @@ export default function CalendarScreen() {
   const handleRewardSelect = (palette) => {
     setSelectedReward(palette.title);
     setThemeName(palette.themeName);
-=======
-  // Handle reward selection and theme change
-  const handleRewardSelect = async (palette) => {
-    setSelectedReward(palette.title);
-    setThemeName(palette.themeName);
-    
-    // Save the selected theme to AsyncStorage
-    try {
-      await AsyncStorage.setItem(THEME_STORAGE_KEY, palette.themeName);
-      console.log(`Theme ${palette.themeName} saved to storage`);
-    } catch (error) {
-      console.error("Error saving theme:", error);
-    }
->>>>>>> glean2120674
   };
 
   return (
@@ -354,7 +280,7 @@ export default function CalendarScreen() {
               ))}
             </View>
 
-            <View style={{ width: "100%", flexDirection: "row", flexWrap: "wrap" }}>
+            <View className="w-full flex-wrap flex-row">
               {[...prevMonthDays, ...daysInMonth, ...nextMonthDays].map(
                 (day, index) => {
                   const formattedDate = format(day, "yyyy-MM-dd");
@@ -362,10 +288,6 @@ export default function CalendarScreen() {
                   const mood = moodMap[formattedDate];
                   const moodIcon = mood ? moodIcons[mood] : null;
                   
-<<<<<<< HEAD
-                  // Use the mood colors from the imported type - this ensures consistency
-                  const moodColor = mood ? moodColors[mood] : null;
-=======
                   // Map mood types to theme color properties
                   const moodToThemeMap = {
                     "Rad": "buttonBg",
@@ -377,7 +299,6 @@ export default function CalendarScreen() {
                   
                   // Use the appropriate theme color for the mood
                   const moodColor = mood ? theme[moodToThemeMap[mood]] || moodColors[mood] : null;
->>>>>>> glean2120674
                   
                   return (
                     <View
@@ -404,11 +325,7 @@ export default function CalendarScreen() {
                               width: 30,
                               height: 30,
                               resizeMode: "contain",
-<<<<<<< HEAD
                               tintColor: theme.calendarBg // This line makes all mood icons black
-=======
-                              tintColor: mood === "Rad" ? theme.calendarBg : theme.calendarBg
->>>>>>> glean2120674
                             }}
                           />
                         )}
@@ -441,34 +358,26 @@ export default function CalendarScreen() {
             <Text style={{ color: theme.buttonBg, fontWeight: "bold", fontSize: 16, marginBottom: 16 }}>
               Current Season: {theme.name}
             </Text>
-            
-            {/* Themes section header */}
-            <View style={{ 
-              backgroundColor: theme.calendarBg, 
-              paddingVertical: 12, 
-              borderTopLeftRadius: 8, 
-              borderTopRightRadius: 8,
-              width: "100%",
-              alignItems: "center"
-            }}>
-              <Text style={{ color: theme.text, fontWeight: "bold" }}>
-                Seasonal Themes
-              </Text>
-            </View>
-            
-            {/* Horizontal theme tabs */}
-            <View style={{ 
-              flexDirection: "row", 
-              justifyContent: "space-around", 
-              width: "100%",
-              backgroundColor: theme.calendarBg,
-              borderBottomLeftRadius: 8,
-              borderBottomRightRadius: 8,
-              paddingVertical: 16,
-              paddingHorizontal: 8,
-              marginBottom: 24
-            }}>
-              {palettes.slice(0, 3).map((palette, index) => (
+
+            <View style={{ alignItems: "center", justifyContent: "center" }}>
+              {[
+                {
+                  title: "🎨 Palette 1",
+                  icon: "https://cdn-icons-png.flaticon.com/128/2913/2913136.png",
+                },
+                {
+                  title: "😀 Emoji Set",
+                  icon: "https://cdn-icons-png.flaticon.com/128/3523/3523063.png",
+                },
+                {
+                  title: "😎 Moodi Emotes",
+                  icon: "https://cdn-icons-png.flaticon.com/128/1688/1688535.png",
+                },
+                {
+                  title: "🎭 Moodi Accessories",
+                  icon: "https://cdn-icons-png.flaticon.com/128/1104/1104935.png",
+                },
+              ].map((reward, index) => (
                 <TouchableOpacity
                   key={index}
                   onPress={() => handleRewardSelect(palette)}
@@ -556,9 +465,7 @@ export default function CalendarScreen() {
             </TouchableOpacity>
 
             {selectedReward && (
-              <Text style={{ color: theme.buttonBg, marginTop: 16, fontSize: 18, fontWeight: "600" }}>
-                {`Theme Unlocked: ${selectedReward}`}
-              </Text>
+              <Text className="text-white mt-4 text-lg font-semibold">{`You unlocked: ${selectedReward}`}</Text>
             )}
           </View>
         )}
