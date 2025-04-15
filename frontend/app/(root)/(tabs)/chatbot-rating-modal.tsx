@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Keyboard,TouchableWithoutFeedback } from "react-native";
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  ScrollView, 
+  Keyboard,
+  TouchableWithoutFeedback,
+  StyleSheet
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 interface ChatbotRatingModalProps {
@@ -7,12 +16,17 @@ interface ChatbotRatingModalProps {
 }
 
 const ChatbotRatingModal: React.FC<ChatbotRatingModalProps> = ({ onSubmit }) => {
-  const [rating, setRating] = useState<number | null>(null);
+  const [rating, setRating] = useState<number>(0);
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
 
+  const handleRatingSelect = (value: number) => {
+    setRating(value);
+    setError("");
+  };
+
   const handleSubmit = () => {
-    if (rating === null) {
+    if (rating === 0) {
       setError("Please rate before submitting.");
       return;
     }
@@ -21,73 +35,176 @@ const ChatbotRatingModal: React.FC<ChatbotRatingModalProps> = ({ onSubmit }) => 
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 bg-black/50 justify-center px-4">
+      <View style={styles.container}>
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center" }}
           keyboardShouldPersistTaps="handled"
         >
-          <View className="bg-[#1E1E1E] rounded-2xl px-6 py-8 w-full max-w-[90%]">
-            <Text className="text-txt-orange font-LeagueSpartan-Bold text-3xl font-bold mb-6 text-center">
-              Rate your conversation
+          <View style={styles.modalContent}>
+            <Text style={styles.title}>
+              How was your chat with Moodi?
             </Text>
-            <Text className="text-txt-light font-LeagueSpartan text-xl mb-3 text-center">
-              How was your experience with Moodi?
+            
+            <Text style={styles.subtitle}>
+              Your feedback helps us improve!
             </Text>
 
             {/* Stars */}
-            <View className="flex-row justify-center mb-4 space-x-2">
+            <View style={styles.starsContainer}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity
                   key={star}
-                  onPress={() => {
-                    setRating(star);
-                    setError("");
-                  }}
+                  onPress={() => handleRatingSelect(star)}
                 >
                   <Ionicons
-                    name={rating !== null && star <= rating ? "star" : "star-outline"}
+                    name={rating !== 0 && star <= rating ? "star" : "star-outline"}
                     size={40}
-                    color={rating !== null && star <= rating ? "#FF6B35" : "#555"}
+                    color={rating !== 0 && star <= rating ? "#FF6B35" : "#555"}
                   />
                 </TouchableOpacity>
               ))}
             </View>
 
             {error ? (
-              <Text className="text-txt-orange font-LeagueSpartan mb-2 text-xl text-center">
+              <Text style={styles.errorText}>
                 {error}
               </Text>
             ) : null}
 
             {/* Feedback */}
-            <View className="w-full mb-5">
-              <Text className="text-txt-light font-LeagueSpartan text-lg mb-1">
-                Share your feedback (Optional)
-              </Text>
-              <TextInput
-                className="border border-[#555] rounded-xl px-4 py-2 font-LeagueSpartan text-txt-light text-lg bg-[#2D2D2D] h-24 text-base"
-                multiline
-                numberOfLines={4}
-                value={feedback}
-                onChangeText={setFeedback}
-                placeholder="Tell us about your experience..."
-                placeholderTextColor="#888"
-                textAlignVertical="top"
-              />
-            </View>
+            <Text style={styles.feedbackLabel}>
+              Additional feedback (optional):
+            </Text>
+            <TextInput
+              style={styles.feedbackInput}
+              multiline 
+              numberOfLines={4}
+              value={feedback}
+              onChangeText={setFeedback}
+              placeholder="What did you like or dislike about this conversation?"
+              placeholderTextColor="#888"
+              textAlignVertical="top"
+            />
 
             {/* Submit */}
             <TouchableOpacity
-              className="bg-[#FF6B35] rounded-2xl py-3 w-full items-center"
+              style={[
+                styles.submitButton,
+                rating === 0 && styles.disabledButton
+              ]}
               onPress={handleSubmit}
+              disabled={rating === 0}
             >
-              <Text className="text-txt-darkgray font-LeagueSpartan-Bold text-xl">Submit</Text>
+              <Text style={styles.submitButtonText}>Submit & Save Session</Text>
             </TouchableOpacity>
+            
+            <View style={styles.feedbackNote}>
+              <Ionicons name="information-circle-outline" size={16} color="#888" />
+              <Text style={styles.noteText}>
+                Your feedback and chat history will be saved for future reference
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </View>
     </TouchableWithoutFeedback>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: '#282828',
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FF6B35',
+    marginBottom: 10,
+    textAlign: 'center',
+    fontFamily: 'LeagueSpartan-Bold',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#EEEED0',
+    marginBottom: 20,
+    textAlign: 'center',
+    fontFamily: 'LeagueSpartan',
+  },
+  starsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+    marginBottom: 20,
+    gap: 10,
+  },
+  errorText: {
+    color: '#FF6B35',
+    fontFamily: 'LeagueSpartan',
+    marginBottom: 10,
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  feedbackLabel: {
+    alignSelf: 'flex-start',
+    marginBottom: 5,
+    color: '#EEEED0',
+    fontSize: 16,
+    fontFamily: 'LeagueSpartan',
+  },
+  feedbackInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#444',
+    borderRadius: 10,
+    padding: 12,
+    color: '#EEEED0',
+    backgroundColor: '#1E1E1E',
+    textAlignVertical: 'top',
+    marginBottom: 20,
+    fontFamily: 'LeagueSpartan',
+    minHeight: 100,
+  },
+  submitButton: {
+    backgroundColor: '#FF6B35',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    marginTop: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#666',
+    opacity: 0.7,
+  },
+  submitButtonText: {
+    color: '#EEEED0',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
+    fontFamily: 'LeagueSpartan-Bold',
+  },
+  feedbackNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 15,
+  },
+  noteText: {
+    fontSize: 12,
+    color: '#888',
+    marginLeft: 5,
+    fontFamily: 'LeagueSpartan',
+  },
+});
 
 export default ChatbotRatingModal;

@@ -7,6 +7,8 @@ import images from "@/constants/images";
 import { useWindowDimensions } from "react-native";
 import ChatbotRatingModal from "./chatbot-rating-modal"; // Import the rating modal component
 import EndChatModal from "./end-chat-modal"; // Import the end chat confirmation modal
+import XpStreakManager from "./XpStreakManager"; // Adjust path if needed
+import CalendarPicker from 'react-native-calendar-picker'; // For calendar functionality
 
 const { height, width } = Dimensions.get("window");
 
@@ -24,6 +26,7 @@ interface APIResponse {
 }
 
 export default function ChatbotPage() {
+  const [chatbotRated, setChatbotRated] = useState<boolean>(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       text: "Hey there! I'm Moodi, your AI friend! Just checking in—how's your day?",
@@ -50,6 +53,13 @@ export default function ChatbotPage() {
       }, 100);
     }
   }, [messages]);
+
+  // Reset chatbotRated state when starting a new chat session
+useEffect(() => {
+  if (!chatEnded) {
+    setChatbotRated(false);
+  }
+}, [chatEnded]);
 
   // Format timestamp to show time (AM/PM) and date (day, month in 3 letters)
   const formatTimestamp = (timestamp: Date): string => {
@@ -208,22 +218,85 @@ export default function ChatbotPage() {
   };
 
   // Function to handle rating submission
-  const handleRatingSubmit = (rating: number, feedback: string) => {
-    // Here you would typically send the rating data to your backend
-    console.log("Rating submitted:", rating, feedback);
-    setRatingModalVisible(false);
-    // Additional actions after submission if needed
-  };
+  // Function to handle rating submission
+const handleRatingSubmit = (rating: number, feedback: string) => {
+  // Log the rating data (will be sent to backend later)
+  console.log("Rating submitted:", rating, feedback);
+  
+  // Close the rating modal
+  setRatingModalVisible(false);
+  
+  // Set chatbotRated to trigger XP reward
+  setChatbotRated(true);
+  
+  // After a short delay to allow XP notification to be seen
+  setTimeout(() => {
+    // Save current session to history (mock implementation for now)
+    const sessionRecord = {
+      date: new Date(),
+      messages: messages,
+      rating: rating,
+      feedback: feedback
+    };
+    console.log("Session saved:", sessionRecord);
+    
+    // Start a new chat session
+    setMessages([{
+      text: "Hey there! I'm back. How can I help you today?",
+      sender: "bot",
+      role: "assistant",
+      timestamp: new Date()
+    }]);
+    setChatEnded(false);
+  }, 3000); // Give 3 seconds to see XP notification
+};
+
+  const mockSessionDates = [
+    new Date(2025, 3, 2), // April 2, 2025
+    new Date(2025, 3, 5), // April 5, 2025
+    new Date(2025, 3, 8), // April 8, 2025
+    new Date(2025, 3, 10), // April 10, 2025
+    new Date(2025, 3, 14), // April 14, 2025 (today)
+  ];
 
   // Simple date picker modal component
   const DatePickerModal = () => {
-    // Generate some sample dates for the dropdown (past 7 days)
-    const dates = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      return date;
-    });
-
+    // Function to check if a date has session history
+    const hasSessionHistory = (date: Date) => {
+      return mockSessionDates.some(sessionDate => 
+        sessionDate.getDate() === date.getDate() && 
+        sessionDate.getMonth() === date.getMonth() && 
+        sessionDate.getFullYear() === date.getFullYear()
+      );
+    };
+  
+    // Custom date styling function
+    const customDayRenderer = (date: any) => {
+      const jsDate = new Date(date);
+      
+      // Check if this date has session history
+      if (hasSessionHistory(jsDate)) {
+        return {
+          style: {
+            backgroundColor: '#FF6B35',
+            borderRadius: 20,
+          },
+          textStyle: {
+            color: 'white',
+            fontWeight: 'bold',
+          },
+        };
+      }
+      
+      // Default styling for dates without sessions
+      return {
+        style: {},
+        textStyle: {
+          color: '#EEEED0',
+        },
+      };
+    };
+  
     return (
       <Modal
         visible={datePickerVisible}
@@ -232,23 +305,95 @@ export default function ChatbotPage() {
         onRequestClose={() => setDatePickerVisible(false)}
       >
         <TouchableOpacity
-          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}
+          style={{ 
+            flex: 1, 
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            justifyContent: 'center',
+          }}
           activeOpacity={1}
           onPress={() => setDatePickerVisible(false)}
         >
-          <View className="bg-bg-gray rounded-lg m-8 p-4 mt-20 shadow-lg">
-            <Text className="text-txt-orange text-xl font-LeagueSpartan-Bold mb-4 text-center">Select Date</Text>
-            {dates.map((date, index) => (
-              <TouchableOpacity
-                key={index}
-                className="py-3 border-b border-gray-700"
-                onPress={() => handleDateSelect(date)}
-              >
-                <Text className="text-txt-light text-lg">
-                  {format(date, "EEEE, MMMM d, yyyy")}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View 
+            style={{ 
+              backgroundColor: '#282828', 
+              marginHorizontal: 20, 
+              borderRadius: 15,
+              padding: 15,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5,
+            }}
+          >
+            <Text style={{ 
+              color: '#FF6B35', 
+              fontSize: 22, 
+              fontWeight: 'bold', 
+              textAlign: 'center',
+              marginBottom: 15,
+            }}>
+              Session History
+            </Text>
+            
+            <View style={{ marginBottom: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 15 }}>
+                <View style={{ 
+                  width: 12, 
+                  height: 12, 
+                  backgroundColor: '#FF6B35', 
+                  borderRadius: 6, 
+                  marginRight: 8 
+                }} />
+                <Text style={{ color: '#EEEED0' }}>Days with chat sessions</Text>
+              </View>
+            </View>
+            
+            <CalendarPicker
+              startFromMonday={false}
+              allowRangeSelection={false}
+              minDate={new Date(2025, 0, 1)}
+              maxDate={new Date()}
+              weekdays={['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']}
+              months={[
+                'January', 'February', 'March', 'April',
+                'May', 'June', 'July', 'August',
+                'September', 'October', 'November', 'December'
+              ]}
+              previousTitle="Previous"
+              nextTitle="Next"
+              todayBackgroundColor="#4F4F4F"
+              selectedDayColor="#FF6B35"
+              selectedDayTextColor="#FFFFFF"
+              dayShape="circle"
+              scaleFactor={375}
+              textStyle={{
+                color: '#EEEED0',
+              }}
+              customDatesStyles={customDayRenderer}
+              onDateChange={(date) => {
+                // Convert the selected date string to a Date object
+                const selectedDate = new Date(date.toString());
+                handleDateSelect(selectedDate);
+              }}
+              previousTitleStyle={{ color: '#FF6B35' }}
+              nextTitleStyle={{ color: '#FF6B35' }}
+              monthTitleStyle={{ color: '#EEEED0', fontSize: 18, fontWeight: 'bold' }}
+              yearTitleStyle={{ color: '#EEEED0', fontSize: 18, fontWeight: 'bold' }}
+            />
+            
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#FF6B35',
+                padding: 12,
+                borderRadius: 25,
+                marginTop: 15,
+                alignItems: 'center',
+              }}
+              onPress={() => setDatePickerVisible(false)}
+            >
+              <Text style={{ color: '#EEEED0', fontWeight: 'bold', fontSize: 16 }}>Close</Text>
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -274,7 +419,7 @@ export default function ChatbotPage() {
             <Ionicons name="calendar-outline" size={28} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleEndChat} disabled={chatEnded}>
-          <Text className="text-[#EEEED0] darkgray font-LeagueSpartan-Bold text-xl p-1 bg-[#FF6B35] rounded-full items-center">EndChat</Text>
+          <Text className="text-[#EEEED0] darkgray font-LeagueSpartan-Bold text-xl p-1 bg-[#FF6B35] rounded-full items-center">End Chat</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -369,6 +514,12 @@ export default function ChatbotPage() {
           onSubmit={handleRatingSubmit}
         />
       </Modal>
+      {/* XP Streak Manager */}
+<XpStreakManager
+  selectedDate={selectedMonth}
+  onMoodEntrySaved={false}
+  onChatbotRating={chatbotRated}
+/>
     </SafeAreaView>
   );
 }
