@@ -18,6 +18,7 @@ interface XpStreakPopupModalProps {
 const XpStreakPopup = ({ 
   visible, 
   onClose, 
+  // totalXp, 
   streak, 
   xpAmount, 
   xpSource, 

@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
         end_time: {
             type: DataTypes.DATE,
             allowNull: false
+        },
+
+        isActive: {
+            type:DataTypes.INTEGER
         }
     },{
     timelapse: false,

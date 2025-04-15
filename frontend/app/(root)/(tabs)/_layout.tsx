@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect } from "react";
 import HomeScreen from "../(tabs)/home-page";
 import ChatbotStartScreen from "../(tabs)/chatbot-start";
 import ChatbotPageScreen from "../(tabs)/chatbot-page";
@@ -8,32 +9,50 @@ import CalendarScreen from "../(tabs)/calendar-page";
 import StatsScreen from "../(tabs)/stats-page";
 import SettingsPage from './settings-page';
 import { useTheme } from "@/app/(root)/properties/themecontext"; // Import the theme context
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+// Storage key for theme persistence (should match with other components)
+const THEME_STORAGE_KEY = "app_selected_theme";
+
 function ChatbotStack() {
+  const { theme } = useTheme();
+  
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      screenOptions={{ 
+        headerShown: false,
+        contentStyle: { backgroundColor: theme.background }
+      }}
+    >
       <Stack.Screen name="ChatbotStart" component={ChatbotStartScreen} />
       <Stack.Screen name="ChatbotPage" component={ChatbotPageScreen} />
     </Stack.Navigator>
   );
 }
 
-function AppStack() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home" component={Layout} />
-      <Stack.Screen name="Settings" component={SettingsPage} />
-    </Stack.Navigator>
-  );
-}
-
-
-function Layout() {
-  const { theme } = useTheme(); // Use the theme context to access current theme
-
+export default function Layout() {
+  const { theme, setThemeName } = useTheme(); // Use the theme context
+  
+  // Load saved theme on initial mount
+  useEffect(() => {
+    const loadSavedTheme = async () => {
+      try {
+        const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        if (savedTheme) {
+          setThemeName(savedTheme);
+          console.log(`Layout: Applied saved theme: ${savedTheme}`);
+        }
+      } catch (error) {
+        console.error("Layout: Error loading saved theme:", error);
+      }
+    };
+    
+    loadSavedTheme();
+  }, []);
+  
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -52,13 +71,19 @@ function Layout() {
         tabBarStyle: {
           backgroundColor: theme.background, // Use theme background color
           borderTopWidth: 0,
+          elevation: 0, // Remove shadow on Android
+          shadowOpacity: 0, // Remove shadow on iOS
         },
-        // Set header style if you ever enable headers
+        // Set screen background colors
         headerStyle: {
           backgroundColor: theme.background,
         },
         headerTintColor: theme.text,
         headerShown: false,
+        // Set content style to use theme background
+        contentStyle: {
+          backgroundColor: theme.background
+        }
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
