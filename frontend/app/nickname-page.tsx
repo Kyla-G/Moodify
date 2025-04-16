@@ -33,7 +33,7 @@ const handleContinue = async () => {
   if (!nickname.trim()) return;
 
   try {
-    const response = await axios.post("/users/addUser", {
+    const response = await axios.post("http://192.168.100.22:3000/users/addUser", {
       nickname: nickname.trim(),
     });
 
