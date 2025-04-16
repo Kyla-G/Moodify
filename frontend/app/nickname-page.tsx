@@ -33,7 +33,7 @@ const handleContinue = async () => {
   if (!nickname.trim()) return;
 
   try {
-    const response = await axios.post("http://192.168.100.22:3000/users/addUser", {
+    const response = await axios.post("https://moodify-pppc.onrender.com/users/addUser", {
       nickname: nickname.trim(),
     });
 

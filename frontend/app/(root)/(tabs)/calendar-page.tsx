@@ -160,7 +160,7 @@ export default function CalendarScreen() {
     const fetchMoodEntries = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/entries/getAllEntries');
+        const response = await axios.get('https://moodify-pppc.onrender.com/entries/getAllEntries');
         if (response.data.successful) {
           console.log("Successfully loaded mood entries:", response.data.formattedEntries.length);
           
